@@ -1,0 +1,74 @@
+/* AGHAWK HOME PAGE */
+
+
+
+/* HOME PAGE  */
+.site.home {
+	position:relative;
+}
+.site.home .entry-content {
+	margin:0;
+}
+.site.home .entry-content h1 {
+}
+
+
+body.home .site-main {
+	max-width:100%;
+	padding:0;
+	margin:0;
+}
+
+.homeVideoContainer {
+    position: relative;
+	height:500px;
+	overflow: hidden;
+	z-index:1;
+}
+.homeVideoContainer::before {
+    content: "";
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1;
+}
+
+.homeVideoContainer > video {
+    position: absolute;
+    width: 100%;
+	max-width:100%;
+    -o-object-fit: cover;
+    object-fit: cover;
+}
+
+.homeVideoCTAOverlay {
+	position:absolute;
+	width:95%;
+	top:40%;
+	left:2.5%;
+	z-index: 2;
+}
+.homeVideoCTAOverlay p.tagline {
+	font-size:4.5vw;
+	color:#f1b31e;
+	text-align:center;
+	text-shadow: 2px 2px 2px #000;
+}
+
+
+.homeSummary {
+	padding:40px 0;
+}
+.homeSummary h3 {
+	font-size:28px;
+	text-align: center;
+	line-height: 1.5em;
+}
+
+
+
+
+
+
+

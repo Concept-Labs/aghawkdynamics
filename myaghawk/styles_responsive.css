@@ -1,0 +1,170 @@
+
+/* RESPONSIVE: My.AgHawk Customer Portal */
+
+
+@media screen and (max-width: 890px) {
+    #mega-menu-wrap-primary .mega-menu-toggle .mega-toggle-block-0 .mega-toggle-animated-inner, 
+    #mega-menu-wrap-primary .mega-menu-toggle .mega-toggle-block-0 .mega-toggle-animated-inner::before, 
+    #mega-menu-wrap-primary .mega-menu-toggle .mega-toggle-block-0 .mega-toggle-animated-inner::after {
+        background-color: #FFF;
+    }
+}
+
+@media screen and (max-width: 700px) {
+	#hdrLogo {
+		width:50%;
+	}
+	#hdrLogo img,
+	#hdrLogo .text {
+		width:49%;
+		margin:8px 1% 0 0;
+	}
+	#hdrLogo .text {
+		font-size:3vw;
+		margin:19px 0 0 0;
+	}
+	
+	#hdrLogo span.portal {
+		font-size:2.5vw;
+		line-height:1em;
+	}
+}
+
+@media screen and (max-width: 600px) {	
+	/* loginForms */
+	.loginForms #loginEmail,
+	.loginForms #loginPass {
+		width:97%;
+	}
+	
+	/* newUserAccountInfo */
+	#business_name, 
+	#street_address,
+	#acreage_size, 
+	#crop_category,
+	#crop_mix_notes,
+	#billing_address,
+	#nickname,
+	#notes {
+		width:97%;
+	}
+	#city,
+	#state,
+	#zip,
+	#billing_city,
+	#billing_state,
+	#billing_zip,
+	#acres,
+	#crop_category {
+		width:46%;
+	}
+	/* newUserContacts */
+	.contactSection p {
+		margin:0;
+	}
+	input[type="text"], input[type="email"], select, input[type="password"], input[type="tel"], input[type="date"] {
+		width:46%;
+	}
+	.passwordStrengthWrap {
+		display:block;
+		font-size:12px;
+	}
+	.strength-section {
+		width:14%;
+	}
+	.additionalContact {
+		position:relative;
+		padding-bottom:40px;
+	}
+	.removeContact,
+	.removeBlock {
+		top:auto;
+		bottom:12px;
+		right:calc(50% - 37px);
+	}
+	/* parcels & blocks */
+    .blockTable td.actions {
+        min-width:80px;
+        width:80px;
+    }
+    .blockTable td.actions a {
+        font-size:12px;
+    }
+    .blockTable td.actions a i {
+    }
+	.blockWrapper {
+		padding:15px 0 35px 0;
+	}
+    .formInlineFieldsWrap {
+        margin:5px;
+    }
+    .formInlineFieldsWrap input,
+    .formInlineFieldsWrap select {
+        width:100%;
+    }
+    .formInlineFieldsWrap textarea {
+        max-width:90%;
+    }
+    .attachment {
+        width:45%;
+    }
+    #editModal {
+        width:85%;
+    }
+}
+
+@media screen and (max-width: 500px) {
+	#hdrLogo {
+		top:0;
+	}
+	#hdrLogo img, 
+	#hdrLogo .text {
+		float:none;
+		width:185px;
+		max-width:185px;
+		margin:0;
+	}
+	#hdrLogo img {
+		max-width:185px;
+	}
+	#hdrLogo .text {
+		font-size:18px;
+	}
+	#hdrLogo span.portal {
+		display:none;
+	}
+    
+    .blockTable,
+    .blockTable thead tr th,
+    .blockTable td {
+        font-size:15px;
+        padding:7px 5px;
+    }
+    .blockTable td.actions a {
+        margin:3px 10px;
+    }
+    a.iconDroneSVG svg {
+        top:0;
+    }
+}
+
+@media screen and (max-width: 600px) {
+}
+
+@media screen and (max-width: 600px) {
+}
+
+@media screen and (max-width: 600px) {
+}
+
+@media screen and (max-width: 600px) {
+}
+
+@media screen and (max-width: 600px) {
+}
+
+@media screen and (max-width: 600px) {
+}
+
+@media screen and (max-width: 600px) {
+}

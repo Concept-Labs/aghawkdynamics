@@ -1,0 +1,299 @@
+/* CSS Document */
+pre {
+	font-size:14px;
+}
+body.loginPage form {
+	display: block;
+	width:fit-content;
+	text-align: center;
+	background:#d9e3e7;
+	border-radius:30px;
+	padding:40px;
+	margin:40px auto;
+}
+body.loginPage form input {
+	display:block;
+	margin:0 auto 10px auto;
+}
+#hdrLogo {
+	width:440px;
+	height:90px;
+}
+
+#hdrLogo img {
+	display: block;
+	float:left;
+	max-height:72px;
+	width:auto;
+}
+#hdrLogo .text {
+	float:right;
+	width:225px;
+    font-family: "Orbitron", sans-serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: #212222;
+    letter-spacing: 2px;
+    line-height: 0.7em;
+	text-align: center;
+	margin-top:4px;
+}
+#hdrLogo span {	
+    color:#5e6670;
+}
+#hdrLogo span.smaller {
+	display: block;
+    font-size:20px;
+    color: #212222;
+	padding-top:8px;
+}
+#hdrLogo span.smaller span {
+    color:#5e6670;
+}
+.hdrUser {
+	position:absolute;
+	top:4px;
+	right:0;
+	width:200px;
+	font-size:13px;
+}
+
+.site {
+    background: transparent url('images/ftrWatermark.png') -50px 117% no-repeat;
+}
+
+.contentArea {
+	min-height:500px;
+	font-size:14px;
+	padding:40px 0;
+}
+
+.homePlaceholderText {
+	width:fit-content;
+	text-align:center;
+	background:#dceff9;
+	border-radius:10px;
+	padding:15px 30px;
+	margin:40px auto 0 auto;
+}
+
+
+.adminSection {
+	background:rgba(255,255,255,0.8);
+	margin:0 0 40px 0;
+}
+.adminSection h3 span {
+	color:#7c8033;
+}
+.adminSection table th,
+.adminSection table td {
+	border-color:#CCC;
+}
+.adminSection table td {
+	position:relative;
+}
+.adminSection a.addEditLink {
+	display:inline-block;
+	font-size:16px;
+	color:#7c8033;
+	vertical-align: top;
+	margin:0 0 0 10px;
+}
+a.addEditLink.inline {
+	position: relative;
+}
+
+/* ACCOUNTS LIST */
+table.accountsList ul {
+	padding-left:18px;
+}
+table.accountsList .toggle-button,
+table.accountsList .toggle-button:focus {
+	font-size:14px;
+	color:#4598a9;
+	text-decoration: underline !important;
+	background:none;
+	padding:0;
+}
+table.accountsList a.acctName {
+	font-size:16px;
+}
+table.accountsList a.acctName i {
+	position:relative;
+	top:-10px;
+	font-size:11px;
+}
+
+/* BIZ DETAILS*/
+.AccountDetails .bizinfo {
+	font-weight: bold;
+	background:#e2e9ec;
+	border-radius: 10px; 
+	padding:10px 20px;
+	margin:20px 0;
+}
+
+/* PARCELS & BLOCKS */
+.parcels {
+	position:relative;
+	border:solid 2px #7c8033;
+}
+.parcelHeader {
+	font-weight: bold;
+	background:#e2e9ec;
+	border-radius: 10px; 
+	padding:10px 20px;
+}
+
+.parcelBlocks {
+	padding:10px 0 0 0;
+}
+.parcelBlocks h4 {
+	padding-left:10px;
+}
+.parcelBlock {
+	position:relative;
+	display:inline-block;
+	vertical-align: top;
+	width:30%;
+	border:solid 2px #a2abae;
+	border-radius:10px;
+	margin:1%;
+	padding:15px 15px 0 15px;
+}
+.parcelBlock a.addEditLink {
+	position: absolute;
+	display:block;
+	top:0;
+	right:5px;
+}
+
+
+/* SERVICE REQUESTS */
+form.filterServiceRequests {
+	margin:20px 0;
+}
+
+
+.green {
+	color:#7c8033;
+}
+label {
+	font-size:inherit;
+}
+
+input[type="text"], input[type="email"], input[type="url"], input[type="password"], input[type="search"], input[type="number"], input[type="tel"], input[type="range"], input[type="date"], input[type="month"], input[type="week"], input[type="time"], input[type="datetime"], input[type="datetime-local"], input[type="color"], input[type=checkbox], input[type=radio], textarea, .site textarea {
+	color:inherit;
+	padding:5px;
+}
+select {
+	padding:5px 30px 5px 5px;
+	border:solid 1px #CCC;
+	border-radius:3px;
+}
+
+button,
+button:not(:hover):not(:active):not(.has-background),
+button:hover {
+	font-family: "Recursive", sans-serif;
+	color:#FFF;
+	text-shadow:1px 1px 2px #000;
+	background:#7c8033;
+	border-radius:5px;
+	border:none;
+	padding:5px 25px;
+	transition:0.2s all;
+}
+button:hover {
+	background:#585c06;
+}
+
+/* EDIT SERVICE REQUEST */
+p.serviceRequestEditAcctInfo {
+	font-size:18px;
+	font-weight: bold;
+	border-radius:10px;
+	background:#e2e9ec;
+	box-shadow: 5px 5px 5px rgba(0,0,0,0.3);
+	padding:20px;
+	margin:0 0 20px 0;
+}
+p.serviceRequestEditAcctInfo em {
+	display:inline-block;
+	font-weight: normal;
+	text-align: right;
+	min-width:80px;
+	margin-right:15px;
+}
+
+/* ADD SERVICE REQUEST FORM */
+.formInlineFieldsDisplay .formSection {
+	border-radius:10px;
+	background:#e2e9ec;
+	box-shadow: 5px 5px 5px rgba(0,0,0,0.3);
+	padding:20px;
+	margin:0 0 20px 0;
+}
+.formInlineFieldsDisplay .formSection select,
+.formInlineFieldsDisplay .formSection input[type=text] {
+	width:250px;
+	margin:0 10px 10px 0;
+}
+.formInlineFieldsDisplay .formSection textarea {
+	margin:0 0 20px 0;
+}
+
+#serviceCompletionFields label {
+	display:inline-block;
+	width:210px;
+	text-align: right;
+	padding-right:5px;
+}
+#serviceCompletionFields input[type=number] {
+	width:65px;
+}
+
+
+/* ATTACHMENTS */
+.attachment-container {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 20px;
+}
+.attachment {
+	display: inline-block;
+	position: relative;
+	width:15%;
+	margin:2% 1%;
+}
+.thumbnail {
+	max-width:100%;
+	max-height:100%;
+	object-fit: cover;
+	margin: 10px;
+	cursor: pointer;
+}
+.comment {
+	font-size:13px;
+	margin:10px 0 0 0;
+}
+button.delete-button, button.delete-button:hover, 
+button.edit-button, button.edit-button:hover {
+	position: relative;
+	top: 5px;
+	font-size:15px;
+	padding:5px 15px !important;
+	margin:3px;
+	cursor: pointer;
+}
+.edit-button {
+	top: auto;
+	bottom: 5px;
+	background: blue;
+}
+/* attachment lightbox */
+.lb-dataContainer {
+	color:#FFF;
+	background:#000;
+}
+

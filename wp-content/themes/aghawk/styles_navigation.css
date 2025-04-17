@@ -1,0 +1,82 @@
+/* AGHAWK */
+
+
+/* NAVIGATION */
+#menu-toggle,
+.primary-navigation > div > .menu-wrapper.mobileMenu {
+	display:none;
+}
+#navBar {
+	display: block;
+	position:absolute;
+	top:43px;
+	left:auto;
+	right:0;
+	width:fit-content;
+	z-index:2;
+}
+.primary-navigation {
+	margin:0;
+}
+
+
+
+/* HEADER TOP RIGHT LINKS */
+.hdrRequestDemo {
+	position:absolute;
+	top:-8px;
+	right:0;
+	width:fit-content;
+	background:#7c8033;
+	transition:0.2s all;
+	border-radius:0 0 7px 7px;
+	transition:0.2s all;
+}
+.hdrRequestDemo:hover {
+	background:#616427;
+	box-shadow:2px 2px 5px rgba(0,0,0, 0.4);
+	transition:0.2s all;
+}
+.hdrRequestDemo a {
+	display:block;
+	font-size:16px;
+	color:#FFF;
+	text-shadow:2px 2px 2px #000;
+	text-transform: uppercase;
+	text-decoration:none;
+	letter-spacing: 0.5px;
+	text-align:center;
+	padding:2px 17px;
+	transition:0.2s all;
+}
+
+
+/* DOWN CARAT INDICATOR */
+#mega-menu-wrap-primary #mega-menu-primary li.mega-menu-item-has-children > a.mega-menu-link > span.mega-indicator:after {
+	content:"▾";
+}
+#mega-menu-wrap-primary #mega-menu-primary > li.mega-menu-item > a.mega-menu-link,
+#mega-menu-wrap-primary #mega-menu-primary > li.mega-menu-item > a.mega-menu-link:hover,
+#mega-menu-wrap-primary #mega-menu-primary > li.mega-menu-item > a.mega-menu-link:active,
+#mega-menu-wrap-primary #mega-menu-primary > li.mega-menu-item.mega-current-menu-item > a.mega-menu-link, 
+#mega-menu-wrap-primary #mega-menu-primary > li.mega-menu-item.mega-current-menu-ancestor > a.mega-menu-link, 
+#mega-menu-wrap-primary #mega-menu-primary > li.mega-menu-item.mega-current-page-ancestor > a.mega-menu-link {
+	font-weight:600;
+}
+
+/* SUBMENU */
+
+#mega-menu-wrap-primary #mega-menu-primary > li.mega-menu-flyout ul.mega-sub-menu {
+	width:max-content;
+	padding:0 15px;
+}
+
+#mega-menu-wrap-primary #mega-menu-primary > li.mega-menu-flyout ul.mega-sub-menu li.mega-menu-item a.mega-menu-link,
+#mega-menu-wrap-primary #mega-menu-primary > li.mega-menu-flyout ul.mega-sub-menu li.mega-menu-item a.mega-menu-link:hover {
+	font-weight:600;
+}
+
+
+
+
+
