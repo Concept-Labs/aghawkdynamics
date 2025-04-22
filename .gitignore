@@ -6,6 +6,7 @@ error_log
 /wp-content/cache/
 /wp-content/uploads/
 /wp-content/upgrade/
+/wp-content/wflogs/
 
 # Configs
 wp-config.php
