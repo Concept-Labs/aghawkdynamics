@@ -38,13 +38,13 @@
 		<div class="servicesTiles">
 			<div class="pad">
 
-				<a class="tile spraying" href="<?php echo esc_url( home_url( '/' ) ); ?>services/precision-spraying">
-					<h4>Precision<br />Spraying</h4>
+				<a class="tile spraying" href="<?php echo esc_url( home_url( '/' ) ); ?>services/aerial-spraying">
+					<h4>Aerial<br />Spraying</h4>
 					<p></p>
 				</a>
 
-				<a class="tile spreading" href="<?php echo esc_url( home_url( '/' ) ); ?>services/precision-spreading">
-					<h4>Precision<br />Spreading</h4>
+				<a class="tile spreading" href="<?php echo esc_url( home_url( '/' ) ); ?>services/aerial-spreading">
+					<h4>Aerial<br />Spreading</h4>
 				</a>
 
 				<a class="tile mapping" href="<?php echo esc_url( home_url( '/' ) ); ?>services/fruit-drying">
@@ -90,7 +90,6 @@
 
 				<div id="siteCredits">
 					&copy;<?php echo date("Y"); ?> AgHawk Dynamics, Inc.
-					<a class="nwwebdev" target="_blank" href="https://nwwebdev.com" title="Wordpress website design and development">Website: Northwest Website Development</a>
 				</div>
 			</div><!--//.pad-->
 		</div> <!--//Footer-->
