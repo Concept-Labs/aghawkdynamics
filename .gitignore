@@ -9,6 +9,7 @@ error_log
 
 # Configs
 wp-config.php
+admin/_dbconn.php
 .env
 .env.local
 
