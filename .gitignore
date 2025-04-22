@@ -1,0 +1,21 @@
+*.log
+*.tmp
+error_log
+
+#WordPress
+/wp-content/cache/
+/wp-content/uploads/
+/wp-content/upgrade/
+
+# Configs
+wp-config.php
+.env
+.env.local
+
+# composer/vendors
+/vendor/
+
+# temporaries
+*.bak
+*.swp
+.DS_Store
