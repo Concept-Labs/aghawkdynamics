@@ -869,7 +869,7 @@ function sendWelcomeEmail($recipientEmail, $recipientName) {
     $headers = "From: AgHawk Dynamics <aghawkdynamics@aghawkdynamics.com>\r\n";
     $headers .= "Reply-To: chris@aghawkdynamics.com\r\n";
     $headers .= "BCC: mlisenko5@gmail.com\r\n";
-    $headers .= "BCC: patrik@nwwebdev.com\r\n";
+    //$headers .= "BCC: patrik@nwwebdev.com\r\n";
     $headers .= "Reply-To: chris@aghawkdynamics.com\r\n";
     $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
     $message = "
@@ -947,7 +947,7 @@ function sendTestEmail($recipientEmail, $recipientName) {
         // Recipients
         $mail->setFrom('help@aghawkdynamics.com', 'AgHawk Dynamics'); // Replace with your "from" address
         $mail->addAddress($recipientEmail, $recipientName); // Recipient email and name
-		$mail->addBCC('patrik.e8@gmail.com');
+		//$mail->addBCC('patrik.e8@gmail.com');
 		$mail->addReplyTo('chris@aghawkdynamics.com', 'AgHawk Dynamics');
 
         $mail->isHTML(true);
@@ -998,9 +998,12 @@ function sendTestEmail($recipientEmail, $recipientName) {
         $mail->send();
 		echo "mail sent.";
     } catch (Exception $e) {
+        /**
+         @todo: log the error instead of sending an email
+         */
         // Log the error
         //error_log("Email could not be sent. Mailer Error: {$mail->ErrorInfo}");
-		mail('patrik.e8@gmail.com','aghawk email error', "Email could not be sent. Mailer Error: {$mail->ErrorInfo}");
+		//mail('patrik.e8@gmail.com','aghawk email error', "Email could not be sent. Mailer Error: {$mail->ErrorInfo}");
     }
 } //end sendWelcomeEmail()
 

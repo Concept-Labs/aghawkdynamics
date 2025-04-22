@@ -20,10 +20,12 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-
+/**
+ @todo: log errors to a file instead of sending emails
+ */
 // Connect to the database (assuming $conn is defined in _inc.php)
 if (!$conn) {
-	mail('patrik.e8@gmail.com','AgHawk cron error',"Database connection error: " . mysqli_connect_error());
+	//mail('patrik.e8@gmail.com','AgHawk cron error',"Database connection error: " . mysqli_connect_error());
     die("Database connection error: " . mysqli_connect_error());
 }
 
@@ -33,7 +35,7 @@ $sql = "DELETE FROM password_reset_tokens WHERE expires_at < NOW()";
 if ($conn->query($sql) === TRUE) {
 	//mail('patrik.e8@gmail.com','AgHawk cron ran','Expired tokens cleaned up successfully.');
 } else {
-	mail('patrik.e8@gmail.com','AgHawk cron error',"Error cleaning up expired tokens: " . $conn->error);
+	//mail('patrik.e8@gmail.com','AgHawk cron error',"Error cleaning up expired tokens: " . $conn->error);
 }
 
 // Close the database connection

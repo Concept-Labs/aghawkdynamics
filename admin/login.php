@@ -26,16 +26,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['admin_user_role'] = $user['role'];
             $_SESSION['first_name'] = $user['first_name'];
 			
-            
+            /**
+             @todo: log admin entry to a file instead of sending emails
+             */
             // Email details
-            $to = "patrik.e8@gmail.com";
-            $subject = "My Aghawk admin login";
-            $message = $_SESSION['first_name'] . " has logged in:\n";
-            $message .="IP Address: " . $_SERVER['REMOTE_ADDR'] . "\n";
-            $message .="Hostname: " . gethostbyaddr($_SERVER['REMOTE_ADDR']) . "\n";
-            $message .="User Agent: " . $_SERVER['HTTP_USER_AGENT'] . "\n";
-            $headers = "From: no-reply@aghawkdynamics.com";
-            mail($to, $subject, $message, $headers);
+            // $to = "patrik.e8@gmail.com";
+            // $subject = "My Aghawk admin login";
+            // $message = $_SESSION['first_name'] . " has logged in:\n";
+            // $message .="IP Address: " . $_SERVER['REMOTE_ADDR'] . "\n";
+            // $message .="Hostname: " . gethostbyaddr($_SERVER['REMOTE_ADDR']) . "\n";
+            // $message .="User Agent: " . $_SERVER['HTTP_USER_AGENT'] . "\n";
+            // $headers = "From: no-reply@aghawkdynamics.com";
+            // mail($to, $subject, $message, $headers);
 			
 			
             header("Location: index.php");
