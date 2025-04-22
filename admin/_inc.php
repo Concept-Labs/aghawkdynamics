@@ -7,11 +7,11 @@ if ($_SERVER['REMOTE_ADDR'] !== '96.46.17.70') {
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 
 
 require_once '../wp-load.php'; //LOAD WORDPRESS FUNCTIONS
-require_once '_dbconn.php'; // database connection 
+require_once '_dbconn.php'; // database connection
+error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_WARNING);
 
 
 // ADD ACCOUNT
