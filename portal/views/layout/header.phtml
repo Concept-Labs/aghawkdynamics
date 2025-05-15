@@ -1,0 +1,87 @@
+<?php
+
+use App\Model\Account\User;
+?>
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AGHAWK Portal</title>
+  <!--link id="theme-link" rel="stylesheet" href="/css/themes/light.css"-->
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/tooltipeable.css">
+  <script defer src="/js/theme.js"></script>
+</head>
+
+<body>
+  
+  <header class="flex">
+    
+    <div class="logo">
+      <img src="/public/img/header-logo.png" alt="AGHAWK Logo">
+      AGHAWK <strong>PORTAL</strong>
+    </div>
+
+    <button class="hamburger" aria-label="Menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+
+    
+    <div class="header-right">
+      
+      <nav>
+        <ul>
+          <li class="dropdown">
+            <span>My Parcels ▾</span>
+            <div class="dropdown-content">
+              <a href="/?q=parcel/index">List</a>
+              <a href="/?q=parcel/add">Add new parcel</a>
+            </div>
+          </li>
+          <li class="dropdown">
+            <span>My Blocks ▾</span>
+            <div class="dropdown-content">
+              <a href="/?q=block/index">List</a>
+              <a href="/?q=block/add">Add Block</a>
+            </div>
+          </li>
+          <li class="dropdown">
+            <span>Activity ▾</span>
+            <div class="dropdown-content">
+              <a href="/?q=serviceRequest/request">Request a service</a>
+              <a href="#">Self Tracking</a>
+            </div>
+          </li>
+        </ul>
+      </nav>
+      <div class="user header-right">
+      <?php
+      if (isset($_SESSION['uid'])): ?>
+        Welcome
+        <a href="/?q=account/profile">
+          <?= User::getInstance()->getAccount()->get('name') ?>
+        </a> |
+        <a href="/?q=auth/logout">Logout</a>
+      <?php else: ?>
+        <a href="/?q=auth/login">Login</a> |
+        <a href="/?q=auth/signup">Sign up</a>
+      <?php endif; ?>
+    </div>
+
+      <div class="theme-toggle" id="themeToggle">
+        <div class="theme-current"></div>
+        <div class="theme-menu" id="themeMenu">
+          <?php
+          $themes = ['brand', '#7c8033', 'turquoise', '#e5ffff', 'light', '#f9f9fb', 'dark', '#202124', 'purple', '#f7f0ff', 'green', '#eef9f0', 'blue', '#eef4ff', 'red', '#fff1f1'];
+          for ($i = 0; $i < count($themes); $i += 2):
+            $name = $themes[$i];
+            $color = $themes[$i + 1]; ?>
+            <div class="theme-btn" data-theme="<?= $name ?>" style="background:<?= $color ?>"></div>
+          <?php endfor; ?>
+        </div>
+      </div>
+    </div>
+  </header>
+  <main>

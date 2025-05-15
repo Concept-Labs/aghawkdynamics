@@ -1,0 +1,22 @@
+<h2>Request Service</h2>
+<div class="card">
+<form method="post">
+<div class="fld">
+  <select name="block_id" required>
+    <option value="" hidden></option>
+    <?php foreach ($blocks as $b): ?>
+      <option value="<?= $b['id'] ?>"><?= htmlspecialchars($b['name']) ?></option>
+    <?php endforeach ?>
+  </select>
+  <label>Block</label>
+</div>
+<div class="fld"><input name="service_type" placeholder=" " required><label>Service Type</label></div>
+<div class="fld"><textarea name="reason" placeholder=" " rows="3"></textarea><label>Reason</label></div>
+<label><input type="checkbox" name="urgent" value="1"> Urgent</label><br>
+<div class="fld"><input type="date" name="urgent_date" placeholder=" "><label>Urgent date</label></div>
+<label><input type="checkbox" name="is_recurring" value="1"> Recurring</label><br>
+<div class="fld"><input name="recurring_frequency" placeholder=" "><label>Frequency</label></div>
+<div class="fld"><input type="date" name="recurring_end_date" placeholder=" "><label>End date</label></div>
+<button class="btn" type="submit">Submit</button>
+</form>
+</div>

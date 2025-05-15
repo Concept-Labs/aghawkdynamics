@@ -1,0 +1,33 @@
+<style>
+  .login-form {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    opacity: 0.9;
+  }
+</style>
+<?php if ($error): ?><p style="color:red"><?= htmlspecialchars($error) ?></p><?php endif; ?>
+<div class="card login-form">
+  <div class="right">
+    <a href="/?q=auth/signup">Don't have an account?</a><br>
+  </div>
+  <h2>Login</h2>
+  <form method="post">
+    
+      
+      
+    <div class="fld">
+      <input type="email" name="email" placeholder=" " required>
+      <label>Email</label>
+    </div>
+    <div class="fld">
+      <input type="password" name="password" placeholder=" " required>
+      <label>Password</label>
+    </div>
+
+    <div class="flex" style="justify-content: space-between; align-items: center;">
+      <button class="btn" type="submit">Login</button>
+      <a href="/?q=auth/forgot">Forgot password?</a><br>
+    </div>
+  </form>
+</div>

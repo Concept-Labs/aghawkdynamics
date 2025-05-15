@@ -1,0 +1,15 @@
+<h2>Blocks</h2>
+<a href="/?q=block/add">Add Block</a>
+<table border="1">
+<thead><tr><th>ID</th><th>Name</th><th>Acres</th><th>Parcel ID</th></tr></thead>
+<tbody>
+<?php foreach ($blocks as $b): ?>
+<tr>
+<td><?= $b['id'] ?></td>
+<td><?= htmlspecialchars($b['name']) ?></td>
+<td><?= $b['acres'] ?></td>
+<td><?= $b['parcel_id'] ?></td>
+</tr>
+<?php endforeach ?>
+</tbody>
+</table>

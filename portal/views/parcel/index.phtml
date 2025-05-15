@@ -1,0 +1,211 @@
+<?php
+function buildUrlPg($target)
+{
+    return '?' . http_build_query([
+        'q' => 'parcel/index',
+        'page' => $target,
+        'limit' => $GLOBALS['perPage'],
+        'sort' => $GLOBALS['sort'],
+        'dir' => strtolower($GLOBALS['dir']),
+        'f_name' => $GLOBALS['nameFilter'],
+        'f_address' => $GLOBALS['addrFilter']
+    ]);
+}
+function buildPages($curr, $pages)
+{
+    $a = [1, $pages, $curr - 2, $curr - 1, $curr, $curr + 1, $curr + 2];
+    $a = array_filter($a, fn($p) => $p >= 1 && $p <= $pages);
+    $a = array_unique($a);
+    sort($a);
+    $out = [];
+    $prev = 0;
+    foreach ($a as $p) {
+        if ($prev && $p - $prev > 1) $out[] = '…';
+        $out[] = $p;
+        $prev = $p;
+    }
+    return $out;
+}
+$pageLinks = buildPages($page, $pages);
+?>
+<style>
+    table tr {
+        transition: all 0.3s ease;
+    }
+
+    table tr.filtered {
+        height: 0;
+        opacity: 0;
+    }
+</style>
+<div id="parcel-list">
+    <h2>My Parcels</h2>
+
+    <div class="table-toolbar flex flex-right" style="align-items:center;gap:.5rem;margin-bottom:.5rem">
+        <form method="get" class="page-size flex" style="gap:.3rem;align-items:center">
+            <?php foreach (
+                [
+                    'q' => 'parcel/index',
+                    'sort' => $sort,
+                    'dir' => strtolower($dir),
+                    'f_name' => $nameFilter,
+                    'f_address' => $addrFilter,
+                    'page' => $page
+                ] as $k => $v
+            ): ?>
+                <input type="hidden" name="<?= $k ?>" value="<?= htmlspecialchars($v) ?>">
+            <?php endforeach ?>
+        </form>
+
+
+        <div class="button-top-set">
+            <a class="btn" href="/?q=parcel/add">Add Parcel</a>
+            <a class="btn" href="/?q=parcel/export">Export</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <table>
+            <thead>
+                <?php
+                $headers = ['name' => 'Parcel name', 'address' => 'Address', 'blocks' => 'Blocks', 'actions' => ''];
+                $toggle = $dir === 'ASC' ? 'desc' : 'asc';
+                ?>
+                <tr>
+                    <?php foreach ($headers as $k => $label): ?>
+                        <th>
+                            <?php if (!in_array($k, ['address', 'blocks', 'actions'])): ?>
+                                <a href="?q=parcel/index&sort=<?= $k ?>&dir=<?= ($sort === $k ? $toggle : 'asc') ?>&limit=<?= $perPage ?>&f_name=<?= urlencode($nameFilter) ?>&f_address=<?= urlencode($addrFilter) ?>">
+                                    <?= $label ?> <?= $sort === $k ? ($dir === 'ASC' ? '▲' : '▼') : '' ?>
+                                </a>
+                                <?php else: ?><?= $label ?><?php endif ?>
+                        </th>
+                    <?php endforeach ?>
+                </tr>
+                <tr>
+                    <th>
+                        <input class="tbl-filter inline-search" name="f_name" value="<?= htmlspecialchars($nameFilter) ?>" placeholder="Parcel name">
+                    </th>
+                    <th><input class="tbl-filter inline-search" name="f_address" value="<?= htmlspecialchars($addrFilter) ?>" placeholder="Address"></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($this->getParam('parcels') as $p):
+                    $addr = trim($p['street'] . ' ' . $p['city'] . ' ' . $p['state'] . ' ' . $p['zip']); ?>
+                    <tr>
+                        <td><?= htmlspecialchars($p['name']) ?></td>
+                        <td><?= htmlspecialchars($addr) ?></td>
+                        <td>
+                            <div class="tooltipable">
+                                <button class="blocks-btn" data-id="<?= $p['id'] ?>">
+                                    <?= $counts[$p['id']] ?? 0 ?>
+                                </button>
+                                <div class="tooltip">
+                                    <div class="tooltip-content">
+                                        <div class="tooltip-header">Blocks</div>
+                                        <div class="tooltip-body">
+                                            <?php if ($counts[$p['id']] ?? 0): ?>
+                                                <ul>
+                                                    <?php foreach ($blocks[$p['id']] as $block): ?>
+                                                        <li><?= htmlspecialchars($block['name']) ?></li>
+                                                    <?php endforeach ?>
+                                                </ul>
+                                            <?php else: ?>
+                                                No blocks
+                                            <?php endif ?>
+                                        </div>
+                                        <div class="tooltip-footer">
+                                            <a href="/?q=block/index&parcel=<?= $p['id'] ?>">View all blocks</a>
+                                        </div>
+                                    </div>
+                                </div>
+                        </td>
+                        <td>
+                            <div class="action-wrap" style="position:relative">
+                                <button class="action-btn">⋮</button>
+                                <div class="actions-menu">
+                                    <a href="/?q=parcel/edit&id=<?= $p['id'] ?>">Edit</a>
+                                    <a href="/?q=block/index&parcel=<?= $p['id'] ?>">Blocks</a>
+                                    <a href="/?q=serviceRequest/request&parcel=<?= $p['id'] ?>">Request Service</a>
+                                    <a href="#" onclick="alert('Coming soon')">Self Tracking</a>
+                                    <div class="sep"></div>
+                                    <a href="/?q=block/disableAll&parcel=<?= $p['id'] ?>" class="warning">Disable All Blocks</a>
+                                    <a href="/?q=parcel/remove&id=<?= $p['id'] ?>" class="danger">Remove Parcel</a>
+                                </div>
+
+                            </div>
+                        </td>
+                    </tr>
+                <?php endforeach ?>
+                <?php if (!$parcels): ?>
+                    <tr>
+                        <td colspan="6" style="text-align:center;padding:1rem">No parcels found.</td>
+                    </tr>
+                <?php endif ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+<!--
+<?php if ($pages > 1): ?>
+    <nav class="pagination flex" style="gap:.3rem;margin-top:.5rem">
+        <?php if ($page > 1): ?><a class="btn" href="<?= buildUrlPg($page - 1) ?>">‹</a><?php endif; ?>
+        <?php foreach ($pageLinks as $p): ?>
+            <?php if ($p === '…'): ?><span style="padding:.4rem .6rem">…</span>
+            <?php else: ?><a class="btn<?= $p == $page ? ' active' : '' ?>" href="<?= buildUrlPg($p) ?>"><?= $p ?></a><?php endif; ?>
+        <?php endforeach ?>
+        <?php if ($page < $pages): ?><a class="btn" href="<?= buildUrlPg($page + 1) ?>">›</a><?php endif; ?>
+    </nav>
+<?php endif; ?>
+-->
+
+<script src="/js/parcel-actions.js"></script>
+<script>
+    document.querySelectorAll('.tbl-filter').forEach(i => {
+        i.addEventListener('keypress', e => {
+            if (e.key === 'Enter') {
+                const u = new URL(location.href);
+                u.searchParams.set('f_name', document.querySelector('[name="f_name"]').value);
+                u.searchParams.set('f_address', document.querySelector('[name="f_address"]').value);
+                u.searchParams.set('page', 1);
+                u.searchParams.set('limit', <?= $perPage ?>);
+                location.href = u;
+            }
+        });
+    });
+</script>
+
+<link rel="stylesheet" href="/public/css/blocks-modal.css">
+<div id="blocksModal">
+    <div class="modal-card">
+        <button class="close">×</button>
+        <h3 class="modal-title"></h3>
+        <div class="modal-body"></div>
+        <div class="modal-footer">
+            <a class="btn full-link" href="#" target="_blank">Blocks list</a>
+            <button class="btn close">Close</button>
+        </div>
+    </div>
+</div>
+<script src="/public/js/blocks-modal.js"></script>
+<script>
+    document.querySelectorAll('.inline-search').forEach(i => {
+        i.addEventListener('input', e => {
+            const searchText = e.target.value;
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                let match = false;
+                cells.forEach(cell => {
+                    if (cell.textContent.toLowerCase().includes(searchText.toLowerCase())) {
+                        match = true;
+                    }
+                });
+                //row.classList.toggle('filtered', !match);
+                row.style.display = match ? '' : 'none';
+            });
+        });
+    });
+</script>
