@@ -63,7 +63,7 @@ body.theme-light {
     --text-dark: #ccc;
     --accent: #4797a8;
     --accent-text: #fff;
-    --shadow: 0 2px 6px #4797a840;
+    --shadow: 0 2px 8px #4797a860;
     --border: 1px solid #4797a840;
 }
 
@@ -79,7 +79,7 @@ body.theme-dark {
     --text-dark: color-mix(in srgb, var(--text) 70%, black);
     --accent: #4797a8;
     --accent-text: #fff;
-    --shadow: 0 2px 6px rgba(0, 0, 0, .32);
+    --shadow: 0 2px 8px #ffffff10;
     --border: 1px solid #4f5355;
 }
 
@@ -95,7 +95,7 @@ body.theme-green {
     --text-dark: color-mix(in srgb, var(--text) 70%, black);
     --accent: #7c8033;
     --accent-text: #fff;
-    --shadow: 0 2px 6px #7c803340;
+    --shadow: 0 2px 8px #7c803340;
 }
 
 body.theme-yellow {
@@ -110,7 +110,7 @@ body.theme-yellow {
     --text-dark: color-mix(in srgb, var(--text) 70%, black);
     --accent: #efb321;
     --accent-text: #222223;
-    --shadow: 0 2px 6px #efb32140;
+    --shadow: 0 2px 8px #efb32140;
 }
 
 header,
@@ -160,7 +160,7 @@ footer a:hover img {
 }
 
 fieldset {
-    border: 10px solid var(--border);
+    border: 8px solid var(--border);
     padding: var(--spacing);
     border-radius: var(--radius);
     margin-bottom: var(--spacing);
