@@ -14,17 +14,17 @@
 
 use App\Core\Debug;
 
-$parcel = $this->getParam('parcel') ?? [];
+$parcel = $this->var('parcel', []);
 ?>
 <div id="parcel-form">
-  <h2>
+  <div class="card">
+    <h2>
     <?php if ($parcel['id']): ?>
       Edit Parcel
     <?php else: ?>
       Add Parcel
     <?php endif ?>
   </h2>
-  <div class="card">
     <form method="post">
       <div class="fld"><input name="name" placeholder=" " required
           value="<?= htmlspecialchars($parcel['name']) ?>"><label>Name</label></div>
@@ -36,7 +36,7 @@ $parcel = $this->getParam('parcel') ?? [];
       <div class="fld">
         <select name="state" required>
           <option value="" hidden></option>
-          <?php foreach ($this->getParam('states') as $code => $name): ?>
+          <?php foreach ($this->var('states', []) as $code => $name): ?>
             <option
               value="<?= $code ?>"
               <?php if ($code === $parcel['state']): ?>
@@ -56,15 +56,16 @@ $parcel = $this->getParam('parcel') ?? [];
         <button class="btn" type="button" onclick="addBlock()">Add Block</button>
       </div>
       <div class=button-set>
-        <button class="btn" type="button" onclick="window.history.back()">Cancel</button>
         <button class="btn" type="submit">
           <?php if ($parcel['id']): ?>
-            Update Parcel
+            Update
           <?php else: ?>
-            Create Parcel
+            Create
           <?php endif ?>
         </button>
+        <button class="btn cancel" type="button" onclick="window.history.back()">Cancel</button>
       </div>
+      
     </form>
   </div>
   <script>

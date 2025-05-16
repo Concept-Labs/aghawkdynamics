@@ -14,8 +14,13 @@ class User
     private function __construct()
     {
         $this->request = Request::getInstance();
+
         $this->accountModel = new Account();
-        $this->accountModel->load($this->request->session('uid'));
+        
+        if ($this->isLoggedIn()) {
+            $this->accountModel->load($this->request->session('uid'));
+        }
+        
     }
 
     public static function getInstance(): User
@@ -31,5 +36,15 @@ class User
     {
         return $this->accountModel;
     }
-    
+
+    public function isLoggedIn(): bool
+    {
+        return $this->request->session('uid') !== null;
+    }
+
+    public function getId(): int
+    {
+        return $this->request->session('uid');
+    }
+
 }

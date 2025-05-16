@@ -1,6 +1,10 @@
 <?php
 
+use App\Core\Request;
+use App\Model\Account;
 use App\Model\Account\User;
+
+$request = Request::getInstance();
 ?>
 <!DOCTYPE html>
 <html>
@@ -9,16 +13,113 @@ use App\Model\Account\User;
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>AGHAWK Portal</title>
-  <!--link id="theme-link" rel="stylesheet" href="/css/themes/light.css"-->
+  <link rel="stylesheet" href="/css/themes/aghwk.css">
   <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/topnav.css">
   <link rel="stylesheet" href="/css/tooltipeable.css">
-  <script defer src="/js/theme.js"></script>
+
+  <style>
+    .theme-toggle {
+      position: relative;
+      width: 34px;
+      height: 34px;
+      border:1px solid #ccc;
+      border-radius: 50%;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      overflow: visible;
+    }
+
+    .theme-current {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+    }
+
+    .theme-menu {
+      position: absolute;
+      right: 0;
+      top: 100%;
+      margin-top: 6px;
+      display: flex;
+      gap: 6px;
+      padding: .45rem .6rem;
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(6px);
+      transition: opacity .15s ease, transform .15s ease;
+      z-index: 200;
+    }
+
+    .theme-menu.show {
+      opacity: 1;
+      visibility: visible;
+      transform: none
+    }
+
+    .theme-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      box-shadow: 0 0 0 2px rgba(0, 0, 0, .1);
+      cursor: pointer;
+    }
+
+    .theme-btn.active {
+      box-shadow: 0 0 0 3px var(--accent)
+    }
+  </style>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.body.classList.add('loaded');
+
+      const toggle = document.getElementById('themeToggle');
+      const menu = document.getElementById('themeMenu');
+      const current = toggle.querySelector('.theme-current');
+      const btns = menu.querySelectorAll('.theme-btn');
+
+      /* застосовує тему класом theme-xxx на <body> */
+      function applyTheme(t) {
+        document.body.className = document.body.className.replace(/\btheme-\w+\b/g, '').trim();
+        document.body.classList.add('theme-' + t);
+        localStorage.setItem('theme', t);
+        document.cookie = `theme=${t}; path=/; max-age=${60*60*24*365}`;
+
+        btns.forEach(b => b.classList.toggle('active', b.dataset.theme === t));
+        /* колір для кружечка поточної теми */
+        const src = Array.from(btns).find(b => b.dataset.theme === t);
+        if (src) current.style.background = src.style.background;
+      }
+
+      /* початкова тема */
+      applyTheme(localStorage.getItem('theme') || 'light');
+
+      /* відкрити/закрити меню */
+      toggle.addEventListener('click', e => {
+        menu.classList.toggle('show');
+        e.stopPropagation();
+      });
+      document.addEventListener('click', () => menu.classList.remove('show'));
+
+      /* вибір теми */
+      btns.forEach(b => b.addEventListener('click', e => {
+        applyTheme(b.dataset.theme);
+        menu.classList.remove('show');
+        e.stopPropagation();
+      }));
+    });
+  </script>
 </head>
 
-<body>
-  
+<body <?php echo $request->cookie('theme') ? 'class="theme-' . $request->cookie('theme') . '"' : '' ?>>
+
+
   <header class="flex">
-    
+
     <div class="logo">
       <img src="/public/img/header-logo.png" alt="AGHAWK Logo">
       AGHAWK <strong>PORTAL</strong>
@@ -28,53 +129,30 @@ use App\Model\Account\User;
       <span></span><span></span><span></span>
     </button>
 
-    
+
     <div class="header-right">
-      
-      <nav>
-        <ul>
-          <li class="dropdown">
-            <span>My Parcels ▾</span>
-            <div class="dropdown-content">
-              <a href="/?q=parcel/index">List</a>
-              <a href="/?q=parcel/add">Add new parcel</a>
-            </div>
-          </li>
-          <li class="dropdown">
-            <span>My Blocks ▾</span>
-            <div class="dropdown-content">
-              <a href="/?q=block/index">List</a>
-              <a href="/?q=block/add">Add Block</a>
-            </div>
-          </li>
-          <li class="dropdown">
-            <span>Activity ▾</span>
-            <div class="dropdown-content">
-              <a href="/?q=serviceRequest/request">Request a service</a>
-              <a href="#">Self Tracking</a>
-            </div>
-          </li>
-        </ul>
-      </nav>
+      <?php if (User::getInstance()->isLoggedIn()) {
+        include_once('top-nav.phtml');
+      }
+      ?>
       <div class="user header-right">
-      <?php
-      if (isset($_SESSION['uid'])): ?>
-        Welcome
-        <a href="/?q=account/profile">
-          <?= User::getInstance()->getAccount()->get('name') ?>
-        </a> |
-        <a href="/?q=auth/logout">Logout</a>
-      <?php else: ?>
-        <a href="/?q=auth/login">Login</a> |
-        <a href="/?q=auth/signup">Sign up</a>
-      <?php endif; ?>
-    </div>
+        <?php
+        if (User::getInstance()->isLoggedIn()): ?>
+          <a href="/?q=account/profile">
+            <?= User::getInstance()->getAccount()->get('name') ?>
+          </a> |
+          <a href="/?q=auth/logout">Logout</a>
+        <?php else: ?>
+          <a href="/?q=auth/login">Login</a> |
+          <a href="/?q=auth/signup">Sign up</a>
+        <?php endif; ?>
+      </div>
 
       <div class="theme-toggle" id="themeToggle">
         <div class="theme-current"></div>
         <div class="theme-menu" id="themeMenu">
           <?php
-          $themes = ['brand', '#7c8033', 'turquoise', '#e5ffff', 'light', '#f9f9fb', 'dark', '#202124', 'purple', '#f7f0ff', 'green', '#eef9f0', 'blue', '#eef4ff', 'red', '#fff1f1'];
+          $themes = ['light', '#4797a8', 'green', '#7c8033', 'yellow', '#efb321', 'dark', '#5b6770'];
           for ($i = 0; $i < count($themes); $i += 2):
             $name = $themes[$i];
             $color = $themes[$i + 1]; ?>

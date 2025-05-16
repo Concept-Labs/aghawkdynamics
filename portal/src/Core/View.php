@@ -50,22 +50,22 @@ class View
         $this->template = $template;
     }
 
-    public function getParam(string $key, mixed $default = null): mixed
+    public function var(string $key, mixed $default = null): mixed
     {
         return $this->params[$key] ?? $default;
     }
 
-    public function setParam(string $key, mixed $value): void
+    public function setVar(string $key, mixed $value): void
     {
         $this->params[$key] = $value;
     }
 
-    public function getParams(): array
+    public function vars(): array
     {
         return $this->params;
     }
 
-    public function setParams(array $params): void
+    public function setVars(array $params): void
     {
         $this->params = $params;
     }

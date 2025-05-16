@@ -1,6 +1,9 @@
 <?php
 namespace App\Core;
 
+use App\Controller\ErrorController;
+use App\Controller\NotFoundController;
+
 class Router
 {
     public function dispatch(): void
@@ -18,18 +21,23 @@ class Router
             $controller = new $class();
             if (!method_exists($controller, $action)) {
                 http_response_code(404);
-                echo 'Action not found';
+                $controller = new NotFoundController();
+                $controller->index();
                 return;
             }
             $controller->$action();
         } catch (\Throwable $e) {
             http_response_code(500);
-            echo 'Internal Server Error';
-            error_log($e->getMessage());
-            echo '<pre>';
-            echo $e->getMessage();
-            echo $e->getTraceAsString();
-            echo '</pre>';
+            $controller = new ErrorController();
+            $controller->index($e);
+
+            // http_response_code(500);
+            // echo 'Internal Server Error';
+            // error_log($e->getMessage());
+            // echo '<pre>';
+            // echo $e->getMessage();
+            // echo $e->getTraceAsString();
+            // echo '</pre>';
         }
     }
 }

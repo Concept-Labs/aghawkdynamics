@@ -1,98 +1,157 @@
 <?php
 
 use App\Core\Config;
-use App\Core\Debug;
 
-$user = $this->getParam('user') ?? [];
+$user = $this->var('user', []);
 
 ?>
-<h2>My Profile</h2>
-<div class="card">
-    <form method="post" id="profile-form" onsubmit="return submitProfile()">
-        <div class="fld"><input name="name" value="<?= htmlspecialchars($user['name']) ?>" placeholder=" "><label>Name</label></div>
-        <div class="fld"><input name="street" value="<?= htmlspecialchars($user['street']) ?>" placeholder=" "><label>Street</label></div>
-        <div class="fld"><input name="city" value="<?= htmlspecialchars($user['city']) ?>" placeholder=" "><label>City</label></div>
-        <div class="fld">
-            <select name="state">
-                <?php
-                foreach (Config::get('states') as $code => $name): ?>
-                    <option value="<?= $code ?>" <?= $user['state'] === $code ? 'selected' : '' ?>><?= $name ?></option>
-                <?php endforeach ?>
-            </select>
-            <label>State</label>
-        </div>
-        <div class="fld"><input name="zip" value="<?= htmlspecialchars($user['zip']) ?>" placeholder=" "><label>ZIP</label></div>
-        <div class="fld"><input name="phone" value="<?= htmlspecialchars($user['phone']) ?>" placeholder=" "><label>Phone</label></div>
+<style>
 
-        <fieldset id="billing" class="card hidden">
-            <legend>Billing Address</legend>
-            <div class="fld"><input name="billing_street" placeholder=" " value=""><label>Billing street</label></div>
-            <div class=" fld"><input name="billing_city" placeholder=" "><label>Billing city</label></div>
-            <div class="fld">
-                <select name="state">
-                    <option value="" selected disabled hidden></option>
-                    <?php foreach ($states as $code => $name): ?>
-                        <option value="<?= $code ?>"><?= $name ?></option>
-                    <?php endforeach ?>
-                </select>
-                <label>State</label>
-            </div>
-            <div class="fld"><input name="billing_zip" placeholder=" "><label>Billing ZIP</label></div>
-        </fieldset>
-        <div id="change-password-container">
-            <fieldset id="password" class="card">
-            <legend>Change Password</legend>
-            <div class="fld"><input type="password" name="old_password" placeholder=" "><label>Old password</label></div>
-            <div class="fld"><input type="password" name="password" placeholder=" "><label>New password</label></div>
-            <div class="fld"><input type="password" name="password_repeat" placeholder=" "><label>Repeat new password</label></div>
-        </fieldset>
-        </div>
-        
-        <button class="btn" type="submit">Update</button>
-    </form>
-</div>
+    .hidden {
+        height: 0;
+        overflow: hidden;
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+</style>
 <script>
     function submitProfile() {
         return checkPassword();
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelector('fieldset legend').addEventListener('click', function() {
+            const fieldset = this.parentElement;
+            const fieldsetContent = fieldset.querySelector('.fieldset');
+            fieldsetContent.classList.toggle('hidden');
+            // if (fieldsetContent.classList.contains('hidden')) {
+            //     fieldset.style.height = '0';
+            // } else {
+            //     fieldset.style.height = 'auto';
+            // }
+        });
+
+    });
+
+    
 
     function checkPassword() {
         const password = document.querySelector('input[name="password"]').value;
         let old_password = '';
         let password_repeat = '';
         if (password.length > 0) {
-                old_password = document.querySelector('input[name="old_password"]').value;
-                password = document.querySelector('input[name="password"]').value;
-                password_repeat = document.querySelector('input[name="password_repeat"]').value;
-                if (password !== password_repeat) {
-                    alert('Passwords do not match');
-                    return false;
-                }
-                if (password.length < 8) {
-                    alert('Password must be at least 8 characters long');
-                    return false;
-                }
-                if (password === old_password) {
-                    alert('New password must be different from old password');
-                    return false;
-                }
-                // if (!/[A-Z]/.test(password)) {
-                //     alert('Password must contain at least one uppercase letter');
-                //     return false;
-                // }
-                // if (!/[a-z]/.test(password)) {
-                //     alert('Password must contain at least one lowercase letter');
-                //     return false;
-                // }
-                // if (!/[0-9]/.test(password)) {
-                //     alert('Password must contain at least one number');
-                //     return false;
-                // }
-                // if (!/[!@#$%^&*]/.test(password)) {
-                //     alert('Password must contain at least one special character');
-                //     return false;
-                // }
+            old_password = document.querySelector('input[name="old_password"]').value;
+            password = document.querySelector('input[name="password"]').value;
+            password_repeat = document.querySelector('input[name="password_repeat"]').value;
+            if (password !== password_repeat) {
+                alert('Passwords do not match');
+                return false;
+            }
+            if (password.length < 8) {
+                alert('Password must be at least 8 characters long');
+                return false;
+            }
+            if (password === old_password) {
+                alert('New password must be different from old password');
+                return false;
+            }
+            // if (!/[A-Z]/.test(password)) {
+            //     alert('Password must contain at least one uppercase letter');
+            //     return false;
+            // }
+            // if (!/[a-z]/.test(password)) {
+            //     alert('Password must contain at least one lowercase letter');
+            //     return false;
+            // }
+            // if (!/[0-9]/.test(password)) {
+            //     alert('Password must contain at least one number');
+            //     return false;
+            // }
+            // if (!/[!@#$%^&*]/.test(password)) {
+            //     alert('Password must contain at least one special character');
+            //     return false;
+            // }
         }
     }
-         
+</script>
+<div style="max-width: 600px; margin: 0 auto;">
+    <div class="card">
+        <h2>My Profile</h2>
+        <form method="post" id="profile-form" onsubmit="return submitProfile()">
+            <fieldset id="address" class="card">
+                <legend>Info</legend>
+                <div class="fld"><input name="email" disabled value="<?= htmlspecialchars($user['email']) ?>" placeholder=" "><label>Email (login)</label></div>
+                <div class="fld"><input name="name" value="<?= htmlspecialchars($user['name']) ?>" placeholder=" "><label>Name</label></div>
+                <div class="fld"><input name="phone" value="<?= htmlspecialchars($user['phone']) ?>" placeholder=" "><label>Phone</label></div>
+                <div class="fld">
+                    <select name="acreage_size" required>
+                        <option value="" selected disabled hidden></option>
+                        <?php foreach (Config::get('acreage_size') as $key => $value): ?>
+                            <option value="<?= $key ?>" <?= $user['acreage_size'] === $key ? 'selected' : '' ?>><?= $value ?></option>
+                        <?php endforeach ?>
+                    </select>
+                    <label>Total Approximate Acreage</label>
+            </fieldset>
+            <fieldset id="address" class="card">
+                <legend>Address</legend>
+                <div class="fieldset">
+                    <div class="fld"><input name="street" value="<?= htmlspecialchars($user['street']) ?>" placeholder=" "><label>Street</label></div>
+                    <div class="fld"><input name="city" value="<?= htmlspecialchars($user['city']) ?>" placeholder=" "><label>City</label></div>
+                    <div class="fld">
+                        <select name="state">
+                            <?php
+                            foreach (Config::get('states') as $code => $name): ?>
+                                <option value="<?= $code ?>" <?= $user['state'] === $code ? 'selected' : '' ?>><?= $name ?></option>
+                            <?php endforeach ?>
+                        </select>
+                        <label>State</label>
+                    </div>
+                    <div class="fld"><input name="zip" value="<?= htmlspecialchars($user['zip']) ?>" placeholder=" "><label>ZIP</label></div>
+                </div>
+            </fieldset>
+
+            <fieldset id="billing" class="card">
+                <legend>Billing Address</legend>
+                <div class="fieldset">
+                    <div class="fld">
+                        <input name="billing_street" placeholder=" " value="<?= htmlspecialchars($user['billing_street']) ?>">
+                        <label>Billing street</label>
+                    </div>
+                    <div class=" fld">
+                        <input name="billing_city" placeholder=" " value="<?= htmlspecialchars($user['billing_city']) ?>">
+                        <label>Billing city</label>
+                    </div>
+                    <div class="fld">
+                        <select name="state">
+                            <option value="" selected disabled hidden></option>
+                            <?php foreach (Config::get('states') as $code => $name): ?>
+                                <option value="<?= $code ?>" <?= $user['billing_state'] === $code ? 'selected' : '' ?>><?= $name ?></option>
+                            <?php endforeach ?>
+                        </select>
+                        <label>State</label>
+                    </div>
+                    <div class="fld">
+                        <input name="billing_zip" placeholder=" " value="<?= htmlspecialchars($user['billing_zip']) ?>">
+                        <label>Billing ZIP</label>
+                    </div>
+                </div>
+            </fieldset>
+            <div id="change-password-container">
+                <fieldset id="password" class="card">
+                    <legend>Change Password</legend>
+                    <div class="fieldset">
+                        <div class="fld"><input type="password" name="old_password" placeholder=" "><label>Old password</label></div>
+                        <div class="fld"><input type="password" name="password" placeholder=" "><label>New password</label></div>
+                        <div class="fld"><input type="password" name="password_repeat" placeholder=" "><label>Repeat new password</label></div>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="button-set">
+                <button class="btn" type="submit">Update</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    
 </script>

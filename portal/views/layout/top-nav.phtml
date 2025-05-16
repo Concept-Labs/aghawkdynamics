@@ -1,0 +1,177 @@
+<style>
+    /* ===== DESKTOP (≥ 601 px) ===== */
+    .top-nav {
+        display: flex;
+        justify-content: center;
+        padding: 0 .5rem
+    }
+
+    .top-nav ul {
+        display: flex;
+        gap: 1rem;
+        list-style: none;
+        margin: 0;
+        padding: 0
+    }
+
+    .top-nav li {
+        position: relative;
+        padding: .8rem 0;
+        cursor: pointer;
+        user-select: none
+    }
+
+    .top-nav li span {
+        color: var(--text)
+    }
+
+    .top-nav li:hover span {
+        color: var(--accent)
+    }
+
+    .dropdown-content {
+        border-radius: var(--radius);
+        position: absolute;
+        top: 100%;
+        left: 0;
+        min-width: 160px;
+        background: var(--card);
+        box-shadow: var(--shadow);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(6px);
+        transition: opacity .15s ease, transform .15s ease;
+        z-index: 100
+    }
+
+    .dropdown-content a {
+        display: block;
+        padding: .45rem 1rem;
+        color: var(--text);
+        text-decoration: none
+    }
+
+    .dropdown-content a:hover {
+        background: var(--accent);
+        color: var(--accent-text);
+    }
+
+    .dropdown:hover .dropdown-content {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0)
+    }
+
+    .burger {
+        display: none
+    }
+
+    /* ===== MOBILE (≤ 600 px) ===== */
+    @media(max-width:600px) {
+        .top-nav {
+            justify-content: flex-start;
+            align-items: center;
+            background: var(--card);
+            box-shadow: var(--shadow)
+        }
+
+        .burger {
+            display: block;
+            width: 30px;
+            margin: .4rem .2rem;
+            cursor: pointer
+        }
+
+        .burger div {
+            height: 3px;
+            background: var(--text);
+            margin: 5px 0;
+            transition: .3s
+        }
+
+        .top-nav ul {
+            flex-direction: column;
+            gap: .5rem;
+            width: 100%;
+            padding: .5rem 0;
+            background: var(--card);
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height .25s ease
+        }
+
+        .top-nav.open ul {
+            max-height: 400px
+        }
+
+        /* плавне розгортання */
+        .top-nav li {
+            padding: .6rem 1rem;
+            text-align: center;
+            width: 100%
+        }
+
+        .top-nav li:hover {
+            background: rgba(0, 0, 0, .05)
+        }
+
+        /* dropdown стає “inline” списком */
+        .dropdown-content {
+            position: static;
+            min-width: 100%;
+            padding: 0;
+            box-shadow: none;
+            opacity: 1;
+            visibility: visible;
+            transform: none
+        }
+
+        .dropdown-content a {
+            padding: .45rem 2rem;
+            text-align: left
+        }
+
+        .dropdown:hover .dropdown-content {
+            opacity: 1
+        }
+    }
+</style>
+
+<nav class="top-nav">
+
+    <div class="burger" id="navToggle">
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
+
+    <ul>
+        <li class="dropdown">
+            <span>My Parcels ▾</span>
+            <div class="dropdown-content">
+                <a href="/?q=parcel/index">List</a>
+                <a href="/?q=parcel/add">Add new parcel</a>
+            </div>
+        </li>
+        <li class="dropdown">
+            <span>My Blocks ▾</span>
+            <div class="dropdown-content">
+                <a href="/?q=block/index">List</a>
+                <a href="/?q=block/add">Add Block</a>
+            </div>
+        </li>
+        <li class="dropdown">
+            <span>Activity ▾</span>
+            <div class="dropdown-content">
+                <a href="/?q=serviceRequest/request">Request a service</a>
+                <a href="#">Self Tracking</a>
+            </div>
+        </li>
+    </ul>
+</nav>
+
+<script>
+
+    document.getElementById('navToggle').onclick = () =>
+        document.querySelector('.top-nav').classList.toggle('open');
+</script>

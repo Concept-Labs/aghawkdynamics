@@ -16,13 +16,13 @@ class Request
     private function __construct()
     {
         session_start();
-        $this->params = $_REQUEST;
-        $this->session = $_SESSION;
-        $this->cookies = $_COOKIE;
-        $this->server = $_SERVER;
-        $this->queryParams = $_GET;
-        $this->postParams = $_POST;
-        $this->files = $_FILES;
+        $this->params = &$_REQUEST;
+        $this->session = &$_SESSION;
+        $this->cookies = &$_COOKIE;
+        $this->server = &$_SERVER;
+        $this->queryParams = &$_GET;
+        $this->postParams = &$_POST;
+        $this->files = &$_FILES;
     }
 
     public static function getInstance(): Request
@@ -31,6 +31,21 @@ class Request
             self::$instance = new self();
         }
         return self::$instance;
+    }
+
+    public function isPost(): bool
+    {
+        return $this->getRequestMethod() === 'POST';
+    }
+
+    public function isGet(): bool
+    {
+        return $this->getRequestMethod() === 'GET';
+    }
+
+    public function getRequestMethod(): string
+    {
+        return $this->server('REQUEST_METHOD', 'GET');
     }
 
     public function request(?string $key = null, mixed $default = null): mixed
@@ -67,6 +82,11 @@ class Request
         }
 
         return $this->session[$key] ?? $default;
+    }
+
+    public function setSession(string $key, mixed $value): void
+    {
+        $this->session[$key] = $value;
     }
 
     public function cookie(?string $key = null, mixed $default = null): mixed

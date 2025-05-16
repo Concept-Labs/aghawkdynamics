@@ -19,18 +19,18 @@ class AccountController extends Controller
     /** Profile page for logged‑in user  */
     public function profile(): void
     {
-        session_start();
-        $id = $_SESSION['uid'] ?? 0;
+        $id = $this->getRequest()->session('uid');
+
         if (!$id) {
-            header('Location: /?q=auth/login');
+            $this->redirect('/?q=auth/login');
             exit;
         }
 
         $model = new Account();
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $data = array_intersect_key($_POST, array_flip(['name','street','city','state','zip','phone']));
+        if ($this->getRequest()->isPost()) {
+            $data = $this->getRequest()->post();
             if (!empty($_POST['password'])) {
-                $data['password'] = password_hash($_POST['password'], PASSWORD_DEFAULT);
+                $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
             }
             if ($data) $model->update($id,$data);
         }

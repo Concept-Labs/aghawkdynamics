@@ -1,3 +1,13 @@
+<?php
+
+use App\Core\Config;
+
+$data = $this->var('data', []);
+$states = $this->var('states', []);
+$error = $this->var('error', null);
+$isBillingFilled = !empty($data['billing_street']) || !empty($data['billing_city']) || !empty($data['billing_state']) || !empty($data['billing_zip']);
+
+?>
 <style>
   .sign-up-form {
     max-width: 400px;
@@ -22,58 +32,87 @@
   <?php if ($error): ?><p style="color:red"><?= htmlspecialchars($error) ?></p><?php endif; ?>
   <div>
     <form method="post" id="signup-form">
-      <div class="fld"><input type="email" name="email" placeholder=" " required><label>Email</label></div>
+      <div class="fld">
+        <input type="email" name="email" placeholder=" " required value=<?php echo htmlspecialchars($data['email']) ?>>
+        <label>Email</label>
+      </div>
+      <div class="fld">
+        <input name="name" placeholder=" " required value=<?php echo htmlspecialchars($data['name']) ?>>
+        <label>Business name</label>
+      </div>
       <div class="fld"><input type="password" name="password" placeholder=" " required><label>Password</label></div>
       <div class="fld"><input type="password" name="password_repeat" placeholder=" " required><label>Repeat Password</label></div>
-      <div class="fld"><input name="name" placeholder=" " required><label>Business name</label></div>
+
 
       <div class="fld">
         <select name="acreage_size" required>
           <option value="" selected disabled hidden></option>
-          <option>Under 50</option>
-          <option>50-200</option>
-          <option>200-500</option>
-          <option>Above 500</option>
+          <?php foreach (Config::get('acreage_size') as $key => $value): ?>
+            <option value="<?= $key ?>" <?= $data['acreage_size'] === $key ? 'selected' : '' ?>><?= $value ?></option>
+          <?php endforeach ?>
         </select>
         <label>Total Approximate Acreage</label>
       </div>
 
       <fieldset class="card">
         <legend>Address</legend>
-        <div class="fld"><input name="street" placeholder=" " required><label>Street</label></div>
-        <div class="fld"><input name="city" placeholder=" " required><label>City</label></div>
+        <div class="fld">
+          <input name="street" placeholder=" " required value=<?php echo htmlspecialchars($data['street']) ?>>
+          <label>Street</label>
+        </div>
+        <div class="fld">
+          <input name="city" placeholder=" " required value=<?php echo htmlspecialchars($data['city']) ?>>
+          <label>City</label>
+        </div>
         <div class="fld">
           <select name="state" required>
             <option value="" selected disabled hidden></option>
             <?php foreach ($states as $code => $name): ?>
-              <option value="<?= $code ?>"><?= $name ?></option>
+              <option value="<?= $code ?>" <?= $data['state'] === $code ? 'selected' : '' ?>><?= $name ?></option>
             <?php endforeach ?>
           </select>
           <label>State</label>
         </div>
-        <div class="fld"><input name="zip" placeholder=" " required><label>ZIP</label></div>
+        <div class="fld">
+          <input name="zip" placeholder=" " required value=<?php echo htmlspecialchars($data['zip']) ?>>
+          <label>ZIP</label>
+        </div>
+        <div style="display: flex; justify-content: flex-start;">
+          <input type="checkbox" id="same" checked id="same_address" name="same_address" style="width:auto">
+          <label for="same_address">Billing address same as above</label>
+        </div>
+
+        <fieldset id="billing" class="<?= $isBillingFilled ? '' : 'hidden' ?>">
+
+          <div class="fld">
+            <input name="billing_street" placeholder=" " value=<?php echo htmlspecialchars($data['billing_street']) ?>>
+            <label>Billing street</label>
+          </div>
+          <div class="fld">
+            <input name="billing_city" placeholder=" " value=<?php echo htmlspecialchars($data['billing_city']) ?>>
+            <label>Billing city</label>
+          </div>
+          <div class="fld">
+            <select name="state">
+              <option value="" selected disabled hidden></option>
+              <?php foreach ($states as $code => $name): ?>
+                <option value="<?= $code ?>" <?= $data['billing_state'] === $code ? 'selected' : '' ?>><?= $name ?></option>
+              <?php endforeach ?>
+            </select>
+            <label>State</label>
+          </div>
+          <div class="fld">
+            <input name="billing_zip" placeholder=" " value=<?php echo htmlspecialchars($data['billing_zip']) ?>>
+            <label>Billing ZIP</label>
+          </div>
+        </fieldset>
       </fieldset>
 
-      <div style="display: flex; justify-content: flex-start;">
-        <input type="checkbox" id="same" checked id="same_address" name="same_address" style="width:auto">
-        <label for="same_address">Billing address same as above</label>
+      <div id="additional_contacts" class="fld" style="margin-top: 10px">
+        <textarea name="additional_contacts" placeholder=" " rows="3"><?= htmlspecialchars($data['additional_contacts']) ?></textarea>
+        <label>Additional contacts & Notes</label>
       </div>
 
-      <fieldset id="billing" class="card hidden">
-        <legend>Billing Address</legend>
-        <div class="fld"><input name="billing_street" placeholder=" "><label>Billing street</label></div>
-        <div class="fld"><input name="billing_city" placeholder=" "><label>Billing city</label></div>
-        <div class="fld">
-          <select name="state">
-            <option value="" selected disabled hidden></option>
-            <?php foreach ($states as $code => $name): ?>
-              <option value="<?= $code ?>"><?= $name ?></option>
-            <?php endforeach ?>
-          </select>
-          <label>State</label>
-        </div>
-        <div class="fld"><input name="billing_zip" placeholder=" "><label>Billing ZIP</label></div>
-      </fieldset>
       <div class="button-set">
         <button class="btn" type="submit">Register</button>
       </div>
@@ -82,8 +121,8 @@
   <script>
     document.getElementById('same').addEventListener('change', e => {
       document.getElementById('billing').classList.toggle('hidden');
-      //todo :required billing fileds
     });
+
 
     document.getElementById('signup-form').addEventListener('submit', e => {
       const password = document.querySelector('input[name="password"]').value;

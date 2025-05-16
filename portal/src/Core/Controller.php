@@ -35,7 +35,12 @@ abstract class Controller
     {
         $uid = $this->getRequest()->session('uid');
 
-        if (null === $uid && !$this instanceof  AuthController) {
+        if (
+            null === $uid 
+            && !$this instanceof  AuthController
+            //&& !$this instanceof \App\Controller\ErrorController
+            && !$this instanceof \App\Controller\NotFoundController
+            ) {
             header('Location: /?q=auth/login');
             exit;
         }
