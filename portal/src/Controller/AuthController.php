@@ -141,7 +141,8 @@ class AuthController extends Controller
                 }
             }
         } catch (InvalidLoginException $e) {
-            $err = $e->getMessage();
+            //$err = $e->getMessage();
+            $this->getRequest()->addError($e->getMessage());
         } catch (\Throwable $e) {
             $err = 'An error occurred: ' . $e->getMessage();
         }

@@ -16,7 +16,7 @@
 
     .top-nav li {
         position: relative;
-        padding: .8rem 0;
+        padding: .8rem .8rem;
         cursor: pointer;
         user-select: none
     }
@@ -25,12 +25,12 @@
         color: var(--text)
     }
 
-    .top-nav li:hover span {
+    .top-nav li:hover  {
+        background: var(--card);
         color: var(--accent)
     }
 
     .dropdown-content {
-        border-radius: var(--radius);
         position: absolute;
         top: 100%;
         left: 0;
@@ -41,14 +41,18 @@
         visibility: hidden;
         transform: translateY(6px);
         transition: opacity .15s ease, transform .15s ease;
-        z-index: 100
+        z-index: 100;
+        border-radius: var(--radius);
+        
+        border-top-left-radius: 0;
     }
 
     .dropdown-content a {
         display: block;
         padding: .45rem 1rem;
         color: var(--text);
-        text-decoration: none
+        text-decoration: none;
+        transition: all .3s ease;
     }
 
     .dropdown-content a:hover {
@@ -104,7 +108,6 @@
             max-height: 400px
         }
 
-        /* плавне розгортання */
         .top-nav li {
             padding: .6rem 1rem;
             text-align: center;
@@ -115,7 +118,6 @@
             background: rgba(0, 0, 0, .05)
         }
 
-        /* dropdown стає “inline” списком */
         .dropdown-content {
             position: static;
             min-width: 100%;
@@ -147,21 +149,21 @@
 
     <ul>
         <li class="dropdown">
-            <span>My Parcels ▾</span>
+            <span>Parcels</span>
             <div class="dropdown-content">
                 <a href="/?q=parcel/index">List</a>
                 <a href="/?q=parcel/add">Add new parcel</a>
             </div>
         </li>
         <li class="dropdown">
-            <span>My Blocks ▾</span>
+            <span>Blocks</span>
             <div class="dropdown-content">
                 <a href="/?q=block/index">List</a>
                 <a href="/?q=block/add">Add Block</a>
             </div>
         </li>
         <li class="dropdown">
-            <span>Activity ▾</span>
+            <span>Activity</span>
             <div class="dropdown-content">
                 <a href="/?q=serviceRequest/request">Request a service</a>
                 <a href="#">Self Tracking</a>

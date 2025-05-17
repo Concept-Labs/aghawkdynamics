@@ -19,25 +19,30 @@ class Router
                 return;
             }
             $controller = new $class();
-            if (!method_exists($controller, $action)) {
+            if (!method_exists($controller, $action) || !is_callable([$controller, $action])) {
                 http_response_code(404);
                 $controller = new NotFoundController();
                 $controller->index();
-                return;
+                die();
             }
+                
             $controller->$action();
-        } catch (\Throwable $e) {
-            http_response_code(500);
-            $controller = new ErrorController();
-            $controller->index($e);
 
-            // http_response_code(500);
-            // echo 'Internal Server Error';
-            // error_log($e->getMessage());
-            // echo '<pre>';
-            // echo $e->getMessage();
-            // echo $e->getTraceAsString();
-            // echo '</pre>';
+        } catch (\Throwable $e) {
+            try {
+                http_response_code(500);
+                $controller = new ErrorController();
+                $controller->index($e);
+            } catch (\Throwable $e) {
+                // Fallback to a simple error message
+                http_response_code(500);
+                echo 'Internal Server Error';
+                error_log($e->getMessage());
+                echo '<pre>';
+                echo $e->getMessage();
+                echo $e->getTraceAsString();
+                echo '</pre>';
+            }
         }
     }
 }

@@ -48,7 +48,7 @@ abstract class Controller
 
     protected function getView(string $template, array $params = []): View
     {
-        return new View($template, $params);
+        return new View($this, $template, $params);
     }
 
     protected function render(string $view, array $params = []): void

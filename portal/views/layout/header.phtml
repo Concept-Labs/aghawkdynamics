@@ -13,6 +13,7 @@ $request = Request::getInstance();
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>AGHAWK Portal</title>
+  <link rel="icon" href="/img/favicon.ico" type="image/x-icon">
   <link rel="stylesheet" href="/css/themes/aghwk.css">
   <link rel="stylesheet" href="/css/main.css">
   <link rel="stylesheet" href="/css/topnav.css">
@@ -82,7 +83,6 @@ $request = Request::getInstance();
       const current = toggle.querySelector('.theme-current');
       const btns = menu.querySelectorAll('.theme-btn');
 
-      /* застосовує тему класом theme-xxx на <body> */
       function applyTheme(t) {
         document.body.className = document.body.className.replace(/\btheme-\w+\b/g, '').trim();
         document.body.classList.add('theme-' + t);
@@ -95,17 +95,14 @@ $request = Request::getInstance();
         if (src) current.style.background = src.style.background;
       }
 
-      /* початкова тема */
       applyTheme(localStorage.getItem('theme') || 'light');
 
-      /* відкрити/закрити меню */
       toggle.addEventListener('click', e => {
         menu.classList.toggle('show');
         e.stopPropagation();
       });
       document.addEventListener('click', () => menu.classList.remove('show'));
 
-      /* вибір теми */
       btns.forEach(b => b.addEventListener('click', e => {
         applyTheme(b.dataset.theme);
         menu.classList.remove('show');
@@ -131,22 +128,21 @@ $request = Request::getInstance();
 
 
     <div class="header-right">
-      <?php if (User::getInstance()->isLoggedIn()) {
-        include_once('top-nav.phtml');
-      }
-      ?>
-      <div class="user header-right">
-        <?php
-        if (User::getInstance()->isLoggedIn()): ?>
-          <a href="/?q=account/profile">
-            <?= User::getInstance()->getAccount()->get('name') ?>
-          </a> |
-          <a href="/?q=auth/logout">Logout</a>
-        <?php else: ?>
-          <a href="/?q=auth/login">Login</a> |
-          <a href="/?q=auth/signup">Sign up</a>
-        <?php endif; ?>
-      </div>
+      <?php if (User::getInstance()->isLoggedIn()): ?>
+        <?php include_once('top-nav.phtml'); ?>
+        <div class="user header-right">
+          <?php
+          if (User::getInstance()->isLoggedIn()): ?>
+            <a href="/?q=account/profile">
+              <?= User::getInstance()->getAccount()->get('name') ?>
+            </a> |
+            <a href="/?q=auth/logout">Logout</a>
+          <?php else: ?>
+            <a href="/?q=auth/login">Login</a> |
+            <a href="/?q=auth/signup">Sign up</a>
+          <?php endif; ?>
+        </div>
+      <?php endif; ?>
 
       <div class="theme-toggle" id="themeToggle">
         <div class="theme-current"></div>
@@ -162,4 +158,4 @@ $request = Request::getInstance();
       </div>
     </div>
   </header>
-  <main>
+  

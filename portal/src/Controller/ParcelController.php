@@ -4,15 +4,36 @@ namespace App\Controller;
 use App\Core\Config;
 use App\Core\Controller;
 use App\Model\Parcel;
-use App\Model\Block;
 use App\Core\Database;
+use App\Model\Account\User;
 
 class ParcelController extends Controller
 {
+
+    private ?Parcel $parcel = null;
+
+    protected function getParcel(string $id): ?Parcel
+    {
+        if (!$this->parcel instanceof Parcel) {
+            
+            $parcel = new Parcel();
+            $parcel->load($id);
+            if (!$parcel->getId()) {
+                return null;
+            }
+        }
+
+        if ($parcel->get('account_id') != User::getInstance()->getId()) {
+            return null;
+        }
+
+        return $this->parcel = $parcel;
+    }
+
     /** List with filters, sort, pagination, page size */
     public function index(): void
     {
-        $uid = $this->getRequest()->session('uid');
+        $uid = User::getInstance()->getId();
 
         $page = max(1, (int)($_GET['page'] ?? 1));
         $perPageOpts = [10,25,50];
@@ -78,23 +99,15 @@ $perPage = 10000; //hardcode for now
     /** Add new parcel + blocks (unchanged) */
     public function add(): void
     {
-        $uid = $_SESSION['uid'] ?? 0;
+        $uid = User::getInstance()->getId();
         if (!$uid) { $this->redirect('/?q=auth/login'); exit; }
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if ($this->getRequest()->isPost()) {
             $parcelModel = new Parcel();
-            $blockModel  = new Block();
-
-            $pdata = array_intersect_key($_POST, array_flip(['name','street','city','state','zip','status','notes']));
-            $pdata['account_id'] = $uid;
-            $pid = $parcelModel->create($pdata);
-
-            foreach ($_POST['blocks'] ?? [] as $b) {
-                $b['parcel_id']  = $pid;
-                $b['account_id'] = $uid;
-                $blockModel->create($b);
-            }
-            $this->redirect('/?q=parcel/index');
+            $data = $this->getRequest()->post('parcel', []);
+            $data['account_id'] = $uid;
+            $parcelModel->create($data);
+            $this->redirect('/?q=parcel/edit&id=' . $parcelModel->getId());
             exit;
         }
 
@@ -108,50 +121,45 @@ $perPage = 10000; //hardcode for now
     {
         
         $pid = (int)$this->getRequest('id', 0);
-        if ($pid < 1) { $this->redirectReferer(); exit; }
+       
+        $parcel = $this->getParcel($pid);
 
-        $model = new Parcel();
-        $parcel = $model->find($pid);
-
-        if (!$parcel || $parcel['account_id'] != $this->getSession('uid')) {
+        if (!$parcel instanceof Parcel) {
             $this->redirectReferer();
             exit;
         }
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $pdata = array_intersect_key($_POST, 
-                array_flip(
-                    ['name','street','city','state','zip','status','notes']
-                )
-            );
-            $pData = $this->getRequest()->post('parcel', []);
-            $model->update($pid, $pdata);
-
-            $this->redirect('/?q=parcel/index');
+        if ($this->getRequest()->isPost()) {
+            $pdata = $this->getRequest()->post('parcel', []);
+            $parcel
+                ->setData($pdata)
+                ->save();
+            $this->getRequest()->addMessage('Parcel updated successfully!');
+            $this->redirectReferer();
             exit;
         }
 
         $this->render('parcel/parcel', [
             'states' => Config::get('states'),
             'crop_category' => Config::get('crop_category'),
-            'parcel' => $parcel,
+            'parcel' => $parcel->getData(),
         ]);
     }
 
     public function delete(): void
     {
         $pid = (int)$this->getRequest()->request('id', 0);
-        if ($pid < 1) { header('Location: /?q=parcel/index'); exit; }
+        if ($pid < 1) { $this->redirect('parcel/index'); exit; }
 
-        $model = new Parcel();
-        $parcel = $model->load($pid);
+        $parcel = new Parcel();
+        $parcel->load($pid);
         if (!$parcel || $parcel->get('account_id') != $this->getRequest()->session('uid')) {
-            header('Location: /?q=parcel/index');
+            $this->redirectReferer();
             exit;
         }
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $model->delete($pid);
-            header('Location: /?q=parcel/index');
+        if ($this->getRequest()->isPost()) {
+            $parcel->delete($pid);
+            $this->redirectReferer();
             exit;
         }
 

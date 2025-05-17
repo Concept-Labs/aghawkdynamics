@@ -27,6 +27,11 @@ abstract class Model
         return $this->fields;
     }
 
+    public function getId(): ?int
+    {
+        return (int)($this->data[$this->primaryKey] ?? null);
+    }
+
     public function getPrimaryKey(): string
     {
         return $this->primaryKey;
@@ -63,10 +68,8 @@ abstract class Model
 
     public function load(int $id): static
     {
-        $this->data = $this->find($id);
-        if ($this->data === null) {
-            throw new \Exception("Record not found");
-        }
+        $this->data = $this->find($id) ?? [];
+
         return $this;
     }
 
