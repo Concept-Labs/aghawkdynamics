@@ -1,27 +1,16 @@
 <?php
-$parcelCollection = $this->var('parcels', []);
+$requestCollection = $this->var('requestCollection', []);
 ?>
-<style>
-    #parcel-list {
-        width: 100%;
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-</style>
-<script>
-    
-</script>
 
-
-<div id="parcel-list">
+<div id="request-list" class="card">
     <div class="table-toolbar flex flex-right" style="align-items:center;gap:.5rem;margin-bottom:.5rem">
         <div class="button-top-set">
-            <a class="btn" href="/?q=parcel/add">Add Parcel</a>
-            <a class="btn brand-green" href="/?q=parcel/export">Export</a>
+            <a class="btn" href="/?q=service/add">Request Service</a>
+            <a class="btn brand-green disabled" href="/?q=service/export">Export</a>
         </div>
     </div>
 
-    <div class="card">
+    
         <table class="grid">
             <thead>
                 <tr>
@@ -68,5 +57,5 @@ $parcelCollection = $this->var('parcels', []);
                 <?php endif ?>
             </tbody>
         </table>
-    </div>
+
 </div>

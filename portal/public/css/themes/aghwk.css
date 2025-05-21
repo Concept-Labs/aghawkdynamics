@@ -8,6 +8,13 @@
         5b6770
         a2aaad
     */
+    --brand-blue: #4797a8;
+    --brand-green: #7c8033;
+    --brand-yellow: #efb321;
+    --brand-black: #222223;
+    --brand-gray: #5b6770;
+    --brand-light: #a2aaad;
+
     --spacing: 0.5rem;
     --header-bg: #4797a8;
     --menu-bg: #f9f9fb;
@@ -23,6 +30,21 @@
     --radius: 8px;
 }
 
+.hover-brand-green:hover {
+    background: var(--brand-green) !important;
+    color: #efefef !important;
+}
+
+.brand-green {
+    background: var(--brand-green) !important;
+    color: #efefef !important;
+}
+
+.brand-yellow {
+    background: var(--brand-yellow) !important;
+    color: #222223 !important;
+}
+
 html,
 body {
     height: 100%;
@@ -30,7 +52,6 @@ body {
 }
 
 body {
-    opacity: 0;
     transition: opacity 0.5s ease;
     display: flex;
     flex-direction: column;
@@ -38,11 +59,16 @@ body {
 
 }
 
-body.loaded {
+main content {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+main content.loaded {
     opacity: 1;
 }
 
-main {
+main content {
     padding: calc(var(--spacing)*1.5);
     flex-direction: column;
     margin-block: auto;
@@ -65,6 +91,8 @@ body.theme-light {
     --accent-text: #fff;
     --shadow: 0 2px 8px #4797a860;
     --border: 1px solid #4797a840;
+
+    --menu-bg: #f9f9fb;
 }
 
 body.theme-dark {
@@ -81,6 +109,9 @@ body.theme-dark {
     --accent-text: #fff;
     --shadow: 0 2px 8px #ffffff10;
     --border: 1px solid #4f5355;
+
+    --menu-bg: #2c2f34;
+    
 }
 
 body.theme-green {
@@ -96,6 +127,8 @@ body.theme-green {
     --accent: #7c8033;
     --accent-text: #fff;
     --shadow: 0 2px 8px #7c803340;
+
+    --menu-bg: #e9ffe6;
 }
 
 body.theme-yellow {
@@ -111,6 +144,8 @@ body.theme-yellow {
     --accent: #efb321;
     --accent-text: #222223;
     --shadow: 0 2px 8px #efb32140;
+
+    --menu-bg: #fffbe6;
 }
 
 header,
@@ -137,9 +172,11 @@ header a {
 }
 
 
+
+
+
 footer {
     margin-top: auto;
-    /* ключова стрічка */
     background: var(--footer-bg);
     color: var(--footer--text);
     display: flex;
@@ -155,8 +192,22 @@ footer img {
     transition: filter .2s ease
 }
 
+footer a {
+    color: var(--footer--text);
+    text-decoration: underline;
+}
+
 footer a:hover img {
     filter: brightness(.6)
+}
+
+footer h1,
+footer h2,
+footer h3,
+footer h4,
+footer h5,
+footer h6 {
+    color: var(--footer--text);
 }
 
 fieldset {
@@ -168,9 +219,10 @@ fieldset {
 
 fieldset legend {
     padding: 0 .5rem;
-    color: var(--text);
+    
     text-align: right;
     color: var(--text-dark);
+    background: var(--card);
 }
 
 h1,
@@ -193,4 +245,12 @@ textarea {
     background: var(--card);
     color: var(--text);
     border: var(--border);
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+  box-shadow: var(--shadow);
+  
+  animation: focus-blink .3s ease;
 }

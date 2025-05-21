@@ -1,47 +1,21 @@
 <main>
     <style>
-        #messages {
-            position: fixed;
-            opacity: 0.7;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
-        }
 
-        #messages .message {
-            background: var(--accent);
-            color: var(--accent-text);
-            padding: .6rem 1rem;
-            border-radius: var(--radius);
-            margin-bottom: .5rem;
-            box-shadow: var(--shadow);
-
-            opacity: 0;
-            transform: translateY(-10px);
-            transition: opacity .25s ease, transform .25s ease;
-        }
-
-        #messages .error {
-            background: #c62828
-        }
-
-        #messages .message.show {
-            opacity: 1;
-            transform: none;
-        }
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            document.querySelector('main content').classList.add('loaded');
+            var tMsg = 5000;
 
             document.querySelectorAll('#messages .message').forEach(msg => {
                 requestAnimationFrame(() => msg.classList.add('show'));
-
-
                 setTimeout(() => {
                     msg.classList.remove('show');
 
                     setTimeout(() => msg.remove(), 250);
-                }, 3000);
+                }, tMsg);
+
+                tMsg += 2000;
             });
 
         });
@@ -49,17 +23,29 @@
 
     </script>
 
-    <div id="messages">
+    <messages id="messages">
+
+
         <?php foreach ($this->getRequest()->getMessages() as $msg): ?>
             <div class="message"><?php echo  htmlspecialchars($msg) ?></div>
+        <?php endforeach ?>
+
+        <?php foreach ($this->getRequest()->getInfos() as $msg): ?>
+            <div class="message info"><?php echo  htmlspecialchars($msg) ?></div>
+        <?php endforeach ?>
+        <?php foreach ($this->getRequest()->getWarnings() as $msg): ?>
+            <div class="message warning"><?php echo  htmlspecialchars($msg) ?></div>
         <?php endforeach ?>
         <?php foreach ($this->getRequest()->getErrors() as $msg): ?>
             <div class="message error"><?php echo  htmlspecialchars($msg) ?></div>
         <?php endforeach ?>
-    </div>
+
+    </messages>
 
 
-    <?php
-    include_once $this->getTemplate();
-    ?>
+    <content>
+        <?php
+        include_once $this->getTemplate();
+        ?>
+    </content>
 </main>

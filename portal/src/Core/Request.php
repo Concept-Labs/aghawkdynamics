@@ -72,10 +72,33 @@ class Request
         return self::$instance;
     }
 
+    public function __clone()
+    {
+        throw new \RuntimeException('Cloning is not allowed.');
+    }
+    public function __wakeup()
+    {
+        throw new \RuntimeException('Deserialization is not allowed.');
+    }
+
+    public function holdReferer(): static
+    {
+        $this->session['referer'] = $this->session['referer'] ?? $this->server('HTTP_REFERER');
+
+        return $this;
+    }
+
+    public function getReferer(): ?string
+    {
+        $referer = $this->session('referer');
+        unset($this->session['referer']);
+
+        return $referer ?? $this->server('HTTP_REFERER') ?? '/';
+    }
+
     public function addMessage(string $message): static
     {
         $this->session['messages'][] = $message;
-        
 
         return $this;
     }
@@ -90,7 +113,7 @@ class Request
         $messages = $this->session['messages'] ?? [];
         unset($this->session['messages']);
 
-        return $messages;
+        return array_reverse($messages);
     }
 
     /**
@@ -103,7 +126,7 @@ class Request
         $errors = $this->session['errors'] ?? [];
         unset($this->session['errors']);
 
-        return $errors;
+        return array_reverse($errors);
     }
 
     /**
@@ -117,6 +140,36 @@ class Request
         $this->session['errors'][] = $error;
 
         return $this;
+    }
+
+    public function addWarning(string $warning): static
+    {
+        $this->session['warnings'][] = $warning;
+
+        return $this;
+    }
+
+    public function getWarnings(): array
+    {
+        $warnings = $this->session['warnings'] ?? [];
+        unset($this->session['warnings']);
+
+        return array_reverse($warnings);
+    }
+
+    public function addInfo(string $info): static
+    {
+        $this->session['infos'][] = $info;
+
+        return $this;
+    }
+
+    public function getInfos(): array
+    {
+        $infos = $this->session['infos'] ?? [];
+        unset($this->session['infos']);
+
+        return array_reverse($infos);
     }
 
     /**

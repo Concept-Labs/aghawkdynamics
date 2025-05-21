@@ -2,7 +2,8 @@
 
 use App\Core\Config;
 
-$user = $this->var('user', []);
+$userModel = $this->var('user', []);
+$user = $userModel->getData() ?? [];
 
 ?>
 <style>
@@ -91,6 +92,7 @@ $user = $this->var('user', []);
                         <?php endforeach ?>
                     </select>
                     <label>Total Approximate Acreage</label>
+                </div>
             </fieldset>
             <fieldset id="address" class="card">
                 <legend>Address</legend>
@@ -128,7 +130,7 @@ $user = $this->var('user', []);
                                 <option value="<?= $code ?>" <?= $user['billing_state'] === $code ? 'selected' : '' ?>><?= $name ?></option>
                             <?php endforeach ?>
                         </select>
-                        <label>State</label>
+                        <label>Billing State</label>
                     </div>
                     <div class="fld">
                         <input name="billing_zip" placeholder=" " value="<?= htmlspecialchars($user['billing_zip']) ?>">
@@ -136,6 +138,16 @@ $user = $this->var('user', []);
                     </div>
                 </div>
             </fieldset>
+            <fieldset id="password" class="card">
+                <legend>Additional</legend>
+                <div class="fieldset">
+                    <div class="fld">
+                        <textarea name="additional_contacts" placeholder=" " rows="3"><?= htmlspecialchars($user['additional_contacts']) ?></textarea>
+                        <label>Additional Contacts & Notes</label>
+                    </div>
+                </div>
+            </fieldset>     
+
             <div id="change-password-container">
                 <fieldset id="password" class="card">
                     <legend>Change Password</legend>
@@ -147,6 +159,7 @@ $user = $this->var('user', []);
                 </fieldset>
             </div>
             <div class="button-set">
+                <div></div>
                 <button class="btn" type="submit">Update</button>
             </div>
         </form>

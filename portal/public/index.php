@@ -1,10 +1,13 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
 
+use App\Core\App;
 use App\Core\Config;
-use App\Core\Router;
 
+/**
+ @todo: move config to App
+ */
 Config::load(__DIR__ . '/../config/config.php');
 
-$router = new Router();
-$router->dispatch();
+$app = App::getInstance();
+$app->run();

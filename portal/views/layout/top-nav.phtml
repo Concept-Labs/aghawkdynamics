@@ -6,6 +6,12 @@
         padding: 0 .5rem
     }
 
+    .top-nav a.top-link {
+        color: var(--text);
+        text-decoration: none;
+        transition: all .3s ease
+    }
+
     .top-nav ul {
         display: flex;
         gap: 1rem;
@@ -41,9 +47,7 @@
         visibility: hidden;
         transform: translateY(6px);
         transition: opacity .15s ease, transform .15s ease;
-        z-index: 100;
         border-radius: var(--radius);
-        
         border-top-left-radius: 0;
     }
 
@@ -70,73 +74,7 @@
         display: none
     }
 
-    /* ===== MOBILE (≤ 600 px) ===== */
-    @media(max-width:600px) {
-        .top-nav {
-            justify-content: flex-start;
-            align-items: center;
-            background: var(--card);
-            box-shadow: var(--shadow)
-        }
-
-        .burger {
-            display: block;
-            width: 30px;
-            margin: .4rem .2rem;
-            cursor: pointer
-        }
-
-        .burger div {
-            height: 3px;
-            background: var(--text);
-            margin: 5px 0;
-            transition: .3s
-        }
-
-        .top-nav ul {
-            flex-direction: column;
-            gap: .5rem;
-            width: 100%;
-            padding: .5rem 0;
-            background: var(--card);
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height .25s ease
-        }
-
-        .top-nav.open ul {
-            max-height: 400px
-        }
-
-        .top-nav li {
-            padding: .6rem 1rem;
-            text-align: center;
-            width: 100%
-        }
-
-        .top-nav li:hover {
-            background: rgba(0, 0, 0, .05)
-        }
-
-        .dropdown-content {
-            position: static;
-            min-width: 100%;
-            padding: 0;
-            box-shadow: none;
-            opacity: 1;
-            visibility: visible;
-            transform: none
-        }
-
-        .dropdown-content a {
-            padding: .45rem 2rem;
-            text-align: left
-        }
-
-        .dropdown:hover .dropdown-content {
-            opacity: 1
-        }
-    }
+    
 </style>
 
 <nav class="top-nav">
@@ -149,31 +87,26 @@
 
     <ul>
         <li class="dropdown">
-            <span>Parcels</span>
+            <a class="top-link" href="/?q=parcel/index">Parcels</a>
             <div class="dropdown-content">
-                <a href="/?q=parcel/index">List</a>
+                <a href="/?q=parcel/index">List All</a>
                 <a href="/?q=parcel/add">Add new parcel</a>
             </div>
         </li>
         <li class="dropdown">
-            <span>Blocks</span>
+            <a class="top-link" href="/?q=block/index">Blocks</a>
             <div class="dropdown-content">
-                <a href="/?q=block/index">List</a>
+                <a href="/?q=block/index">List All</a>
                 <a href="/?q=block/add">Add Block</a>
             </div>
         </li>
         <li class="dropdown">
-            <span>Activity</span>
+            <a class="top-link" href="/?q=service/index">Service</a>
             <div class="dropdown-content">
-                <a href="/?q=serviceRequest/request">Request a service</a>
+                <a class="hover-brand-green" href="/?q=service/index">History</a>
+                <a href="/?q=service/request">Request Service</a>
                 <a href="#">Self Tracking</a>
             </div>
         </li>
     </ul>
 </nav>
-
-<script>
-
-    document.getElementById('navToggle').onclick = () =>
-        document.querySelector('.top-nav').classList.toggle('open');
-</script>

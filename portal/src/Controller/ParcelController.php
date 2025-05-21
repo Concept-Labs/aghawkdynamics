@@ -5,6 +5,7 @@ use App\Core\Config;
 use App\Core\Controller;
 use App\Model\Parcel;
 use App\Core\Database;
+use App\Core\Model\Collection;
 use App\Model\Account\User;
 
 class ParcelController extends Controller
@@ -33,85 +34,46 @@ class ParcelController extends Controller
     /** List with filters, sort, pagination, page size */
     public function index(): void
     {
+        
         $uid = User::getInstance()->getId();
 
-        $page = max(1, (int)($_GET['page'] ?? 1));
-        $perPageOpts = [10,25,50];
-        $perPage = in_array((int)($_GET['limit'] ?? 10), $perPageOpts) ? (int)$_GET['limit'] : 10;
+        $collection = (new Parcel())->getCollection();
+        $collection->setItemMode(Collection::ITEM_MODE_OBJECT);
 
-        $sort  = $_GET['sort'] ?? 'name';
-        $dir   = strtolower($_GET['dir'] ?? 'asc') === 'desc' ? 'DESC' : 'ASC';
-        $allowedSort = ['name','status','created_at'];
-        if (!in_array($sort, $allowedSort)) $sort = 'name';
+        $collection->addFilter(
+            [
+                'account_id' => $uid,
+            ]
+        );
 
-        $nameFilter = trim($_GET['f_name'] ?? '');
-        $addrFilter = trim($_GET['f_address'] ?? '');
+        $collection->sort('name', 'ASC');
 
-        $model  = new Parcel();
-        $params = ['account_id'=>$uid];
-        $where  = 'WHERE account_id = :account_id';
-
-        if ($nameFilter !== '') {
-            $where .= ' AND name LIKE :fname';
-            $params['fname'] = '%' . $nameFilter . '%';
-        }
-        if ($addrFilter !== '') {
-            $where .= ' AND (street LIKE :addr OR city LIKE :addr OR state LIKE :addr OR zip LIKE :addr)';
-            $params['addr'] = '%' . $addrFilter . '%';
-        }
-
-        $total = $model->countWhere($where, $params);
-        $perPage = max(1,$perPage); // safeguard
-$perPage = 10000; //hardcode for now
-        $pages = max(1, (int)ceil($total / $perPage));
-        if ($page > $pages) $page = $pages;
-        $offset = ($page - 1) * $perPage;
-
-        $parcels = $model->listWhere($where, $params, $sort, $dir, $perPage, $offset);
-
-        // Block counts
-        $blockCounts = [];
-        if ($parcels) {
-            $db  = Database::connect();
-            $ids = array_column($parcels, 'id');
-            $in  = implode(',', array_fill(0, count($ids), '?'));
-            $stmt = $db->prepare("SELECT parcel_id, COUNT(*) cnt FROM block WHERE parcel_id IN ($in) GROUP BY parcel_id");
-            $stmt->execute($ids);
-            foreach ($stmt->fetchAll() as $row) {
-                $blockCounts[$row['parcel_id']] = $row['cnt'];
-            }
-        }
+        $collection->setPageSize(1000);
 
         $this->render('parcel/index', [
-            'parcels'     => $parcels,
-            'counts'      => $blockCounts,
-            'page'        => $page,
-            'pages'       => $pages,
-            'perPage'     => $perPage,
-            'perPageOpts' => $perPageOpts,
-            'sort'        => $sort,
-            'dir'         => $dir,
-            'nameFilter'  => $nameFilter,
-            'addrFilter'  => $addrFilter
+            'parcels'     => $collection->fetch()
         ]);
     }
 
-    /** Add new parcel + blocks (unchanged) */
     public function add(): void
     {
+        $this->getRequest()->holdReferer();
+        
         $uid = User::getInstance()->getId();
+
         if (!$uid) { $this->redirect('/?q=auth/login'); exit; }
 
         if ($this->getRequest()->isPost()) {
-            $parcelModel = new Parcel();
             $data = $this->getRequest()->post('parcel', []);
             $data['account_id'] = $uid;
-            $parcelModel->create($data);
+
+            $parcelModel = (new Parcel())->create($data);
             $this->redirect('/?q=parcel/edit&id=' . $parcelModel->getId());
             exit;
         }
 
         $this->render('parcel/parcel', [
+            'parcelModel' => new Parcel(),
             'states' => Config::get('states'),
             'crop_category' => Config::get('crop_category'),
         ]);
@@ -119,52 +81,89 @@ $perPage = 10000; //hardcode for now
 
     public function edit(): void
     {
-        
-        $pid = (int)$this->getRequest('id', 0);
-       
-        $parcel = $this->getParcel($pid);
+        $this->getRequest()->holdReferer();
 
-        if (!$parcel instanceof Parcel) {
+        try {
+            $pid = (int)$this->getRequest('id', 0);
+        
+            $parcel = $this->getParcel($pid);
+
+            if (!$parcel instanceof Parcel) {
+                throw new \Exception('Parcel not found');
+            }
+
+            if ($this->getRequest()->isPost()) {
+                $pdata = $this->getRequest()->post('parcel', []);
+
+                $parcel
+                    ->setData($pdata)
+                    ->save();
+
+                $this->getRequest()->addInfo('Parcel has been updated');
+                $this->redirectReferer();
+                exit;
+            }
+
+            
+        } catch (\Throwable $e) {
+            $this->getRequest()->addError($e->getMessage());
             $this->redirectReferer();
             exit;
         }
 
-        if ($this->getRequest()->isPost()) {
-            $pdata = $this->getRequest()->post('parcel', []);
-            $parcel
-                ->setData($pdata)
-                ->save();
-            $this->getRequest()->addMessage('Parcel updated successfully!');
-            $this->redirectReferer();
-            exit;
+        $blocks = $parcel->getBlocks();
+
+        if ($blocks->count() < 1) {
+            $this->getRequest()->addWarning('Parcel must have at least one block');
         }
 
         $this->render('parcel/parcel', [
             'states' => Config::get('states'),
             'crop_category' => Config::get('crop_category'),
-            'parcel' => $parcel->getData(),
+            'parcelModel' => $parcel,
         ]);
     }
 
-    public function delete(): void
+    public function deleteit(): void
     {
-        $pid = (int)$this->getRequest()->request('id', 0);
-        if ($pid < 1) { $this->redirect('parcel/index'); exit; }
+        $r = (int)$this->getRequest()->post('parcel', 0);
+        $pid = (int)$r['dp'] ?? 0;
+        $uid = User::getInstance()->getId();
+        if (!$uid) { $this->redirect('/?q=auth/login'); exit; }
+        try  {
+            if ($pid < 1) { 
+                $this->getRequest()->addError('Parcel ID is required');
+                $this->redirectReferer(); 
+                exit; 
+            }
 
-        $parcel = new Parcel();
-        $parcel->load($pid);
-        if (!$parcel || $parcel->get('account_id') != $this->getRequest()->session('uid')) {
-            $this->redirectReferer();
-            exit;
-        }
-        if ($this->getRequest()->isPost()) {
+            $parcel = (new Parcel())->load($pid);
+
+            if (!$parcel->getId()) {
+                $this->getRequest()->addError('Parcel not found');
+                $this->redirectReferer();
+                exit;
+            }
+
+            if ($parcel->get('account_id') != $this->getRequest()->session('uid')) {
+                $this->getRequest()->addError('Parcel not found !');
+                $this->redirectReferer();
+                exit;
+            }
+
+            
             $parcel->delete($pid);
+        } catch (\Throwable $e) {
+            $this->getRequest()->addError($e->getMessage());
             $this->redirectReferer();
             exit;
         }
+         
+        $this->getRequest()->addInfo('Parcel has been deleted');
+        $this->redirectReferer();
+        exit;
 
     }
-
 
     /** CSV export */
     public function export(): void

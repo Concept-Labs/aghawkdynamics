@@ -14,13 +14,13 @@ abstract class Controller
         $this->checkAuth();
     }
 
-    public function getRequest(?string $key = null, mixed $defailt = null): mixed
+    public function getRequest(?string $key = null, mixed $default = null): mixed
     {
         if ($key === null) {
             return $this->request;
         }
 
-        return $this->request->request($key, $defailt);
+        return $this->request->request($key, $default);
     }
 
     public function getSession(?string $key = null, mixed $default = null): mixed
@@ -51,10 +51,10 @@ abstract class Controller
         return new View($this, $template, $params);
     }
 
-    protected function render(string $view, array $params = []): void
+    protected function render(string $view, array $params = [], bool $standalone = false): void
     {
         $viewObj = $this->getView($view, $params);
-        $viewObj->render($params);
+        $viewObj->render($params, $standalone);
     }
 
     public function redirect(string $url): void
@@ -65,7 +65,7 @@ abstract class Controller
 
     public function redirectReferer(): void
     {
-        $referer = $_SERVER['HTTP_REFERER'] ?? '/';
+        $referer = $this->getRequest()->getReferer();
         header("Location: $referer");
         exit;
     }

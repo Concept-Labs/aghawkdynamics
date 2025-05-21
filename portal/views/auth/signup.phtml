@@ -10,7 +10,7 @@ $isBillingFilled = !empty($data['billing_street']) || !empty($data['billing_city
 ?>
 <style>
   .sign-up-form {
-    max-width: 400px;
+    width: 500px;
     margin: 0 auto;
     padding: 20px;
     opacity: 0.9;
@@ -99,7 +99,7 @@ $isBillingFilled = !empty($data['billing_street']) || !empty($data['billing_city
                 <option value="<?= $code ?>" <?= $data['billing_state'] === $code ? 'selected' : '' ?>><?= $name ?></option>
               <?php endforeach ?>
             </select>
-            <label>State</label>
+            <label>Billing State</label>
           </div>
           <div class="fld">
             <input name="billing_zip" placeholder=" " value=<?php echo htmlspecialchars($data['billing_zip']) ?>>

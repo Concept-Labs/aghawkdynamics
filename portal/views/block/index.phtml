@@ -1,15 +1,117 @@
-<h2>Blocks</h2>
-<a href="/?q=block/add">Add Block</a>
-<table border="1">
-<thead><tr><th>ID</th><th>Name</th><th>Acres</th><th>Parcel ID</th></tr></thead>
-<tbody>
-<?php foreach ($blocks as $b): ?>
-<tr>
-<td><?= $b['id'] ?></td>
-<td><?= htmlspecialchars($b['name']) ?></td>
-<td><?= $b['acres'] ?></td>
-<td><?= $b['parcel_id'] ?></td>
-</tr>
-<?php endforeach ?>
-</tbody>
-</table>
+<?php
+
+use App\Core\Config;
+?>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<div class="entity-form">
+    <div class="table-toolbar flex flex-right" style="align-items:center;gap:.5rem;margin-bottom:.5rem">
+        <div class="button-top-set">
+            <a class="btn" href="/?q=block/add">Add Block</a>
+            <a class="btn brand-green" href="/?q=block/export">Export</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <table class="grid">
+            <thead>
+                <tr>
+                    <th>
+                    </th>
+                    <th>
+                        <input type="text" class="inline-search" placeholder="Parcel" />
+                    </th>
+                    <th>
+                        <input type="text" class="inline-search" placeholder="Identifier" />
+                    </th>
+                    <th>Acres</th>
+                    <th>
+                        <select class="inline-search">
+                            <option value=""></option>
+                            <?php foreach (Config::get('crop_category') as $cat): ?>
+                                <option value="<?= htmlspecialchars($cat) ?>"><?= htmlspecialchars($cat) ?></option>
+                            <?php endforeach ?>
+                    </th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($blocks as $b): 
+                    $block = $b->getData();
+                    ?>
+                    <tr>
+                        <td>
+                            <?php if ($block['latitude'] && $block['longitude']): ?>
+                                <span class="minimap-tooltip-trigger" style="cursor:pointer;position:relative;">
+                                    <img src="https://unpkg.com/leaflet/dist/images/marker-icon.png" alt="Marker" style="width:16px;">
+                                    <div class="minimap-tooltip" style="display:none;position:absolute;left:0;top:1.5em;z-index:1000;background:#fff;border:1px solid #ccc;padding:8px;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.15);min-width:220px;">
+                                        <div style="font-size:12px;margin-bottom:6px;">
+                                            Location: <?= htmlspecialchars($block['latitude']) ?>, <?= htmlspecialchars($block['longitude']) ?>
+                                        </div>
+                                        <div id="minimap-<?= $block['id'] ?>" style="width:200px;height:120px;"></div>
+                                    </div>
+                                </span>
+                                <script>
+                                    (function() {
+                                        var trigger = document.currentScript.previousElementSibling;
+                                        var tooltip = trigger.querySelector('.minimap-tooltip');
+                                        var minimapId = 'minimap-<?= $block['id'] ?>';
+                                        var minimapInitialized = false;
+
+                                        trigger.addEventListener('mouseenter', function() {
+                                            tooltip.style.display = 'block';
+                                            if (!minimapInitialized) {
+                                                var map = L.map(minimapId, {
+                                                    attributionControl: false,
+                                                    zoomControl: false,
+                                                    dragging: false,
+                                                    scrollWheelZoom: false,
+                                                }).setView([<?= htmlspecialchars($block['latitude']) ?>, <?= htmlspecialchars($block['longitude']) ?>], 14);
+
+                                                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                                    maxZoom: 19,
+                                                    minZoom: 2,
+                                                }).addTo(map);
+
+                                                L.marker([<?= htmlspecialchars($block['latitude']) ?>, <?= htmlspecialchars($block['longitude']) ?>]).addTo(map);
+                                                minimapInitialized = true;
+                                            }
+                                        });
+                                        trigger.addEventListener('mouseleave', function() {
+                                            tooltip.style.display = 'none';
+                                        });
+                                    })();
+                                </script>
+                            <?php else: ?>
+                                <span style="color:#ccc">x</span>
+                            <?php endif ?>
+
+                        </td>
+                        <td>
+                            <a href="/?q=block/edit&id=<?= $b->get('id') ?>">
+                                <?= htmlspecialchars($b->get('name')) ?>
+                            </a>
+                        </td>
+                        <td><?= $b->getParcel()->get('name') ?></td>
+                        <td><?= $b->get('acres') ?></td>
+                        <td><?= $b->get('crop_category') ?></td>
+                        <td>
+                            <div class="action-wrap" style="position:relative">
+                                <button class="action-btn">⋮</button>
+                                <div class="actions-menu">
+                                    <a href="/?q=block/edit&id=<?= $b->get('id') ?>">Edit</a>
+                                    <div class="sep"></div>
+                                    <a class="hover-brand-green" href="/?q=serviceRequest/request&block=<?= $b->get('id') ?>">Request Service</a>
+                                    <a class="hover-brand-green" href="#" onclick="alert('Coming soon')">Self Tracking</a>
+                                    <div class="sep"></div>
+                                    <a href="/?q=block/disableAll&parcel=<?= $b->get('parcel_id') ?>" class="disable">Disable</a>
+                                    <a href="/?q=block/remove&id=<?= $b->get('id') ?>" class="danger">Delete</a>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                <?php endforeach ?>
+            </tbody>
+        </table>
+    </div>
+</div>

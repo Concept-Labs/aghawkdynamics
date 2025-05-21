@@ -18,6 +18,8 @@ $request = Request::getInstance();
   <link rel="stylesheet" href="/css/main.css">
   <link rel="stylesheet" href="/css/topnav.css">
   <link rel="stylesheet" href="/css/tooltipeable.css">
+  <link rel="stylesheet" href="/css/minimap.css">
+  <script src="/js/app.js"></script>
 
   <style>
     .theme-toggle {
@@ -76,7 +78,6 @@ $request = Request::getInstance();
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      document.body.classList.add('loaded');
 
       const toggle = document.getElementById('themeToggle');
       const menu = document.getElementById('themeMenu');
@@ -116,46 +117,36 @@ $request = Request::getInstance();
 
 
   <header class="flex">
+    
+      <div class="logo">
+        <img src="/public/img/header-logo.webp" alt="AGHAWK Logo">
+        <span style="font-family: 'Orbitron', sans-serif; font-size: 1.5rem;">
+          AGHAWK PORTAL
+        </span>
+      </div>
+      <div class="header-right">
+        <?php if (User::getInstance()->isLoggedIn()): ?>
+          <?php include_once('top-nav.phtml'); ?>
+          <div class="user header-right">
+              <a href="/?q=account/profile">
+                <?= User::getInstance()->getAccount()->get('name') ?>
+              </a> |
+              <a href="/?q=auth/logout">Logout</a>
+          </div>
+        <?php endif; ?>
 
-    <div class="logo">
-      <img src="/public/img/header-logo.png" alt="AGHAWK Logo">
-      AGHAWK <strong>PORTAL</strong>
-    </div>
-
-    <button class="hamburger" aria-label="Menu" aria-expanded="false">
-      <span></span><span></span><span></span>
-    </button>
-
-
-    <div class="header-right">
-      <?php if (User::getInstance()->isLoggedIn()): ?>
-        <?php include_once('top-nav.phtml'); ?>
-        <div class="user header-right">
-          <?php
-          if (User::getInstance()->isLoggedIn()): ?>
-            <a href="/?q=account/profile">
-              <?= User::getInstance()->getAccount()->get('name') ?>
-            </a> |
-            <a href="/?q=auth/logout">Logout</a>
-          <?php else: ?>
-            <a href="/?q=auth/login">Login</a> |
-            <a href="/?q=auth/signup">Sign up</a>
-          <?php endif; ?>
-        </div>
-      <?php endif; ?>
-
-      <div class="theme-toggle" id="themeToggle">
-        <div class="theme-current"></div>
-        <div class="theme-menu" id="themeMenu">
-          <?php
-          $themes = ['light', '#4797a8', 'green', '#7c8033', 'yellow', '#efb321', 'dark', '#5b6770'];
-          for ($i = 0; $i < count($themes); $i += 2):
-            $name = $themes[$i];
-            $color = $themes[$i + 1]; ?>
-            <div class="theme-btn" data-theme="<?= $name ?>" style="background:<?= $color ?>"></div>
-          <?php endfor; ?>
+        <div class="theme-toggle" id="themeToggle">
+          <div class="theme-current"></div>
+          <div class="theme-menu" id="themeMenu">
+            <?php
+            $themes = ['light', '#4797a8', 'dark', '#5b6770'];
+            for ($i = 0; $i < count($themes); $i += 2):
+              $name = $themes[$i];
+              $color = $themes[$i + 1]; ?>
+              <div class="theme-btn" data-theme="<?= $name ?>" style="background:<?= $color ?>"></div>
+            <?php endfor; ?>
+          </div>
         </div>
       </div>
-    </div>
   </header>
   

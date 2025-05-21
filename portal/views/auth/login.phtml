@@ -3,7 +3,7 @@
 ?>
 <style>
   .login-form {
-    max-width: 400px;
+    width: 500px;
     margin: 0 auto;
     padding: 20px;
     opacity: 0.9;
@@ -14,7 +14,7 @@
   <div class="right">
     <a href="/?q=auth/signup">Don't have an account?</a><br>
   </div>
-  <h2>Login</h2>
+  <h2>Wellcome</h2>
   <form method="post">
     
 <?php if ($error): ?><p style="color:red"><?= htmlspecialchars($error) ?></p><?php endif; ?>      
@@ -30,7 +30,7 @@
 
     <div class="button-set" >
       <button class="btn" type="submit">Login</button>
+      <a class="right" href="/?q=auth/forgot">Forgot password?</a>
     </div>
-    <a href="/?q=auth/forgot">Forgot password?</a><br>
   </form>
 </div>

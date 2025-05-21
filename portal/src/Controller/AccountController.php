@@ -26,15 +26,24 @@ class AccountController extends Controller
             exit;
         }
 
-        $model = new Account();
+        $model = (new Account())->load($id);
+
+        if (!$model->getId()) {
+            $this->redirect('/?q=auth/login');
+            exit;
+        }
+
         if ($this->getRequest()->isPost()) {
             $data = $this->getRequest()->post();
             if (!empty($_POST['password'])) {
                 $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
             }
-            if ($data) $model->update($id,$data);
+            if ($data) $model->update($data);
+            $this->getRequest()->addInfo('Profile updated');
         }
-        $user = $model->find($id);
-        $this->render('account/profile', ['user'=>$user]);
+
+        
+
+        $this->render('account/profile', ['user'=>$model]);
     }
 }

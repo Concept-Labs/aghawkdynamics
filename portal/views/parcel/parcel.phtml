@@ -1,15 +1,11 @@
+<?php
+$parcelModel = $this->var('parcelModel');
+$parcel = $parcelModel?->getData() ?? [];
+$parcelBlocks = $parcelModel?->getBlocks();
+?>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <style>
-  #parcel-form {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 20px;
-  }
-
-  #parcel-form h2 {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-
   /* ───────── modal styles ───────── */
   #blockModal {
     position: fixed;
@@ -50,32 +46,73 @@
     margin-top: .8rem
   }
 </style>
-<?php
+<script>
+  function addBlockDialog() {
+    document.getElementById('blockModal').classList.add('show');
+  }
 
-$parcel = $this->var('parcel', []);
-?>
-<div id="parcel-form">
-  <div class="button-top-set">
-                <a class="btn" href="javascript:void(0)" onclick="openBlockModal()">Add Block</a>
-                <a class="btn" href="/?q=parcel/export">Export</a>
-            </div>
-  <div class="card">
+  function closeBlockModal() {
+    document.getElementById('blockModal').classList.remove('show');
+    document.getElementById('blockModal').querySelectorAll('input:not([type="hidden"]),textarea,select').forEach(el => el.value = '');
+  }
 
-    <h2>
-      <?php if ($parcel['id']): ?>
-        Edit Parcel
-      <?php else: ?>
-        Add Parcel
-      <?php endif ?>
-    </h2>
-    <form method="post">
-      <div class="fld"><input name="parcel[name]" placeholder=" " required
-          value="<?= htmlspecialchars($parcel['name']) ?>"><label>Identifier</label></div>
-      <div class="fld"><input name="parcel[street]" placeholder=" "
-          value="<?= htmlspecialchars($parcel['street']) ?>"><label>Street</label></div>
-      <div class="fld"><input name="parcel[city]" placeholder=" "
+  function addBlock() {
+    //validateBlockForm();
+    //closeBlockModal();
 
-          value="<?= htmlspecialchars($parcel['city']) ?>"><label>City</label></div>
+    return true
+  }
+
+  function validateBlockForm() {
+    const form = document.getElementById('blockForm');
+    const blockName = form.querySelector('input[name="block[name]"]');
+    const blockParcelId = form.querySelector('input[name="block[parcel_id]"]');
+
+    if (blockName.value.trim() === '') {
+      alert('Block name is required.');
+      return;
+    }
+
+    if (blockParcelId.value.trim() === '') {
+      alert('Parcel ID is required.');
+      return;
+    }
+
+    form.submit();
+  }
+
+
+  function deleteParcel(id) {
+    if (confirm('Are you sure you want to delete this parcel?')) {
+      window.location.href = `/?q=parcel/delete&id=${id}`;
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    <?php
+    if (($parcelBlocks?->count() ?? 0) < 1 && $parcel['id']) : ?>
+      //Portal.notify('Please add at least one block to the parcel', 'message');
+      addBlockDialog();
+    <?php
+    endif
+    ?>
+  });
+</script>
+
+
+
+<div class="card entity-form">
+  <form method="post" id="parcel-form" class="<?php if ($parcel['id'] && $parcelBlocks->count() > 0): ?>card<?php endif ?>">
+    <fieldset>
+        <legend>Parcel Info</legend>
+      <div class="fld">
+        <input name="parcel[name]" placeholder=" " required value="<?= htmlspecialchars($parcel['name']) ?>">
+        <label>Identifier</label>
+      </div>
+      <div class="fld">
+        <input name="parcel[street]" placeholder=" " value="<?= htmlspecialchars($parcel['street']) ?>" required>
+        <label>Street</label>
+      </div>
       <div class="fld">
         <select name="parcel[state]" required>
           <option value="" hidden></option>
@@ -89,19 +126,26 @@ $parcel = $this->var('parcel', []);
         </select>
         <label>State</label>
       </div>
-      <div class="fld"><input name="parcel[zip]" placeholder=" "
-          value="<?= htmlspecialchars($parcel['zip']) ?>"><label>ZIP</label></div>
+      <div class="fld">
+        <input name="parcel[zip]" placeholder=" " value="<?= htmlspecialchars($parcel['zip']) ?>" required>
+        <label>ZIP</label>
+      </div>
 
-      <div class="fld"><textarea name="parcel[notes]" placeholder=" " rows="3"><?= htmlspecialchars($parcel['notes']) ?></textarea><label>Notes</label></div>
-
-      <div id="blocks"></div>
-
-      <div class=button-set>
-        <?php if ($parcel['id']): ?>
-          <button class="btn danger" type="button">Delete</button>
-        <?php endif ?>
-        <button class="btn cancel" type="button" onclick="window.history.back()">Cancel</button>
-        <button class="btn" type="submit">
+      <div class="fld">
+        <textarea name="parcel[notes]" placeholder=" " rows="3"><?= htmlspecialchars($parcel['notes']) ?></textarea>
+        <label>Notes</label>
+      </div>
+    </fieldset>
+    <div class=button-set>
+      <button class="btn cancel" type="button" onclick="location.href='<?php echo $this->getRequest()->getReferer()  ?>'">Back</button>
+      <div style="display:flex;gap:1rem">
+        <form class="" method="post" action="/?q=parcel/deleteit">
+          <input type="hidden" name="parcel[dp]" value="<?= $parcel['id'] ?>">
+          <?php if ($parcel['id']): ?>
+            <button disabled class="btn delete" type="submit" onclick="return confirm('Are you sure you want to delete this parcel?')">Delete</button>
+          <?php endif ?>
+        </form>
+        <button class="btn end" type="submit" >
           <?php if ($parcel['id']): ?>
             Save
           <?php else: ?>
@@ -109,50 +153,148 @@ $parcel = $this->var('parcel', []);
           <?php endif ?>
         </button>
       </div>
+    </div>
+  </form>
+  <?php if ($parcel['id'] && $parcelBlocks->count() > 0): ?>
+    <div class="separator"></div>
 
-    </form>
-  </div>
+    <fieldset class="card">
+      <legend>Blocks</legend>
+      <div class="flex" style="flex-direction:row;justify-content:flex-end;align-items:center;margin-bottom:1rem">
+        <?php if ($parcelModel->isBlockLimitReached()): ?>
+          <span class="warning">Blocks limit for the parcel is reached</span>
+        <?php else: ?>
+          <button class="btn" type="button" onclick="addBlockDialog()">Quick Add Block</button>
+        <?php endif ?>
+      </div>
+      <table class="grid" width="100%">
+        <thead>
+          <tr>
+            <th></th>
+            <!--th>Status</th-->
+            <th>
+              Identifier
+            </th>
+            <th>Acres</th>
+            <th>Usage Type</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <?php foreach ($parcelBlocks ?? [] as $blockModel):
+            $block = $blockModel->getData();
+          ?>
+            <tr class="">
+              <td>
+                <?php if ($block['latitude'] && $block['longitude']): ?>                  
+                  <span class="minimap-tooltip-trigger" style="cursor:pointer;position:relative;">
+                  <img src="https://unpkg.com/leaflet/dist/images/marker-icon.png" alt="Marker" style="width:16px;">
+                  <div class="minimap-tooltip" style="display:none;position:absolute;left:0;top:1.5em;z-index:1000;background:#fff;border:1px solid #ccc;padding:8px;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.15);min-width:220px;">
+                    <div style="font-size:12px;margin-bottom:6px;">
+                      Location: <?= htmlspecialchars($block['latitude']) ?>, <?= htmlspecialchars($block['longitude']) ?>
+                    </div>
+                    <div id="minimap-<?= $block['id'] ?>" style="width:200px;height:120px;"></div>
+                  </div>
+                </span>
+                <script>
+                  (function() {
+                    var trigger = document.currentScript.previousElementSibling;
+                    var tooltip = trigger.querySelector('.minimap-tooltip');
+                    var minimapId = 'minimap-<?= $block['id'] ?>';
+                    var minimapInitialized = false;
+
+                    trigger.addEventListener('mouseenter', function() {
+                      tooltip.style.display = 'block';
+                      if (!minimapInitialized) {
+                        var map = L.map(minimapId, {
+                          attributionControl: false,
+                          zoomControl: false,
+                          dragging: false,
+                          scrollWheelZoom: false,
+                        }).setView([<?= htmlspecialchars($block['latitude']) ?>, <?= htmlspecialchars($block['longitude']) ?>], 14);
+
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                          maxZoom: 19,
+                          minZoom: 2,
+                        }).addTo(map);
+
+                        L.marker([<?= htmlspecialchars($block['latitude']) ?>, <?= htmlspecialchars($block['longitude']) ?>]).addTo(map);
+                        minimapInitialized = true;
+                      }
+                    });
+                    trigger.addEventListener('mouseleave', function() {
+                      tooltip.style.display = 'none';
+                    });
+                  })();
+                </script>
+                <?php else: ?>
+                  <span style="color:#ccc">x</span>
+                <?php endif ?>
+
+              </td>
+              <!--td><?= htmlspecialchars($block['status']) ?></td-->
+              <td class="tooltipable">
+                <a href="/?q=block/edit&id=<?= $block['id'] ?>"><?= htmlspecialchars($block['name']) ?></a>
+                <div class="tooltip">
+                  <?= htmlspecialchars($block['notes']) ?>
+                </div>
+              </td>
+              <td><?= htmlspecialchars($block['acres']) ?></td>
+              <td><?= htmlspecialchars($block['crop_category']) ?></td>
+              <td>
+                <div class="action-wrap" style="position:relative; text-align:right">
+                  <button class="action-btn">⋮</button>
+                  <div class="actions-menu" style="text-align:left">
+                    <a href="/?q=block/edit&id=<?= $block['id'] ?>">Edit</a>
+                    <div class="sep"></div>
+                    <a class="hover-brand-green disabled" href="/?q=block/activity&block_id=<?= $block['id'] ?>">Activity History</a>
+                    <a class="hover-brand-green" href="/?q=serviceRequest/request&parcel=<?= $block['parcel_id'] ?>">Request Service</a>
+                    <div class="sep"></div>
+                    <a href="/?q=block/remove&id=<?= $block['id'] ?>" class="danger">Delete</a>
+                  </div>
+
+                </div>
+              </td>
+            </tr>
+          <?php endforeach; ?>
+      </table>
+    </fieldset>
+  <?php endif ?>
+
+
 
 </div>
+
 
 <div id="blockModal">
-  <div class="modal-card">
-    <h3 id="modalTitle">Add Block</h3>
+  <form method="post" id="blockForm" action="/?q=block/add">
+    <input type="hidden" name="block[parcel_id]" value="<?= $parcel['id'] ?>">
+    <div class="modal-card">
+      <h3 id="modalTitle">Add Block</h3>
 
-    <div class="fld"><input id="m_name" placeholder=" " required><label>Identifier</label></div>
+      <div class="fld">
+        <input name="block[name]" placeholder=" " required>
+        <label>Block Identifier</label>
+      </div>
 
-    <div class="fld">
-      <select id="m_crop">
-        <option value="" hidden></option>
-        <?php foreach ($crop_category as $cat): ?>
-          <option value="<?= $cat ?>"><?= htmlspecialchars($cat) ?></option>
-        <?php endforeach ?>
-      </select>
-      <label>Usage Type</label>
+      <div class="fld">
+        <select name="block[crop_category]" required>
+          <option value="" hidden></option>
+          <?php foreach ($crop_category as $cat): ?>
+            <option value="<?= $cat ?>"><?= htmlspecialchars($cat) ?></option>
+          <?php endforeach ?>
+        </select>
+        <label>Usage Type</label>
+      </div>
+
+      <div class="fld"><input type="number" step="0.01" name="block[acres]" placeholder=" " required><label>Acres</label></div>
+      <div class="fld"><textarea name="block[notes]" placeholder=" " rows="2"></textarea><label>Notes</label></div>
+
+      <div class="modal-footer">
+        <button class="btn cancel" type="button" onclick="closeBlockModal()">Cancel</button>
+        <button class="btn" type="submit">Add</button>
+      </div>
     </div>
-
-    <div class="fld"><input type="number" step="0.01" id="m_acres" placeholder=" "><label>Acres</label></div>
-    <div class="fld"><textarea id="m_notes" placeholder=" " rows="2"></textarea><label>Notes</label></div>
-
-    <div class="modal-footer">
-      <button class="btn cancel" type="button" onclick="closeBlockModal()">Cancel</button>
-      <button class="btn" type="button" onclick="saveBlock()">Save</button>
-    </div>
-  </div>
+  </form>
 </div>
-
-<script>
-  let blkIdx = document.querySelectorAll('#blocks .card').length; // якщо редагування
-  function openBlockModal() {
-    document.getElementById('blockModal').classList.add('show');
-  }
-
-  function closeBlockModal() {
-    document.getElementById('blockModal').classList.remove('show');
-    document.getElementById('blockModal').querySelectorAll('input,textarea,select').forEach(el => el.value = '');
-  }
-
-  function saveBlock() {
-    closeBlockModal();
-  }
-</script>

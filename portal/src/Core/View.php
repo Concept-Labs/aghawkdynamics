@@ -22,23 +22,37 @@ class View
         $this->params = $params;
     }
 
-    public function render(array $params = []): void
+    public function render(array $params = [], bool $standalone = false): void
     {
-        
-
-            $this->getRequest()->addMessage('Rendering view: ' . $this->template);
-
-            extract($this->params);
+        try {
+            
             $this->params = array_merge($this->params, $params);
-            $this->params['request'] = Request::getInstance();
-            $this->params['_content'] = $viewFile = self::TEMPLATES_DIR . $this->template . '.phtml';
+            extract($this->params); //allow access to params as variables
 
-            if (!file_exists($viewFile)) {
-                throw new \RuntimeException("View not found: $viewFile");
+            if ($standalone) { // If rendering standalone, include only the view file. f.e. ajax requests
+                $viewFile = self::TEMPLATES_DIR . $this->template . '.phtml';
+                    if (!file_exists($viewFile)) {
+                    throw new \RuntimeException("View not found: $viewFile");
+                }
+                include $viewFile;
+                return;
             }
+            /**
+             @todo implement render more nicely
+            */
             include self::HEADER_FILE;
             include self::CONTENT_FILE;
             include self::FOOTER_FILE;
+        } catch (\Throwable $e) {
+            // Handle the error gracefully
+            http_response_code(500);
+            echo 'An error occurred while rendering the view.';
+            error_log($e->getMessage());
+            echo '<pre>';
+            echo $e->getMessage();
+            echo $e->getTraceAsString();
+            echo '</pre>';
+        }
         
     }
 

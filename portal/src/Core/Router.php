@@ -10,7 +10,9 @@ class Router
     {
         try {
             $route = $_GET['q'] ?? 'home/index';
-            [$controllerName, $action] = array_pad(explode('/', $route, 2), 2, 'index');
+            $parts = explode('/', $route);
+            $action = array_pop($parts) ?: 'index';
+            $controllerName = implode('\\', array_map('ucfirst', $parts)) ?: 'Home';
 
             $class = 'App\\Controller\\' . ucfirst($controllerName) . 'Controller';
             if (!class_exists($class)) {

@@ -1,6 +1,8 @@
 <?php
 namespace App\Core;
 
+use App\Core\Model\Collection;
+use App\Core\Model\CollectionInterface;
 use PDO;
 
 abstract class Model
@@ -10,11 +12,23 @@ abstract class Model
     protected ?array $fields = null;
     protected string $primaryKey = 'id';
     protected array $foreignKeys = [];
+    private ?CollectionInterface $collection = null;
     protected PDO $db;
 
     public function __construct()
     {
         $this->db = Database::connect();
+    }
+
+    public function getTable(): string
+    {
+        return $this->table;
+    }
+
+    public function setTable(string $table): static
+    {
+        $this->table = $table;
+        return $this;
     }
 
     public function describe(): array
@@ -35,6 +49,30 @@ abstract class Model
     public function getPrimaryKey(): string
     {
         return $this->primaryKey;
+    }
+
+    public function getCollection(): Collection
+    {
+        if (!$this->collection instanceof CollectionInterface) {
+            
+
+        $collectionClass = class_exists(
+            static::class . '\Collection',
+            true
+        )
+            ? static::class . '\Collection'
+            : Collection::class;
+
+        $this->collection = new $collectionClass(static::class);
+
+            if (!$this->collection instanceof CollectionInterface) {
+                throw new \RuntimeException(
+                    "Collection class $collectionClass must implement CollectionInterface"
+                );
+            }
+        }
+
+        return $this->collection;    
     }
 
     public function all(): array
@@ -109,8 +147,13 @@ abstract class Model
     
     public function save(): static
     {
+        unset($this->data['created_at']);
+        unset($this->data['created_by']);
+        unset($this->data['updated_by']);
+        unset($this->data['updated_at']);
+
         if ($this->isLoaded()) {
-            return $this->update($this->data[$this->primaryKey], $this->data);
+            return $this->update($this->data);
         } else {
             return $this->create($this->data);
         }
@@ -118,6 +161,8 @@ abstract class Model
 
     public function create(array $data): static
     {
+        unset($data[$this->primaryKey]);
+
         foreach ($data as $key => $value) {
             if (!in_array($key, $this->describe())) {
                 unset($data[$key]);
@@ -142,20 +187,57 @@ abstract class Model
         return $this;
     }
 
-    public function update(int $id, array $data): static
+    public function update(array $data): static
     {
+        $primaryKeyValue = $this->getId();
+
+        if (empty($primaryKeyValue)) {
+            throw new \Exception("No primary key value set for update");
+        }
+
+        // Remove primary key from data to avoid updating it
+        unset($data[$this->primaryKey]);
+
+        // Filter and encode data
+        foreach ($data as $key => $value) {
+            if ($key === $this->primaryKey) {
+                continue;
+            }
+
+            if (!in_array($key, $this->describe())) {
+                unset($data[$key]);
+                continue;
+            }
+            if (is_array($value)) {
+                $data[$key] = json_encode($value);
+            }
+        }
+
+        if (empty($data)) {
+            throw new \Exception("No data to update");
+        }
+
+        // Build SET part of SQL
         $fields = implode(', ', array_map(fn($c) => "$c = :$c", array_keys($data)));
-        $data['id'] = $id;
-        $sql = "UPDATE {$this->table} SET $fields WHERE id = :id";
-        $this->db->prepare($sql)->execute($data);
-        $this->data = array_merge($this->data, $data);
+        $sql = "UPDATE {$this->table} SET $fields WHERE {$this->primaryKey} = :primary_key";
+
+        // Add primary key to parameters
+        $params = $data;
+        $params['primary_key'] = $primaryKeyValue;
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+
+        // Reload data
+        $this->load($primaryKeyValue);
 
         return $this;
     }
 
     public function delete(int $id): bool
     {
-        $this->db->prepare("DELETE FROM {$this->table} WHERE id = :id")->execute(['id' => $id]);
+        $this->db->prepare("DELETE FROM {$this->table} WHERE id = :id")
+            ->execute(['id' => $id]);
         $this->data = [];
         
         return true;
