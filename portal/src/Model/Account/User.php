@@ -2,8 +2,10 @@
 
 namespace App\Model\Account;
 
+use App\Core\Model\Collection;
 use App\Core\Request;
 use App\Model\Account;
+use App\Model\Parcel;
 
 class User
 {
@@ -35,6 +37,14 @@ class User
     public function getAccount(): Account
     {
         return $this->accountModel;
+    }
+
+    public function hasParcels(): bool
+    {
+        $parcels = (new Parcel())->getCollection();
+        $parcels->setItemMode(Collection::ITEM_MODE_ARRAY);
+
+        return $parcels->addFilter(['account_id' => $this->getId()])->count() > 0;
     }
 
     public function isLoggedIn(): bool

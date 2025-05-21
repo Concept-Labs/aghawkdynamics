@@ -7,6 +7,7 @@ use App\Core\Controller;
 use App\Exception\InvalidLoginException;
 use App\Exception\SignUpException;
 use App\Model\Account;
+use App\Model\Account\User;
 
 class AuthController extends Controller
 {
@@ -133,8 +134,14 @@ class AuthController extends Controller
                     $user = $acc->findByEmail($data['email'] ?? '');
                     if ($user && password_verify($data['password'] ?? '', $user['password'])) {
                         $this->getRequest()->setSession('uid', $user['id']);
-                        $this->redirect('/?q=parcel/index');
-                        exit;
+
+                        if (!User::getInstance()->hasParcels()) {
+                            $this->redirect('/?q=parcel/add');
+                            return;
+                        } else {
+                            $this->redirect('/?q=parcel/index');
+                            return;
+                        }
                     }
 
                     throw new InvalidLoginException('Invalid email or password');
