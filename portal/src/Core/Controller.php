@@ -41,7 +41,7 @@ abstract class Controller
             //&& !$this instanceof \App\Controller\ErrorController
             && !$this instanceof \App\Controller\NotFoundController
             ) {
-            header('Location: /?q=auth/login');
+            $this->redirect('/?q=auth/login');
             exit;
         }
     }

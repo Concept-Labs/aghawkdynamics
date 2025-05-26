@@ -1,35 +1,326 @@
 <?php
+
+use App\Core\Config;
+use App\Model\Account\User;
+
+$requestId = $this->var('request_id', null);
 $blocks = $this->var('blocks', []);
 $parcels = $this->var('parcels', []);
+$currentParcelId = $this->var('parcel_id', null);
+$currentBlockId = $this->var('block_id', null);
+
+// Calculate minimum date for non-urgent (7 business days ahead)
+$minDate = new DateTime();
+$businessDays = 0;
+while ($businessDays < 7) {
+  $minDate->modify('+1 day');
+  if ($minDate->format('N') < 6) { // 1-5 = Mon-Fri
+    $businessDays++;
+  }
+}
+$minDateStr = $minDate->format('Y-m-d');
+
+// Calculate minimum date for urgent (next business day)
+$minUrgentDate = new DateTime();
+do {
+  $minUrgentDate->modify('+1 day');
+} while ($minUrgentDate->format('N') > 5); // 6-7 = Sat/Sun
+$minUrgentDateStr = $minUrgentDate->format('Y-m-d');
+
 ?>
+<style>
+  .fld input.urgent {
+    background-color: #ffcccc;
+  }
+
+  .fld input.urgent+label {
+    background-color: #ffcccc;
+  }
+
+  .icon-help {
+    cursor: pointer;
+    color: var(--brand-green);
+    font-size: 1.2rem;
+    margin-left: 0.5rem;
+    border-radius: 50%;
+    border: 1px solid var(--brand-green);
+    padding: 0.2rem 0.7rem;
+  }
+
+  .icon-help:hover {
+    color: var(--text);
+  }
+</style>
 <div class="entity-form card">
-  <h2>Request Service</h2>
-  <form method="post">
+  <form method="post" id="service-form" action="<?php echo $requestId ? '/?q=service/edit&id=' . $requestId : '/?q=service/create' ?>">
+    <?php if ($requestId): ?>
+      <input type="hidden" name="service[id]" value="<?= htmlspecialchars($requestId) ?>">
+    <?php endif ?>
+    <div style="display:flex; justify-content: flex-start; margin-bottom: 1rem;">
+      <h2>Request a Service</h2>
+
+    </div>
+    <div class="fld-row" style="display: flex; gap: 5px;">
+      <div class="fld" style="flex: 1;">
+        <select name="service[parcel_id]" required <?php if ($currentParcelId): ?>disabled<?php endif ?> title="">
+          <option value="" hidden></option>
+          <?php foreach ($parcels as $parcelModel): 
+            if (!$parcelModel->canRequestService()) continue;
+            ?>
+            <option value="<?= $parcelModel->get('id') ?>" <?php if ($parcelModel->get('id') == $currentParcelId): ?>selected<?php endif ?>><?= htmlspecialchars($parcelModel->get('name')) ?></option>
+          <?php endforeach ?>
+        </select>
+        <label>Parcel</label>
+        <script>
+          document.querySelector('select[name="service[parcel_id]"]').addEventListener('change', function() {
+            const selectedParcelId = this.value;
+            const blockSelect = document.querySelector('select[name="service[block_id]"]');
+            blockSelect.disabled = !selectedParcelId; // Disable if no parcel selected
+            const options = fetch('/?q=block/api/list&parcel_id=' + selectedParcelId)
+              .then(response => response.json())
+              .then(data => {
+                blockSelect.innerHTML = '<option value="" hidden></option>'; // Reset options
+                data.forEach(block => {
+                  const option = document.createElement('option');
+                  option.value = block.id;
+                  option.textContent = block.name;
+                  if (block.id == <?= json_encode($currentBlockId) ?>) {
+                    option.selected = true; // Pre-select current block if exists
+                  }
+                  blockSelect.appendChild(option);
+                });
+              })
+              .catch(error => alert('Error fetching blocks:', error) && console.error('Error fetching blocks:', error));
+          });
+        </script>
+      </div>
+      <div class="fld" style="flex: 1;">
+        <select name="service[block_id]" required <?php if ($currentBlockId): ?>disabled<?php endif ?>>
+          <option value="" hidden></option>
+          <?php foreach ($blocks as $b): ?>
+            <option value="<?= $b['id'] ?>" <?php if ($b['id'] == $currentBlockId): ?>selected<?php endif ?>><?= htmlspecialchars($b['name']) ?></option>
+          <?php endforeach ?>
+        </select>
+        <label>Block</label>
+      </div>
+    </div>
+
+    <div class="fld " style="display: flex; gap: 5px; align-items: flex-end; flex-wrap: wrap;">
+      <div class="fld">
+        <select name="service[urgent]" required>
+          <option value="0">No</option>
+          <option value="1">Yes</option>
+        </select>
+        <label>Urgent?</label>
+      </div>
+      <div id="fld_date" class="fld tooltipable" style="flex: 2;">
+        <input type="date" name="service[date]" placeholder=" " required min="<?= $minDateStr ?>"
+          title="">
+        <label>Service need by date</label>
+        <tooltip class="tooltip bottom">
+          <p>
+            Urgent services must be requested at least 1 day in advance.
+            <br>
+            Non-urgent services must be requested at least 7 days in advance.
+          </p>
+        </tooltip>
+      </div>
+      <script>
+        // Handle urgent date logic
+        document.querySelector('select[name="service[urgent]"]').addEventListener('change', function() {
+          const isUrgent = this.value === '1';
+          const dateField = document.getElementById('fld_date');
+          if (isUrgent) {
+            dateField.querySelector('input').setAttribute('min', '<?= $minUrgentDateStr ?>');
+            dateField.querySelector('input').value = '<?= $minUrgentDateStr ?>';
+            dateField.querySelector('input').classList.add('urgent');
+          } else {
+            dateField.querySelector('input').setAttribute('min', '<?= $minDateStr ?>');
+            dateField.querySelector('input').value = '';
+            dateField.querySelector('input').classList.remove('urgent');
+          }
+        });
+      </script>
+    </div>
+
     <div class="fld">
-      <select name="parcel_id" required>
+      <select name="service[type]" placeholder=" " required>
         <option value="" hidden></option>
-        <?php foreach ($parcels as $p): ?>
-          <option value="<?= $p['id'] ?>"><?= htmlspecialchars($p['name']) ?></option>
+        <?php
+        foreach (Config::get('service_type') as $type): ?>
+          <option value="<?= htmlspecialchars($type) ?>"><?= htmlspecialchars($type) ?></option>
         <?php endforeach ?>
       </select>
-      <label>Parcel</label>
+      <label>Service Type</label>
+      <script>
+        // Handle service type change to show/hide fieldsets
+        document.querySelector('select[name="service[type]"]').addEventListener('change', function() {
+          const selectedType = this.value;
+          document.querySelectorAll('fieldset[data-allowed-types]').forEach(fieldset => {
+            const allowedTypes = JSON.parse(fieldset.getAttribute('data-allowed-types'));
+            if (allowedTypes.includes(selectedType)) {
+              fieldset.style.display = 'block';
+            } else {
+              fieldset.style.display = 'none';
+            }
+          });
+        });
+      </script>
     </div>
+
+    <fieldset id="water_usage" class="card" data-allowed-types='<?= json_encode(Config::get('service_type_application')) ?>' style="display: none;">
+      <legend>Water Usage</legend>
+      <div class="fld-row">
+        <div class="fld" style="flex: 1;" data-allowed-types='<?= json_encode(Config::get('service_type_water_usage')) ?>'>
+          <select name="service[adds][water_usage][water_unit]">
+            <?php foreach (Config::get('units') as $unit): ?>
+              <option value="<?= htmlspecialchars($unit) ?>"><?= htmlspecialchars($unit) ?></option>
+            <?php endforeach ?>
+          </select>
+          <label>Unit</label>
+          
+        </div>
+        <div class="fld" style="flex: 1;">
+          <input type="number" name="service[adds][water_usage][water_volume]" placeholder="">
+          <label>Volume</label>
+        </div>
+      </div>
+      <div class="fld" data-allowed-types='<?= json_encode(Config::get('service_type_application')) ?>'>
+        <input type="number" name="service[adds][application_rate]" placeholder="">
+        <label>Application Rate</label>
+      </div>
+    </fieldset>
+
+    <fieldset id="custom_products" class="card" style="display: none;" data-allowed-types='<?= json_encode(Config::get('service_type_custom_products')) ?>'>
+      <legend>Custom Products</legend>
+      <p class="note">If you need to request specific products, please provide the details below.</p>
+
+      <div class="product-list">
+      </div>
+
+      <button type="button" id="add-product-btn">Add Product</button>
+
+      <script>
+        const MAX_PRODUCTS = 10;
+
+        document.getElementById('add-product-btn').addEventListener('click', function() {
+          const productList = document.querySelector('.product-list');
+          if (productList.children.length >= MAX_PRODUCTS) {
+            alert('You can add up to 10 products only.');
+            return;
+          }
+          var template = document.getElementById('product-template').innerHTML;
+          template = template.replace(/{index}/g, productList.children.length);
+          productList.insertAdjacentHTML('beforeend', template);
+        });
+
+        document.querySelector('.product-list').addEventListener('click', function(e) {
+          if (e.target.classList.contains('remove-product-btn')) {
+            e.target.closest('.product-item').remove();
+          }
+        });
+      </script>
+
+      <p class="note">If you have a preferred supplier, please provide their details below or leave these fields empty.</p>
+      <div class="fld-row">
+        <div class="fld">
+          <input type="text" name="service[adds][supplier]" placeholder="">
+          <label>Supplier Name</label>
+        </div>
+        <div class="fld">
+          <input type="text" name="service[adds][supplier_phone]" placeholder="">
+          <label>Phone</label>
+        </div>
+        <div class="fld">
+          <input type="text" name="service[adds][supplier_name]" placeholder="">
+          <label>Contact Name</label>
+        </div>
+      </div>
+    </fieldset>
+
     <div class="fld">
-      <select name="block_id" required>
-        <option value="" hidden></option>
-        <?php foreach ($blocks as $b): ?>
-          <option value="<?= $b['id'] ?>"><?= htmlspecialchars($b['name']) ?></option>
-        <?php endforeach ?>
-      </select>
-      <label>Block</label>
+      <textarea name="reason" placeholder=" " rows="4"></textarea>
+      <label>Reason & Notes</label>
     </div>
-    <div class="fld"><input name="service_type" placeholder=" " required><label>Service Type</label></div>
-    <div class="fld"><textarea name="reason" placeholder=" " rows="3"></textarea><label>Reason</label></div>
-    <label><input type="checkbox" name="urgent" value="1"> Urgent</label><br>
-    <div class="fld"><input type="date" name="urgent_date" placeholder=" "><label>Urgent date</label></div>
-    <label><input type="checkbox" name="is_recurring" value="1"> Recurring</label><br>
-    <div class="fld"><input name="recurring_frequency" placeholder=" "><label>Frequency</label></div>
-    <div class="fld"><input type="date" name="recurring_end_date" placeholder=" "><label>End date</label></div>
-    <button class="btn" type="submit">Submit</button>
+
+    <div class="button-set ">
+      <button class="btn cancel" type="button" onclick="window.history.back()">Cancel</button>
+      <button class="btn brand-green" type="submit">Create Service Request</button>
+    </div>
   </form>
+</div>
+
+<!-- styles for the product item template -->
+<style>
+  .product-item {
+    display: flex;
+    gap: 5px;
+  }
+
+  .product-item input,
+  .product-item select,
+  .product-item textarea,
+  .product-item button {
+    flex: 1;
+  }
+
+  .product-item label {
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  .remove-product-btn {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    margin: .5rem 0;
+  }
+
+  .remove-product-btn:hover {
+    background-color: #ff1a1a;
+  }
+
+  .product-list {
+    margin-bottom: 10px;
+  }
+
+  .product-list .product-item {
+    margin-bottom: 10px;
+  }
+</style>
+
+<div id="product-template" style="display:none;">
+  <div class="product-item" style="margin-bottom: 10px;">
+    <div class="fld">
+      <select name="service[adds][products][{index}][type]" required>
+        <option value="" hidden></option>
+        <?php foreach (Config::get('product_types') as $type): ?>
+          <option value="<?= htmlspecialchars($type) ?>"><?= htmlspecialchars($type) ?></option>
+        <?php endforeach ?>
+      </select>
+      <label>Product Type</label>
+    </div>
+    <div class="fld">
+      <input type="text" name="service[adds][products][{index}][name]" placeholder="" required>
+      <label>Product Name</label>
+    </div>
+    <div class="fld">
+      <select name="service[adds][products][{index}][unit]" required>
+        <?php foreach (Config::get('units') as $unit): ?>
+          <option value="<?= htmlspecialchars($unit) ?>"><?= htmlspecialchars($unit) ?></option>
+        <?php endforeach ?>
+      </select>
+      <label>Unit</label>
+    </div>
+    <div class="fld">
+      <input type="number" name="service[adds][products][{index}][volume]" placeholder="" required>
+      <label>Volume</label>
+    </div>
+    <div class="fld">
+      <button type="button" class="remove-product-btn">X</button>
+    </div>
+  </div>
+
 </div>

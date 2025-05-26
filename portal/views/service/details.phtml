@@ -1,0 +1,76 @@
+<?php
+
+use App\Core\Config;
+
+$requestModel = $this->var('requestModel');
+$adds = $requestModel->getAdds();
+?>
+<div class="card entity-form">
+  <h2>
+    Service Request Details
+  </h2>
+
+    <div class="details-row">
+        <label>Request ID:</label>
+        <span><?= htmlspecialchars($requestModel->get('id')) ?></span>
+    </div>
+
+    <div class="details-row">
+        <label>Status:</label>
+        <span><?= ucfirst(htmlspecialchars($requestModel->getStatus())) ?></span>
+    </div>
+
+    <div class="details-row">
+        <label>Need by Date:</label>
+        <span><?= (new DateTimeImmutable($requestModel->get('date')))->format(Config::get('date_format')) ?></span>
+    </div>
+
+    <div class="details-row">
+        <label>Type:</label>
+        <span><?= htmlspecialchars($requestModel->get('type')) ?></span>
+    </div>
+
+    <div class="details-row">
+        <label>Parcel:</label>
+        <span>
+            <a href="/?q=parcel/edit&id=<?= $requestModel->get('parcel_id') ?>">
+                <?= htmlspecialchars($requestModel->getParcel()->get('name')) ?>
+            </a>
+        </span>
+    </div>
+
+    <div class="details-row">
+        <label>Block:</label>
+        <span>
+            <a href="/?q=block/edit&id=<?= $requestModel->get('block_id') ?>">
+                <?= htmlspecialchars($requestModel->getBlock()->get('name')) ?>
+            </a>
+        </span>
+    </div>
+    
+    <div class="details-row">
+        <label>Notes:</label>
+        <span><?= htmlspecialchars($requestModel->get('notes')) ?></span>
+    </div>
+  <div class="details-row">
+    <label>Created At:</label>
+    <span><?= (new DateTimeImmutable($requestModel->get('created_at')))->format(Config::get('date_format')) ?></span>
+  </div>
+
+    <div class="details-row">
+        <pre>
+        <?php
+        if (!empty($adds)) {
+            echo "Additional Information:\n";
+            print_r($adds);
+        } else {
+            echo "No additional information provided.";
+        }
+        ?>
+        </pre> 
+    </div>
+    
+  <div class="button-set">
+    <button class="btn cancel" type="button" onclick="window.history.back()">Back</button>
+  </div>
+</div>

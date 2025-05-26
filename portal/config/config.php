@@ -1,5 +1,6 @@
 <?php
 return [
+    'date_format' => 'm/d/Y',
     'db' => [
         'host' => 'localhost',
         'port' => 3306,
@@ -63,11 +64,35 @@ return [
 
     'parcel' => ['status' => ['active', 'inactive']],
     'crop_category' => ['Orchard', 'Vineyard', 'Row Crops', 'Pasture', 'Grass field', 'Mix'],
+
     'service_type' => ['Spray', 'Spread', 'Analyze', 'Drying'],
+
+    'service_type_custom_products' => ['Spray', 'Spread'],
+    'service_type_water_usage' => ['Spread'],
+    'service_type_application' => ['Spray', 'Spread'],
+
     'acreage_size' => [
         'Under 50' => 'Under 50',
         '50-200' => '50-200',
         '200-500' => '200-500',
         'Above 500' => 'Above 500'
     ],
+    'product_types' => [
+        'Pesticide',
+        'Herbicide',
+        'Fungicide',
+        'Chemical Thinner',
+        'Nutrient',
+        'Seed',
+        'Fertilizer',
+        'Rodent Control',
+        'Other'
+    ],
+    'units' => [
+        'gallon',
+        'oz',
+        'lbs',
+        'gram',
+        'kg',
+    ]
 ];

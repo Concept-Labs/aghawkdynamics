@@ -57,7 +57,6 @@ class ParcelController extends Controller
 
     public function add(): void
     {
-        $this->getRequest()->holdReferer();
         
         $uid = User::getInstance()->getId();
 
@@ -81,7 +80,6 @@ class ParcelController extends Controller
 
     public function edit(): void
     {
-        $this->getRequest()->holdReferer();
 
         try {
             $pid = (int)$this->getRequest('id', 0);
@@ -114,7 +112,7 @@ class ParcelController extends Controller
         $blocks = $parcel->getBlocks();
 
         if ($blocks->count() < 1) {
-            $this->getRequest()->addWarning('Parcel must have at least one block');
+            $this->getRequest()->addWarning('Parcel must have at least one block to be able to create a service request.');
         }
 
         $this->render('parcel/parcel', [

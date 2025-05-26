@@ -1,61 +1,130 @@
 <?php
+
+use App\Core\Config;
+use SimplePie\Parse\Date;
+
 $requestCollection = $this->var('requestCollection', []);
 ?>
-
-<div id="request-list" class="card">
-    <div class="table-toolbar flex flex-right" style="align-items:center;gap:.5rem;margin-bottom:.5rem">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<style>
+    #request-list {
+        margin: 0 auto;
+        max-width: 1200px;
+    }
+</style>
+<div id="request-list">
+    <div class="flex" style="align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+        <h2>Service Requests</h2>
         <div class="button-top-set">
-            <a class="btn" href="/?q=service/add">Request Service</a>
+            <a class="btn" href="/?q=service/request">Request Service</a>
             <a class="btn brand-green disabled" href="/?q=service/export">Export</a>
         </div>
     </div>
 
-    
-        <table class="grid">
-            <thead>
+
+    <table class="grid card">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Need by Date</th>
+                <th>Type</th>
+                <th>
+                    <input class="tbl-filter inline-search" name="f_name" value="<?= htmlspecialchars($nameFilter) ?>" placeholder="Parcel name">
+                </th>
+                <th><input class="tbl-filter inline-search" name="f_address" value="<?= htmlspecialchars($addrFilter) ?>" placeholder="Block"></th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($requestCollection as $requestModel): 
+                $p = $requestModel->getParcel()->getData();
+                ?>
                 <tr>
-                    <th>
-                        <input class="tbl-filter inline-search" name="f_name" value="<?= htmlspecialchars($nameFilter) ?>" placeholder="Parcel name">
-                    </th>
-                    <th><input class="tbl-filter inline-search" name="f_address" value="<?= htmlspecialchars($addrFilter) ?>" placeholder="Address"></th>
-                    <th>Blocks</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($parcelCollection as $parcelModel):
-                    $p = $parcelModel->getData();
-                    $addr = trim($p['street'] . ' ' . $p['city'] . ' ' . $p['state'] . ' ' . $p['zip']); ?>
-                    <tr>
-                        <td><?= htmlspecialchars($p['name']) ?></td>
-                        <td><?= htmlspecialchars($addr) ?></td>
-                        <td>
-                            <?php
-                            echo $parcelModel->getBlocks()->count();
+                    <td>
+                        <?php if ($p['latitude'] && $p['longitude']): 
+                                $minimapUid = uniqid('minimap-');
                             ?>
-                        </td>
-                        <td>
-                            <div class="action-wrap" style="position:relative">
-                                <button class="action-btn">⋮</button>
-                                <div class="actions-menu">
-                                    <a href="/?q=parcel/edit&id=<?= $p['id'] ?>">Edit</a>
-                                    <div class="sep"></div>
-                                    <a class="hover-brand-green" href="/?q=serviceRequest/request&parcel=<?= $p['id'] ?>">Request Service</a>
-                                    <a class="hover-brand-green" href="#" onclick="alert('Coming soon')">Self Tracking</a>
-                                    <div class="sep"></div>
-                                    <a href="/?q=block/disableAll&parcel=<?= $p['id'] ?>" class="disable">Disable</a>
-                                    <a href="/?q=parcel/remove&id=<?= $p['id'] ?>" class="danger">Delete</a>
-                                </div>
+                                <span class="minimap-tooltip-trigger" style="cursor:pointer;position:relative;">
+                                    <img src="https://unpkg.com/leaflet/dist/images/marker-icon.png" alt="Marker" style="width:16px;">
+                                    <div class="minimap-tooltip" style="opacity:0;pointer-events:none;transition:opacity 0.25s;position:absolute;left:0;top:1.5em;z-index:1000;background:var(--card);padding:8px;border-radius:var(--radius);box-shadow:var(--shadow);min-width:220px;">
+                                        <div style="font-size:12px;margin-bottom:6px;">
+                                            Location: <?= htmlspecialchars($p['latitude']) ?>, <?= htmlspecialchars($p['longitude']) ?>
+                                        </div>
+                                        <div id="<?= $minimapUid ?>" style="width:200px;height:120px;"></div>
+                                    </div>
+                                </span>
+                                <script>
+                                    (function() {
+                                        var trigger = document.currentScript.previousElementSibling;
+                                        var tooltip = trigger.querySelector('.minimap-tooltip');
+                                        var minimapId = '<?= $minimapUid ?>';
+                                        var minimapInitialized = false;
+
+                                        function showTooltip() {
+                                            tooltip.style.opacity = '1';
+                                            tooltip.style.pointerEvents = 'auto';
+                                            if (!minimapInitialized) {
+                                                var map = L.map(minimapId, {
+                                                    attributionControl: false,
+                                                    zoomControl: false,
+                                                    dragging: false,
+                                                    scrollWheelZoom: false,
+                                                    doubleClickZoom: false
+                                                }).setView([<?= $p['latitude'] ?>, <?= $p['longitude'] ?>], 10);
+
+                                                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                                    maxZoom: 19,
+                                                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                                }).addTo(map);
+
+                                                L.marker([<?= $p['latitude'] ?>, <?= $p['longitude'] ?>]).addTo(map);
+                                                minimapInitialized = true;
+                                            }
+                                        }
+
+                                        function hideTooltip() {
+                                            tooltip.style.opacity = '0';
+                                            tooltip.style.pointerEvents = 'none';
+                                        }
+
+                                        trigger.addEventListener('mouseenter', showTooltip);
+                                        trigger.addEventListener('mouseleave', hideTooltip);
+                                    })();
+                                </script>
+                            
+                            <?php endif; ?>
+                    </td>
+                    <td><?= new DateTimeImmutable($requestModel->get('date'))->format(Config::get('date_format')) ?></td>
+                    <td><?= htmlspecialchars($requestModel->get('type')) ?></td>
+                    <td>
+                        <a href="/?q=parcel/edit&id=<?= $requestModel->get('parcel_id') ?>">
+                            <?= htmlspecialchars($requestModel->getParcel()->get('name')) ?>
+                        </a>
+                    </td>
+                    <td>
+                        <a href="/?q=block/edit&id=<?= $requestModel->get('block_id') ?>">
+                            <?= htmlspecialchars($requestModel->getBlock()->get('name')) ?>
+                        </a>
+                    </td>
+                    <td><?= ucfirst(htmlspecialchars($requestModel->getStatus())) ?></td>
+                    <td>
+                        <div class="action-wrap" style="position:relative">
+                            <button class="action-btn">⋮</button>
+                            <div class="actions-menu">
+                                <a href="/?q=service/details&id=<?= $requestModel->get('id') ?>">Details</a>
+                                <?php if ($requestModel->canCancel()): ?>
+                                <div class="sep"></div>
+                                <a href="/?q=service/cancel&id=<?= $requestModel->get('id') ?>" class="danger">Cancel Request</a>
+                                <?php endif; ?>
+                                
                             </div>
-                        </td>
-                    </tr>
-                <?php endforeach ?>
-                <?php if (!$parcels): ?>
-                    <tr>
-                        <td colspan="6" style="text-align:center;padding:1rem">No parcels found.</td>
-                    </tr>
-                <?php endif ?>
-            </tbody>
-        </table>
+                        </div>
+                    </td>
+                </tr>
+            <?php endforeach ?>
+        </tbody>
+    </table>
 
 </div>

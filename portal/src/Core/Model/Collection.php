@@ -13,17 +13,38 @@ class Collection implements CollectionInterface
     const ITEM_MODE_ARRAY = 0;
     const ITEM_MODE_OBJECT = 1;
 
-    protected string $modelClass;
-    protected ?string  $table = null;
-    protected array $filters = [];
-    protected array $sort = [];
-    protected array $params = [];
-    protected int $page = 1;
-    protected ?string $rawSql = null;
-    protected int $pageSize = 10;
-    protected int $itemMode = self::ITEM_MODE_OBJECT;
-    protected PDO $db;
+    private PDO $db;
+    private ?string $rawSql = null;
+    private ?string  $table = null;
+    private array $params = [];
 
+    private string $modelClass;
+
+    private int $itemMode = self::ITEM_MODE_OBJECT;
+
+    private array $filters = [];
+
+    private array $joins = [];
+
+    private array $sort = [];
+
+    private ?string $groupBy = null;
+
+    private ?string $having = null;
+
+    private int $page = 1;
+
+    private int $pageSize = 10000;
+
+    private ?int $count = null;
+
+    /**
+     * Collection constructor.
+     *
+     * @param string|Model $model Model class name or instance
+     * @throws \InvalidArgumentException
+     * @throws \RuntimeException
+     */
     public function __construct(string|Model $model)
     {
         if (is_string($model)) {
@@ -51,11 +72,45 @@ class Collection implements CollectionInterface
         $this->db = Database::connect();
     }
 
+    /**
+     * Set raw SQL query to be used instead of generated query.
+     *
+     * @param string $sql
+     * @return static
+     */
+    public function setRawSql(string $sql): static
+    {
+        $this->rawSql = $sql;
+
+        return $this;
+    }
+
+    /**
+     * Get the raw SQL query if set.
+     *
+     * @return string|null
+     */
+    public function getRawSql(): ?string
+    {
+        return $this->rawSql;
+    }
+
+    /**
+     * Get the model class name.
+     *
+     * @return string
+     */
     protected function getModelClass(): string
     {
         return $this->modelClass;
     }
 
+    /**
+     * Create a new model instance with optional data.
+     *
+     * @param array $data
+     * @return Model
+     */
     protected function createModel(array $data = []): Model
     {
         $model  = new $this->modelClass();
@@ -66,11 +121,23 @@ class Collection implements CollectionInterface
         return $model;
     }
 
+    /**
+     * Get the table name.
+     *
+     * @return string
+     */
     protected function getTable(): string
     {
         return $this->table;
     }
 
+    /**
+     * Set the item mode for fetching results.
+     *
+     * @param int $mode
+     * @return static
+     * @throws \InvalidArgumentException
+     */
     public function setItemMode(int $mode): static
     {
         if (!in_array($mode, [self::ITEM_MODE_ARRAY, self::ITEM_MODE_OBJECT])) {
@@ -82,11 +149,24 @@ class Collection implements CollectionInterface
         return $this;
     }
 
+    /**
+     * Get the current item mode.
+     *
+     * @return int
+     */
     public function getItemMode(): int
     {
         return $this->itemMode;
     }
 
+    /**
+     * Add a filter to the collection.
+     *
+     * @param array $filter Associative array of field => value pairs
+     * @param string $operator The operator to use for combining filters (AND or OR)
+     * @return static
+     * @throws \InvalidArgumentException
+     */
     public function addFilter(array $filter, string $operator = 'AND'): static
     {
         if (!in_array($operator, ['AND', 'OR'])) {
@@ -94,29 +174,48 @@ class Collection implements CollectionInterface
         }
 
         foreach ($filter as $key => $value) {
+
+            
+            $placeholder = str_replace(['.', ' '], '_', $key);
+            $placeholder = str_replace('`', '', $placeholder);
+            
+
             if (is_array($value)) {
                 $this->filters[] = [
-                    'filter' => "$key IN (" . implode(',', array_fill(0, count($value), ":$key")) . ")",
+                    'filter' => "$key IN (" . implode(',', array_fill(0, count($value), ":$placeholder")) . ")",
                     'operator' => $operator
                 ];
             } else {
                 $this->filters[] = [
-                    'filter' => "$key = :$key",
+                    'filter' => "$key = :$placeholder",
                     'operator' => $operator
                 ];
             }
 
-            $this->params[$key] = $value;
+            $this->params[$placeholder] = $value;
         }
 
         return $this;
     }
 
+    /**
+     * Get the filters applied to the collection.
+     *
+     * @return array
+     */
     public function getFilters(): array
     {
         return $this->filters;
     }
 
+    /**
+     * Set the sorting criteria for the collection.
+     *
+     * @param string $field The field to sort by
+     * @param string $direction The direction of sorting (ASC or DESC)
+     * @return static
+     * @throws \InvalidArgumentException
+     */
     public function sort(string $field, string $direction = 'ASC'): static
     {
         if (!in_array($direction, ['ASC', 'DESC'])) {
@@ -128,11 +227,69 @@ class Collection implements CollectionInterface
         return $this;
     }
 
+    /**
+     * Get the sorting criteria for the collection.
+     *
+     * @return array
+     */
     public function getSort(): array
     {
         return $this->sort;
     }
 
+    /**
+     * Set the GROUP BY field for the collection.
+     *
+     * @param string $field
+     * @return static
+     */
+    public function groupBy(string $field): static
+    {
+        $this->groupBy = $field;
+
+        return $this;
+    }
+
+    /**
+     * Get the GROUP BY field for the collection.
+     *
+     * @return string|null
+     */
+    public function getGroupBy(): ?string
+    {
+        return $this->groupBy;
+    }
+
+    /**
+     * Set the HAVING condition for the collection.
+     *
+     * @param string $condition
+     * @return static
+     */
+    public function having(string $condition): static
+    {
+        $this->having = $condition;
+
+        return $this;
+    }
+
+    /**
+     * Get the HAVING condition for the collection.
+     *
+     * @return string|null
+     */
+    public function getHaving(): ?string
+    {
+        return $this->having;
+    }
+
+    /**
+     * Set the current page number for pagination.
+     *
+     * @param int $page
+     * @return static
+     * @throws \InvalidArgumentException
+     */
     public function setPage(int $page): static
     {
         if ($page < 1) {
@@ -144,29 +301,51 @@ class Collection implements CollectionInterface
         return $this;
     }
 
+    /**
+     * Get the current page number.
+     *
+     * @return int
+     */
     public function getPage(): int
     {
         return $this->page;
     }
 
-    public function setRawSql(string $sql): static
+    /**
+     * Join another table to the collection.
+     *
+     * @param string $table The table to join
+     * @param string $on The ON condition for the join
+     * @return static
+     */
+    public function join(string $table, string $on): static
     {
-        $this->rawSql = $sql;
+        $this->joins[] = [
+            'table' => $table,
+            'on' => $on
+        ];
 
         return $this;
     }
-    public function getRawSql(): ?string
-    {
-        return $this->rawSql;
-    }
 
+    /**
+     * Get the SQL SELECT statement for the collection.
+     *
+     * @return string
+     */
     public function getSelect(): string
     {
         if ($this->rawSql) {
             return $this->rawSql;
         }
 
-        $sql = "SELECT * FROM {$this->table}";
+        $sql = "SELECT `main`.* FROM `{$this->table}` AS `main`";
+
+        if ($this->joins) {
+            foreach ($this->joins as $join) {
+                $sql .= " JOIN `{$join['table']}` ON {$join['on']}";
+            }
+        }
 
         if ($this->filters) {
             $sql .= ' WHERE 1=1 ' . implode(' ', array_map(function ($filter) {
@@ -174,9 +353,17 @@ class Collection implements CollectionInterface
             }, $this->filters));
         }
 
+        if ($this->groupBy) {
+            $sql .= " GROUP BY {$this->groupBy}";
+        }
+
+        if ($this->groupBy && $this->having) {
+            $sql .= " HAVING {$this->having}";
+        }
+
         if ($this->sort) {
             $sql .= ' ORDER BY ' . implode(', ', array_map(function ($field, $direction) {
-                return "$field $direction";
+                return "`$field` $direction";
             }, array_keys($this->sort), $this->sort));
         }
 
@@ -189,10 +376,24 @@ class Collection implements CollectionInterface
 
         return $sql;
     }
-    public function getParams(): array
+
+    /**
+     * Get the parameters for the SQL query.
+     *
+     * @return array
+     */
+    protected function getParams(): array
     {
         return $this->params;
     }
+
+    /**
+     * Set the page size for pagination.
+     *
+     * @param int $size
+     * @return static
+     * @throws \InvalidArgumentException
+     */
     public function setPageSize(int $size): static
     {
         if ($size < 1) {
@@ -203,13 +404,28 @@ class Collection implements CollectionInterface
 
         return $this;
     }
+
+    /**
+     * Get the page size for pagination.
+     *
+     * @return int
+     */
     public function getPageSize(): int
     {
         return $this->pageSize;
     }
 
+    /**
+     * Count the number of items in the collection.
+     *
+     * @return int
+     */
     public function count(): int
     {
+        if ($this->count !== null) {
+            return $this->count;
+        }
+
         $sql = $this->getSelect();
         $sql = "SELECT COUNT(*) FROM ($sql) AS count_query";
         $stmt = $this->db->prepare($sql);
@@ -218,9 +434,24 @@ class Collection implements CollectionInterface
         }
         $stmt->execute();
 
-        return (int) $stmt->fetchColumn();
+        return $this->count = (int) $stmt->fetchColumn();
     }
 
+    /**
+     * Check if the collection is empty.
+     *
+     * @return bool
+     */
+    public function isEmpty(): bool
+    {
+        return $this->count() < 1;
+    }
+
+    /**
+     * Fetch the results as an iterable collection.
+     *
+     * @return Traversable
+     */
     public function fetch(): Traversable
     {
         $sql = $this->getSelect();

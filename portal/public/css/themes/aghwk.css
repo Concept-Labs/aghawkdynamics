@@ -28,6 +28,11 @@
     --border: 1px solid rgba(0, 0, 0, .1);
     --shadow: 0 2px 6px rgba(0, 0, 0, .12);
     --radius: 8px;
+
+    --tooltip-bg: #222223;
+    --tooltip-text: #fff;
+    --tooltip-border: 1px solid rgba(0, 0, 0, .1);
+    --tooltip-shadow: 0 2px 6px rgba(0, 0, 0, .12);
 }
 
 .hover-brand-green:hover {
@@ -210,21 +215,6 @@ footer h6 {
     color: var(--footer--text);
 }
 
-fieldset {
-    border: 8px solid var(--border);
-    padding: var(--spacing);
-    border-radius: var(--radius);
-    margin-bottom: var(--spacing);
-}
-
-fieldset legend {
-    padding: 0 .5rem;
-    
-    text-align: right;
-    color: var(--text-dark);
-    background: var(--card);
-}
-
 h1,
 h2,
 h3,
@@ -235,22 +225,3 @@ h6 {
     margin: 1rem 0;
 }
 
-input,
-select,
-textarea {
-    padding: var(--spacing);
-    border-radius: var(--radius);
-    width: 100%;
-    box-sizing: border-box;
-    background: var(--card);
-    color: var(--text);
-    border: var(--border);
-}
-
-input:focus,
-textarea:focus {
-  outline: none;
-  box-shadow: var(--shadow);
-  
-  animation: focus-blink .3s ease;
-}

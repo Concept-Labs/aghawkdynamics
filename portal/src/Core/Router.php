@@ -11,6 +11,9 @@ class Router
         try {
             $route = $_GET['q'] ?? 'home/index';
             $parts = explode('/', $route);
+            if (count($parts) === 1) {
+                $parts[] = 'index';
+            }
             $action = array_pop($parts) ?: 'index';
             $controllerName = implode('\\', array_map('ucfirst', $parts)) ?: 'Home';
 

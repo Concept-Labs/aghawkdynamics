@@ -2,9 +2,15 @@
 
 use App\Core\Config;
 ?>
+<style>
+    #block-list {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+</style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<div class="entity-form">
+<div class="" id="block-list">
     <div class="table-toolbar flex flex-right" style="align-items:center;gap:.5rem;margin-bottom:.5rem">
         <div class="button-top-set">
             <a class="btn" href="/?q=block/add">Add Block</a>
@@ -38,61 +44,76 @@ use App\Core\Config;
             <tbody>
                 <?php foreach ($blocks as $b): 
                     $block = $b->getData();
+                    $p = $b->getParcel()->getData();
                     ?>
                     <tr>
                         <td>
-                            <?php if ($block['latitude'] && $block['longitude']): ?>
+                            <?php if ($p['latitude'] && $p['longitude']): ?>
                                 <span class="minimap-tooltip-trigger" style="cursor:pointer;position:relative;">
                                     <img src="https://unpkg.com/leaflet/dist/images/marker-icon.png" alt="Marker" style="width:16px;">
-                                    <div class="minimap-tooltip" style="display:none;position:absolute;left:0;top:1.5em;z-index:1000;background:#fff;border:1px solid #ccc;padding:8px;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.15);min-width:220px;">
+                                    <div class="minimap-tooltip" style="opacity:0;pointer-events:none;transition:opacity 0.25s;position:absolute;left:0;top:1.5em;z-index:1000;background:var(--card);padding:8px;border-radius:var(--radius);box-shadow:var(--shadow);min-width:220px;">
                                         <div style="font-size:12px;margin-bottom:6px;">
-                                            Location: <?= htmlspecialchars($block['latitude']) ?>, <?= htmlspecialchars($block['longitude']) ?>
+                                            Location: <?= htmlspecialchars($p['latitude']) ?>, <?= htmlspecialchars($p['longitude']) ?>
                                         </div>
-                                        <div id="minimap-<?= $block['id'] ?>" style="width:200px;height:120px;"></div>
+                                        <div id="minimap-<?= $p['id'].$block['id'] ?>" style="width:200px;height:120px;"></div>
                                     </div>
                                 </span>
                                 <script>
                                     (function() {
                                         var trigger = document.currentScript.previousElementSibling;
                                         var tooltip = trigger.querySelector('.minimap-tooltip');
-                                        var minimapId = 'minimap-<?= $block['id'] ?>';
+                                        var minimapId = 'minimap-<?= $p['id'].$block['id'] ?>';
                                         var minimapInitialized = false;
 
-                                        trigger.addEventListener('mouseenter', function() {
-                                            tooltip.style.display = 'block';
+                                        function showTooltip() {
+                                            tooltip.style.opacity = '1';
+                                            tooltip.style.pointerEvents = 'auto';
                                             if (!minimapInitialized) {
                                                 var map = L.map(minimapId, {
                                                     attributionControl: false,
                                                     zoomControl: false,
                                                     dragging: false,
                                                     scrollWheelZoom: false,
-                                                }).setView([<?= htmlspecialchars($block['latitude']) ?>, <?= htmlspecialchars($block['longitude']) ?>], 14);
+                                                    doubleClickZoom: false
+                                                }).setView([<?= $p['latitude'] ?>, <?= $p['longitude'] ?>], 14);
+
+                                                // Use CartoDB Dark Matter tiles for night mode
+                                                // L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                                                //     maxZoom: 19,
+                                                // }).addTo(map);
 
                                                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                                     maxZoom: 19,
-                                                    minZoom: 2,
+                                                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                                                 }).addTo(map);
 
-                                                L.marker([<?= htmlspecialchars($block['latitude']) ?>, <?= htmlspecialchars($block['longitude']) ?>]).addTo(map);
+                                                L.marker([<?= $p['latitude'] ?>, <?= $p['longitude'] ?>]).addTo(map);
                                                 minimapInitialized = true;
                                             }
-                                        });
-                                        trigger.addEventListener('mouseleave', function() {
-                                            tooltip.style.display = 'none';
-                                        });
+                                        }
+
+                                        function hideTooltip() {
+                                            tooltip.style.opacity = '0';
+                                            tooltip.style.pointerEvents = 'none';
+                                        }
+
+                                        trigger.addEventListener('mouseenter', showTooltip);
+                                        trigger.addEventListener('mouseleave', hideTooltip);
                                     })();
                                 </script>
-                            <?php else: ?>
-                                <span style="color:#ccc">x</span>
-                            <?php endif ?>
-
+                            
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <a href="/?q=parcel/edit&id=<?= $b->getParcel()->get('id') ?>">
+                                <strong><?= htmlspecialchars($b->getParcel()->get('name')) ?></strong>
+                            </a>
                         </td>
                         <td>
                             <a href="/?q=block/edit&id=<?= $b->get('id') ?>">
                                 <?= htmlspecialchars($b->get('name')) ?>
                             </a>
                         </td>
-                        <td><?= $b->getParcel()->get('name') ?></td>
                         <td><?= $b->get('acres') ?></td>
                         <td><?= $b->get('crop_category') ?></td>
                         <td>
@@ -101,7 +122,7 @@ use App\Core\Config;
                                 <div class="actions-menu">
                                     <a href="/?q=block/edit&id=<?= $b->get('id') ?>">Edit</a>
                                     <div class="sep"></div>
-                                    <a class="hover-brand-green" href="/?q=serviceRequest/request&block=<?= $b->get('id') ?>">Request Service</a>
+                                    <a class="hover-brand-green" href="/?q=service/request&parcel=<?= $b->get('parcel_id') ?>&block=<?= $b->get('id') ?>">Request Service</a>
                                     <a class="hover-brand-green" href="#" onclick="alert('Coming soon')">Self Tracking</a>
                                     <div class="sep"></div>
                                     <a href="/?q=block/disableAll&parcel=<?= $b->get('parcel_id') ?>" class="disable">Disable</a>

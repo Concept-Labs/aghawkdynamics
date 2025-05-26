@@ -6,6 +6,10 @@ use IteratorAggregate;
 
 interface CollectionInterface extends IteratorAggregate
 {
+    public function count(): int;
+
+    public function isEmpty(): bool;
+
     public function setItemMode(int $mode): static;
 
     public function getItemMode(): int;
@@ -28,7 +32,6 @@ interface CollectionInterface extends IteratorAggregate
 
     public function getSelect(): string;
 
-    public function getParams(): array;
 
     public function setPageSize(int $size): static;
 

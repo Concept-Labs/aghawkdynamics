@@ -32,7 +32,6 @@ class BlockController extends Controller
 
     public function add(): void
     {
-        $this->getRequest()->holdReferer();
 
         if (!$this->getRequest()->isPost()) {
             $parcels = (new Parcel())->getCollection()
@@ -70,7 +69,8 @@ class BlockController extends Controller
             }
         
             (new Block())
-                //->setData()
+                //->setData($blockData)
+                //add account_id to block data (temporary solution)
                 ->create(['account_id' => $parcel->getAccountId()] + $blockData);
 
             $this->getRequest()->addInfo(
@@ -89,7 +89,6 @@ class BlockController extends Controller
 
     public function edit(): void
     {
-        $this->getRequest()->holdReferer();
 
         try {
             $pid = (int)$this->getRequest('id', 0);
@@ -134,6 +133,12 @@ class BlockController extends Controller
         ]);
     }
 
+
+    public function options(): void
+    {
+       
+    }
+
     protected function validateBlockData(array $data): array
     {
         if (empty($data['parcel_id'])) {
@@ -161,4 +166,6 @@ class BlockController extends Controller
 
         return $data;
     }
+
+
 }

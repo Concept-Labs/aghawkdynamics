@@ -184,6 +184,12 @@ button.delete:hover,
   margin-bottom: var(--spacing)
 }
 
+.note {
+  font-size: 0.8rem;
+  color: #666;
+  margin: 0.5rem 0;
+}
+
 .entity-form {
     width: 700px;
     margin: 0 auto;
@@ -316,12 +322,18 @@ textarea[disabled] {
 }
 
 /* === Floating labels === */
+.fld-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: .5rem;
+}
 .fld {
   position: relative;
   margin-bottom: 1rem
 }
 
-.fld input,
+.fld input:not([type="checkbox"]),
 .fld textarea,
 .fld select {
   padding: 1rem .5rem .5rem .5rem;
@@ -342,12 +354,11 @@ textarea[disabled] {
   color: var(--text-light);
 }
 
-.fld input:focus+label,
-.fld input:not(:placeholder-shown)+label,
+.fld input:not([type="checkbox"]):focus+label,
+.fld input:not([type="checkbox"]):not(:placeholder-shown)+label,
 .fld textarea:focus+label,
-.fld textarea:not(:placeholder-shown)+label,
-.fld select:focus+label,
-.fld select:not([value=""])+label {
+.fld textarea:not(:placeholder-shown)+label
+{
   top: -.6rem;
   left: .6rem;
   font-size: .75rem;
@@ -355,7 +366,49 @@ textarea[disabled] {
   padding: 0 .25rem;
   color: var(--accent);
 }
+.fld select:valid + label,
+.fld select:focus + label{
+  top:-.6rem; left:.6rem;
+  font-size:.75rem;
+  background:var(--card);
+  padding:0 .25rem;
+  color:var(--accent);
+}
 
+fieldset {
+    border: 8px solid var(--border);
+    padding: var(--spacing);
+    border-radius: var(--radius);
+    margin-bottom: var(--spacing);
+}
+
+fieldset legend {
+    padding: 0 .5rem;
+    
+    text-align: right;
+    color: var(--text-dark);
+    background: var(--card);
+}
+
+input:not([type="checkbox"]),
+select,
+textarea {
+  padding: var(--spacing);
+  border-radius: var(--radius);
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--card);
+  color: var(--text);
+  border: var(--border);
+}
+
+input:not([type="checkbox"]):focus,
+/*select:focus,*/
+textarea:focus {
+  outline: none;
+  box-shadow: var(--shadow);
+  animation: focus-blink .3s ease;
+}
 
 
 .theme-menu.show {

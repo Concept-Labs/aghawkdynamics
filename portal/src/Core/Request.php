@@ -203,6 +203,7 @@ class Request
     }
 
     /**
+     * @deprecated
      * Get a value from $_REQUEST or all params.
      * 
      * @param string|null $key
@@ -210,6 +211,18 @@ class Request
      * @return mixed
      */
     public function request(?string $key = null, mixed $default = null): mixed
+    {
+        return $this->getRequest($key, $default);
+    }
+
+    /**
+     * Get a value from $_REQUEST or all params.
+     * 
+     * @param string|null $key
+     * @param mixed $default
+     * @return mixed
+     */
+    public function getRequest(?string $key = null, mixed $default = null): mixed
     {
         if ($key === null) {
             return $this->params;
@@ -219,6 +232,7 @@ class Request
     }
 
     /**
+     * @deprecated
      * Get a value from $_GET or all query params.
      * 
      * @param string|null $key
@@ -226,6 +240,18 @@ class Request
      * @return mixed
      */
     public function query(?string $key = null, mixed $default = null): mixed
+    {
+        return $this->getQuery($key, $default);
+    }
+    
+    /**
+     * Get a value from $_GET or all query params.
+     * 
+     * @param string|null $key
+     * @param mixed $default
+     * @return mixed
+     */
+    public function getQuery(?string $key = null, mixed $default = null): mixed
     {
         if ($key === null) {
             return $this->queryParams;
@@ -235,6 +261,7 @@ class Request
     }
 
     /**
+     * @deprecated
      * Get a value from $_POST or all post params.
      * 
      * @param string|null $key
@@ -242,6 +269,18 @@ class Request
      * @return mixed
      */
     public function post(?string $key = null, mixed $default = null): mixed
+    {
+        return $this->getPost($key, $default);
+    }
+
+    /**
+     * Get a value from $_POST or all post params.
+     * 
+     * @param string|null $key
+     * @param mixed $default
+     * @return mixed
+     */
+    public function getPost(?string $key = null, mixed $default = null): mixed
     {
         if ($key === null) {
             return $this->postParams;
@@ -251,6 +290,7 @@ class Request
     }
 
     /**
+     * @deprecated
      * Get a value from $_SESSION or all session data.
      * 
      * @param string|null $key
@@ -258,6 +298,18 @@ class Request
      * @return mixed
      */
     public function session(?string $key = null, mixed $default = null): mixed
+    {
+        return $this->getSession($key, $default);
+    }
+
+    /**
+     * Get a value from $_SESSION or all session data.
+     * 
+     * @param string|null $key
+     * @param mixed $default
+     * @return mixed
+     */
+    public function getSession(?string $key = null, mixed $default = null): mixed
     {
         if ($key === null) {
             return $this->session;
@@ -279,6 +331,7 @@ class Request
     }
 
     /**
+     * @deprecated
      * Get a value from $_COOKIE or all cookies.
      * 
      * @param string|null $key
@@ -286,6 +339,18 @@ class Request
      * @return mixed
      */
     public function cookie(?string $key = null, mixed $default = null): mixed
+    {
+        return $this->getCookie($key, $default);
+    }
+
+    /**
+     * Get a value from $_COOKIE or all cookies.
+     * 
+     * @param string|null $key
+     * @param mixed $default
+     * @return mixed
+     */
+    public function getCookie(?string $key = null, mixed $default = null): mixed
     {
         if ($key === null) {
             return $this->cookies;
@@ -295,6 +360,7 @@ class Request
     }
 
     /**
+     * @deprecated
      * Get a value from $_SERVER or all server data.
      * 
      * @param string|null $key
@@ -303,12 +369,26 @@ class Request
      */
     public function server(?string $key = null, mixed $default = null): mixed
     {
+        return $this->getServer($key, $default);
+    }
+
+    /**
+     * Get a value from $_SERVER or all server data.
+     * 
+     * @param string|null $key
+     * @param mixed $default
+     * @return mixed
+     */
+    public function getServer(?string $key = null, mixed $default = null): mixed
+    {
         if ($key === null) {
             return $this->server;
         }
 
         return $this->server[$key] ?? $default;
     }
+
+    
 
     /**
      * Get a value from $_FILES or all files.
@@ -317,7 +397,7 @@ class Request
      * @param mixed $default
      * @return mixed
      */
-    public function file(?string $key = null, mixed $default = null): mixed
+    public function getFile(?string $key = null, mixed $default = null): mixed
     {
         if ($key === null) {
             return $this->files;
