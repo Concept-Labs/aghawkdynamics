@@ -96,7 +96,7 @@ $requestCollection = $this->var('requestCollection', []);
                             
                             <?php endif; ?>
                     </td>
-                    <td><?= new DateTimeImmutable($requestModel->get('date'))->format(Config::get('date_format')) ?></td>
+                    <td><?= (new DateTimeImmutable($requestModel->get('date')))->format(Config::get('date_format')) ?></td>
                     <td><?= htmlspecialchars($requestModel->get('type')) ?></td>
                     <td>
                         <a href="/?q=parcel/edit&id=<?= $requestModel->get('parcel_id') ?>">
