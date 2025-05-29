@@ -52,10 +52,7 @@ $user = $userModel->getData() ?? [];
                 alert('Password must be at least 8 characters long');
                 return false;
             }
-            if (password === old_password) {
-                alert('New password must be different from old password');
-                return false;
-            }
+            
             // if (!/[A-Z]/.test(password)) {
             //     alert('Password must contain at least one uppercase letter');
             //     return false;
@@ -152,7 +149,6 @@ $user = $userModel->getData() ?? [];
                 <fieldset id="password" class="">
                     <legend>Change Password</legend>
                     <div class="fieldset">
-                        <div class="fld"><input type="password" name="old_password" placeholder=" "><label>Old password</label></div>
                         <div class="fld"><input type="password" name="password" placeholder=" "><label>New password</label></div>
                         <div class="fld"><input type="password" name="password_repeat" placeholder=" "><label>Repeat new password</label></div>
                     </div>

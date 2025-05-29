@@ -1,7 +1,7 @@
 <?php
 
 use App\Core\Config;
-
+use App\Model\Account\User;
 
 $requestModel = $this->var('requestModel', null);
 $requestId = $this->var('request_id', null);
@@ -54,6 +54,14 @@ $minUrgentDateStr = $minUrgentDate->format('Y-m-d');
     color: var(--text);
   }
 </style>
+<?php if (User::isAdmin()): ?>
+  <div id="admin-notice">
+    <span class="icon-help" title="Admin Mode">A</span>
+    <span>Admin not implemented</span>
+  </div>
+<?php 
+return;
+endif; ?>
 <div class="entity-form card">
   <form method="post" id="service-form" action="<?php echo $requestId ? '/?q=service/edit&id=' . $requestId : '/?q=service/create' ?>">
     <?php if ($requestId): ?>

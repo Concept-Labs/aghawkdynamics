@@ -55,7 +55,7 @@ class ServiceRequest extends Model
     {
         if (!$this->parcel instanceof Parcel) {
             $this->parcel =  (new Parcel())
-                ->load($this->get('parcel_id'));
+                ->load($this->get('parcel_id') ?? 0);
         }
 
         return $this->parcel;
