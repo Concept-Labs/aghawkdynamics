@@ -4,8 +4,8 @@ use App\Core\Config;
 
 
 $requestModel = $this->var('requestModel', null);
+$requestAdds = $requestModel?->get('adds') ?? [];
 $requestId = $this->var('request_id', null);
-
 $blocks = $this->var('blocks', []);
 $parcels = $this->var('parcels', []);
 
@@ -80,7 +80,28 @@ $minUrgentDateStr = $minUrgentDate->format('Y-m-d');
           <?php endforeach ?>
         </select>
         <label>Parcel</label>
-
+        <script>
+          document.querySelector('select[name="service[parcel_id]"]').addEventListener('change', function() {
+            const selectedParcelId = this.value;
+            const blockSelect = document.querySelector('select[name="service[block_id]"]');
+            blockSelect.disabled = !selectedParcelId; // Disable if no parcel selected
+            const options = fetch('/?q=block/api/list&parcel_id=' + selectedParcelId)
+              .then(response => response.json())
+              .then(data => {
+                blockSelect.innerHTML = '<option value="" hidden></option>'; // Reset options
+                data.forEach(block => {
+                  const option = document.createElement('option');
+                  option.value = block.id;
+                  option.textContent = block.name;
+                  if (block.id == <?= json_encode($currentBlockId) ?>) {
+                    option.selected = true; // Pre-select current block if exists
+                  }
+                  blockSelect.appendChild(option);
+                });
+              })
+              .catch(error => alert('Error fetching blocks:', error) && console.error('Error fetching blocks:', error));
+          });
+        </script>
       </div>
       <div class="fld" style="flex: 1;">
         <select name="service[block_id]" required <?php if ($currentBlockId): ?>disabled<?php endif ?>>
@@ -113,7 +134,22 @@ $minUrgentDateStr = $minUrgentDate->format('Y-m-d');
           </p>
         </tooltip>
       </div>
-
+      <script>
+        // Handle urgent date logic
+        document.querySelector('select[name="service[urgent]"]').addEventListener('change', function() {
+          const isUrgent = this.value === '1';
+          const dateField = document.getElementById('fld_date');
+          if (isUrgent) {
+            dateField.querySelector('input').setAttribute('min', '<?= $minUrgentDateStr ?>');
+            dateField.querySelector('input').value = '<?= $minUrgentDateStr ?>';
+            dateField.querySelector('input').classList.add('urgent');
+          } else {
+            dateField.querySelector('input').setAttribute('min', '<?= $minDateStr ?>');
+            dateField.querySelector('input').value = '';
+            dateField.querySelector('input').classList.remove('urgent');
+          }
+        });
+      </script>
     </div>
 
     <div class="fld">
@@ -264,7 +300,7 @@ $minUrgentDateStr = $minUrgentDate->format('Y-m-d');
     </fieldset>
 
     <fieldset id="application_usage" class="" data-allowed-types='<?= json_encode(Config::get('service_type_application')) ?>' style="display: none;">
-      <legend>Application rate</legend>
+      <legend>Application</legend>
       <div class="fld-row" style="justify-content: start;">
         <div class="fld">
           <select name="service[adds][application][unit]" style="width: auto;">
@@ -380,42 +416,6 @@ $minUrgentDateStr = $minUrgentDate->format('Y-m-d');
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Handle parcel selection to populate blocks
-    document.querySelector('select[name="service[parcel_id]"]').addEventListener('change', function() {
-      const selectedParcelId = this.value;
-      const blockSelect = document.querySelector('select[name="service[block_id]"]');
-      blockSelect.disabled = !selectedParcelId; // Disable if no parcel selected
-      const options = fetch('/?q=block/api/list&parcel_id=' + selectedParcelId)
-        .then(response => response.json())
-        .then(data => {
-          blockSelect.innerHTML = '<option value="" hidden></option>'; // Reset options
-          data.forEach(block => {
-            const option = document.createElement('option');
-            option.value = block.id;
-            option.textContent = block.name;
-            if (block.id == <?= json_encode($currentBlockId) ?>) {
-              option.selected = true; // Pre-select current block if exists
-            }
-            blockSelect.appendChild(option);
-          });
-        })
-        .catch(error => alert('Error fetching blocks:', error) && console.error('Error fetching blocks:', error));
-    });
-
-    // Handle urgent service selection to set date field
-    document.querySelector('select[name="service[urgent]"]').addEventListener('change', function() {
-      const isUrgent = this.value === '1';
-      const dateField = document.getElementById('fld_date');
-      if (isUrgent) {
-        dateField.querySelector('input').setAttribute('min', '<?= $minUrgentDateStr ?>');
-        dateField.querySelector('input').value = '<?= $minUrgentDateStr ?>';
-        dateField.querySelector('input').classList.add('urgent');
-      } else {
-        dateField.querySelector('input').setAttribute('min', '<?= $minDateStr ?>');
-        dateField.querySelector('input').value = '';
-        dateField.querySelector('input').classList.remove('urgent');
-      }
-    });
 
     // Handle the switch for showing/hiding content
     const switchShow = document.querySelectorAll('input.show-content');

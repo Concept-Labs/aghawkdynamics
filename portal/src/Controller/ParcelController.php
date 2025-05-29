@@ -24,7 +24,7 @@ class ParcelController extends Controller
             }
         }
 
-        if ($parcel->get('account_id') != User::getInstance()->getId()) {
+        if (!User::isAdmin() && $parcel->get('account_id') != User::getInstance()->getId()) {
             return null;
         }
 
@@ -34,21 +34,13 @@ class ParcelController extends Controller
     /** List with filters, sort, pagination, page size */
     public function index(): void
     {
-        
-        $uid = User::getInstance()->getId();
+        $collection = (new Parcel())->getCollection()
+            ->setItemMode(Collection::ITEM_MODE_OBJECT)
+            ->sort('name', 'ASC');
 
-        $collection = (new Parcel())->getCollection();
-        $collection->setItemMode(Collection::ITEM_MODE_OBJECT);
-
-        $collection->addFilter(
-            [
-                'account_id' => $uid,
-            ]
-        );
-
-        $collection->sort('name', 'ASC');
-
-        $collection->setPageSize(1000);
+        if (!User::isAdmin()) {
+            $collection->addFilter(['account_id' => User::uid()]);
+        }
 
         $this->render('parcel/index', [
             'parcels'     => $collection->fetch()
@@ -57,25 +49,22 @@ class ParcelController extends Controller
 
     public function add(): void
     {
-        
-        $uid = User::getInstance()->getId();
-
-        if (!$uid) { $this->redirect('/?q=auth/login'); exit; }
 
         if ($this->getRequest()->isPost()) {
             $data = $this->getRequest()->post('parcel', []);
-            $data['account_id'] = $uid;
+
+            $data['account_id'] ??= User::getInstance()->getId();
 
             $parcelModel = (new Parcel())->create($data);
+
             $this->redirect('/?q=parcel/edit&id=' . $parcelModel->getId());
             exit;
         }
 
-        $this->render('parcel/parcel', [
-            'parcelModel' => new Parcel(),
-            'states' => Config::get('states'),
-            'crop_category' => Config::get('crop_category'),
-        ]);
+        $this->render(
+            'parcel/parcel', 
+            ['parcelModel' => new Parcel()]
+        );
     }
 
     public function edit(): void
@@ -115,58 +104,16 @@ class ParcelController extends Controller
             $this->getRequest()->addWarning('Parcel must have at least one block to be able to create a service request.');
         }
 
-        $this->render('parcel/parcel', [
-            'states' => Config::get('states'),
-            'crop_category' => Config::get('crop_category'),
-            'parcelModel' => $parcel,
-        ]);
-    }
-
-    public function deleteit(): void
-    {
-        $r = (int)$this->getRequest()->post('parcel', 0);
-        $pid = (int)$r['dp'] ?? 0;
-        $uid = User::getInstance()->getId();
-        if (!$uid) { $this->redirect('/?q=auth/login'); exit; }
-        try  {
-            if ($pid < 1) { 
-                $this->getRequest()->addError('Parcel ID is required');
-                $this->redirectReferer(); 
-                exit; 
-            }
-
-            $parcel = (new Parcel())->load($pid);
-
-            if (!$parcel->getId()) {
-                $this->getRequest()->addError('Parcel not found');
-                $this->redirectReferer();
-                exit;
-            }
-
-            if ($parcel->get('account_id') != $this->getRequest()->session('uid')) {
-                $this->getRequest()->addError('Parcel not found !');
-                $this->redirectReferer();
-                exit;
-            }
-
-            
-            $parcel->delete($pid);
-        } catch (\Throwable $e) {
-            $this->getRequest()->addError($e->getMessage());
-            $this->redirectReferer();
-            exit;
-        }
-         
-        $this->getRequest()->addInfo('Parcel has been deleted');
-        $this->redirectReferer();
-        exit;
-
+        $this->render(
+            'parcel/parcel',
+            ['parcelModel' => $parcel]
+        );
     }
 
     /** CSV export */
     public function export(): void
     {
-        $uid = $_SESSION['uid'] ?? 0;
+        $uid = User::getInstance()->getId();
         if (!$uid) { header('Location: /?q=auth/login'); exit; }
 
         $model = new Parcel();

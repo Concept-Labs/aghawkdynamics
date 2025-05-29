@@ -1,3 +1,6 @@
+<?php
+    use App\Model\Account\User;
+?>
 <style>
     /* ===== DESKTOP (≥ 601 px) ===== */
     .top-nav {
@@ -86,6 +89,16 @@
     </div>
 
     <ul>
+        <?php if (User::isAdmin()): ?>
+            <li class="dropdown">
+                <a class="top-link" href="/?q=account/index">Accounts</a>
+                <div class="dropdown-content">
+                    <a href="/?q=account/index">List All</a>
+                    <a href="/?q=account/add">Add Account</a>
+                </div>
+            </li>
+        <?php endif; ?>
+        
         <li class="dropdown">
             <a class="top-link" href="/?q=parcel/index">Parcels</a>
             <div class="dropdown-content">
@@ -101,7 +114,7 @@
             </div>
         </li>
         <li class="dropdown">
-            <a class="top-link" href="/?q=service/index">Service</a>
+            <a class="top-link" href="/?q=service/index">Activity</a>
             <div class="dropdown-content">
                 <a class="hover-brand-green" href="/?q=service/index">List All</a>
                 <a href="/?q=service/request">Request Service</a>

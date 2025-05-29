@@ -19,9 +19,26 @@ $request = Request::getInstance();
   <link rel="stylesheet" href="/css/topnav.css">
   <link rel="stylesheet" href="/css/tooltipeable.css">
   <link rel="stylesheet" href="/css/minimap.css">
+  <link rel="stylesheet" href="/css/switch.css">
   <script src="/js/app.js"></script>
 
   <style>
+    #admin-notice {
+      position: absolute;
+      opacity: 0.7;
+      top: 0;
+      left: 33%;
+      right: 33%;
+      
+      padding: .3rem;
+      
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      color: #fff;
+      text-align: center;
+      z-index: 1000;
+    }
+
     .theme-toggle {
       position: relative;
       width: 34px;
@@ -117,7 +134,11 @@ $request = Request::getInstance();
 
 
   <header class="flex">
-    
+      <?php if (User::isAdmin()): ?>
+        <div id="admin-notice" class="admin-notice brand-yellow">
+          Administrator mode
+        </div>
+      <?php endif; ?>
       <div class="logo">
         <img src="/public/img/header-logo.webp" alt="AGHAWK Logo">
         <span style="font-family: 'Orbitron', sans-serif; font-size: 1.5rem;">

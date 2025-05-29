@@ -1,4 +1,7 @@
 <?php
+
+use App\Model\Account\User;
+
 $parcelCollection = $this->var('parcels', []);
 ?>
 
@@ -24,6 +27,9 @@ $parcelCollection = $this->var('parcels', []);
             <thead>
                 <tr>
                     <th></th>
+                    <?php if (User::isAdmin()): ?>
+                        <th>Account</th>
+                    <?php endif; ?>
                     <th>
                         <input class="tbl-filter inline-search" name="f_name" value="<?= htmlspecialchars($nameFilter) ?>" placeholder="Parcel name">
                     </th>
@@ -94,6 +100,18 @@ $parcelCollection = $this->var('parcels', []);
                             
                             <?php endif; ?>
                         </td>
+                        <?php if (User::isAdmin()): ?>
+                            <td>
+                                <?php
+                                $account = $parcelModel->getAccount();
+                                if ($account) {
+                                    echo '<a href="/?q=account/edit&id=' . $account->getId() . '">' . htmlspecialchars($account->get('name')) . '</a>';
+                                } else {
+                                    echo 'N/A';
+                                }
+                                ?>
+                            </td>
+                        <?php endif; ?>
                         <td>
                             <a href="/?q=parcel/edit&id=<?= $p['id'] ?>" >
                                 <?= htmlspecialchars($p['name']) ?>
@@ -111,7 +129,11 @@ $parcelCollection = $this->var('parcels', []);
                                 <div class="actions-menu">
                                     <a href="/?q=parcel/edit&id=<?= $p['id'] ?>">Edit</a>
                                     <div class="sep"></div>
-                                    <a class="hover-brand-green <?php if (!$parcelModel->canRequestService()): ?>disabled<?php endif; ?>" href="/?q=service/request&parcel=<?= $p['id'] ?>">Request Service</a>
+                                    <a 
+                                        class="hover-brand-yellow <?php if (!$parcelModel->canRequestService()): ?>disabled<?php endif; ?>" 
+                                        href="/?q=service/request&parcel=<?= $p['id'] ?>">
+                                        Request Service
+                                    </a>
                                     <!--a class="hover-brand-green" href="#" onclick="alert('Coming soon')">Self Tracking</a-->
                                 </div>
                             </div>

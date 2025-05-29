@@ -1,13 +1,22 @@
 <?php
 
 use App\Core\Config;
-use SimplePie\Parse\Date;
+use App\Model\Account\User;
+use App\Model\ServiceRequest;
 
 $requestCollection = $this->var('requestCollection', []);
+$statusCssClass = [
+    ServiceRequest::STATUS_PENDING => 'brand-yellow o50',
+    ServiceRequest::STATUS_COMPLETED => 'brand-green o50',
+    ServiceRequest::STATUS_CANCELLED => 'brand-red o50',
+]
 ?>
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <style>
+    .o50 {
+    opacity: 0.5;
+}
     #request-list {
         margin: 0 auto;
         max-width: 1200px;
@@ -15,9 +24,9 @@ $requestCollection = $this->var('requestCollection', []);
 </style>
 <div id="request-list">
     <div class="flex" style="align-items: center; justify-content: space-between; margin-bottom: 1rem;">
-        <h2>Service Requests</h2>
+        <h2>Activity</h2>
         <div class="button-top-set">
-            <a class="btn" href="/?q=service/request">Request Service</a>
+            <a class="btn brand-yellow" href="/?q=service/request">Request Service</a>
             <a class="btn brand-green disabled" href="/?q=service/export">Export</a>
         </div>
     </div>
@@ -27,6 +36,9 @@ $requestCollection = $this->var('requestCollection', []);
         <thead>
             <tr>
                 <th></th>
+                <?php  if (User::isAdmin()):?>
+                    <th>Account</th>
+                <?php endif; ?>
                 <th>Need by Date</th>
                 <th>Type</th>
                 <th>
@@ -96,6 +108,13 @@ $requestCollection = $this->var('requestCollection', []);
                             
                             <?php endif; ?>
                     </td>
+                    <?php if (User::isAdmin()): ?>
+                        <td>
+                            <a href="/?q=account/edit&id=<?= $requestModel->getAccount()->getId() ?>">
+                                <?= htmlspecialchars($requestModel->getAccount()->get('name')) ?>
+                            </a>
+                        </td>
+                    <?php endif; ?>
                     <td><?= (new DateTimeImmutable($requestModel->get('date')))->format(Config::get('date_format')) ?></td>
                     <td><?= htmlspecialchars($requestModel->get('type')) ?></td>
                     <td>
@@ -108,7 +127,10 @@ $requestCollection = $this->var('requestCollection', []);
                             <?= htmlspecialchars($requestModel->getBlock()->get('name')) ?>
                         </a>
                     </td>
-                    <td><?= ucfirst(htmlspecialchars($requestModel->getStatus())) ?></td>
+                    <td class="<?= $statusCssClass[$requestModel->getStatus()] ?? 'brand-yellow' ?>">
+                        <span class="status-indicator" style="background-color: <?= $statusCssClass[$requestModel->getStatus()] ?? '#ccc' ?>;"></span>
+                        <?= ucfirst(htmlspecialchars($requestModel->getStatus())) ?>
+                    </td>
                     <td>
                         <div class="action-wrap" style="position:relative">
                             <button class="action-btn">⋮</button>
@@ -116,6 +138,10 @@ $requestCollection = $this->var('requestCollection', []);
                                 <a href="/?q=service/details&id=<?= $requestModel->get('id') ?>">Details</a>
                                 <?php if ($requestModel->canCancel()): ?>
                                 <div class="sep"></div>
+                                <?php if (User::isAdmin()): ?>
+                                    <a href="/?q=service/edit&id=<?= $requestModel->get('id') ?>">Edit</a>
+                                    <a href="/?q=service/complete&id=<?= $requestModel->get('id') ?>" class="hover-brand-green">Complete</a>
+                                <?php endif; ?>
                                 <a href="/?q=service/cancel&id=<?= $requestModel->get('id') ?>" class="danger">Cancel Request</a>
                                 <?php endif; ?>
                                 

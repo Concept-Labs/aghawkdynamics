@@ -11,15 +11,23 @@ use App\Model\Parcel;
 class BlockController extends Controller
 {
 
+    /**
+     * Display a list of blocks for the logged-in user.
+     *
+     * @return void
+     */
     public function index(): void
     {
         $blockCollection = (new Block())->getCollection();
 
-        $blockCollection->addFilter(
-            [
-                'account_id' => User::getInstance()->getId(),
-            ]
-        );
+        if (!User::isAdmin()) {
+            // If the user is not an admin, filter blocks by account ID
+            $blockCollection->addFilter(
+                [
+                    'account_id' => User::getInstance()->getId(),
+                ]
+            );
+        }
 
         $blockCollection->setItemMode(Collection::ITEM_MODE_OBJECT);
         $blockCollection->sort('name', 'ASC');
@@ -30,18 +38,28 @@ class BlockController extends Controller
     }
    
 
+    /**
+     * Add a new block to a parcel.
+     *
+     * @return void
+     */
     public function add(): void
     {
 
         if (!$this->getRequest()->isPost()) {
+
             $parcels = (new Parcel())->getCollection()
-                ->setItemMode(Collection::ITEM_MODE_ARRAY)
-                ->addFilter(
+                ->setItemMode(Collection::ITEM_MODE_ARRAY);
+
+            if (!User::isAdmin()) {
+                $parcels->addFilter(
                     [
                         'account_id' => User::getInstance()->getId(),
                     ]
-                )
-                ->sort('name', 'ASC');
+                    );
+                }
+
+            $parcels->sort('name', 'ASC');
 
             $this->render('block/block', [
                 'parcels' => $parcels,
@@ -53,12 +71,12 @@ class BlockController extends Controller
         
         try {
             $blockData = $this->getRequest()->post('block');
+            
+            $parcel = (new Parcel())->load($blockData['parcel_id']);
 
-            $blockData['account_id'] = User::getInstance()->getId();
+            $blockData['account_id'] = $blockData['account_id'] ?? $parcel->getAccountId();
 
             $blockData = $this->validateBlockData($blockData);
-
-            $parcel = (new Parcel())->load($blockData['parcel_id']);
 
             if (!$parcel->getId()) {
                 throw new \InvalidArgumentException('Parcel not found');
@@ -87,6 +105,11 @@ class BlockController extends Controller
         $this->redirectReferer();
     }
 
+    /**
+     * Edit an existing block.
+     *
+     * @return void
+     */
     public function edit(): void
     {
 
@@ -105,7 +128,7 @@ class BlockController extends Controller
                 throw new \Exception('Parcel not found');
             }
 
-            if (User::getInstance()->getId() !== $parcel->getAccountId()) {
+            if (!User::isAdmin() && User::getInstance()->getId() !== $parcel->getAccountId()) {
                 throw new \Exception('You do not have permission to edit this block');
             }
 
@@ -133,12 +156,13 @@ class BlockController extends Controller
         ]);
     }
 
-
-    public function options(): void
-    {
-       
-    }
-
+    /**
+     * Validate block data.
+     *
+     * @param array $data
+     * @return array
+     * @throws \InvalidArgumentException
+     */
     protected function validateBlockData(array $data): array
     {
         if (empty($data['parcel_id'])) {
@@ -148,22 +172,7 @@ class BlockController extends Controller
         if (empty($data['name'])) {
             throw new \InvalidArgumentException('Block name is required');
         }
-
-        if (empty($data['acres'])) {
-            throw new \InvalidArgumentException('Block acres is required');
-        }
-
-        if (!is_numeric($data['acres'])) {
-            throw new \InvalidArgumentException('Block acres must be a number');
-        }
-
-        if ($data['acres'] <= 0) {
-            throw new \InvalidArgumentException('Block acres must be greater than zero');
-        }
-
-        $data['longitude'] = (float)($data['longitude'] ?? 0);
-        $data['latitude'] = (float)($data['latitude'] ?? 0);
-
+        
         return $data;
     }
 

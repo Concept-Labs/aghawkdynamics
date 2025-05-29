@@ -8,7 +8,10 @@ use App\Core\Model\CollectionInterface;
 class Parcel extends Model
 {
     const BLOCKS_LIMIT = 10;
+
     protected string $table = 'parcel';
+
+    private ?Account $account = null;
 
     /**
      * Get the ID of the parcel.
@@ -18,6 +21,14 @@ class Parcel extends Model
    public function getAccountId(): int
     {
         return (int)($this->data['account_id'] ?? 0);
+    }
+
+    public function getAccount(): Account
+    {
+        if ($this->account === null) {
+            $this->account = (new Account())->load($this->getAccountId());
+        }
+        return $this->account;
     }
 
     /**

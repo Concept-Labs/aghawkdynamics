@@ -23,14 +23,14 @@ class AccountController extends Controller
 
         if (!$id) {
             $this->redirect('/?q=auth/login');
-            exit;
+            return;
         }
 
         $model = (new Account())->load($id);
 
         if (!$model->getId()) {
             $this->redirect('/?q=auth/login');
-            exit;
+            return;
         }
 
         if ($this->getRequest()->isPost()) {
@@ -45,5 +45,27 @@ class AccountController extends Controller
         
 
         $this->render('account/profile', ['user'=>$model]);
+    }
+
+    /**
+     * List all accounts for admin users.
+     * 
+     * @return void
+     */
+    public function list(): void
+    {
+
+        if (!\App\Model\Account\User::isAdmin()) {
+            $this->getRequest()->addError('Access denied');
+            $this->redirect('/?q=account/profile');
+            return;
+        }
+
+        $accounts = (new Account())->getCollection()
+            ->setItemMode(\App\Core\Model\Collection::ITEM_MODE_OBJECT)
+            ->sort('name', 'ASC');
+
+        $this->render('account/list', ['accounts' => $accounts]);
+
     }
 }

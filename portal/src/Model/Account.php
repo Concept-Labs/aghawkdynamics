@@ -5,7 +5,13 @@ use App\Core\Model;
 
 class Account extends Model
 {
+    
     protected string $table = 'account';
+
+    public function isAdmin(): bool
+    {
+        return (bool)$this->get('is_admin', false);
+    }
 
     public function findByEmail(string $email): ?array
     {

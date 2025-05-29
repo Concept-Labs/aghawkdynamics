@@ -71,6 +71,10 @@ a {
   text-decoration: none
 }
 
+a:hover {
+  text-decoration: underline;
+}
+
 .logo {
   font-weight: 700;
   font-size: 1.2rem
@@ -149,16 +153,16 @@ button,
   background: var(--accent);
   color: var(--accent-text);
   cursor: pointer;
-  box-shadow: var(--shadow);
+  /*box-shadow: var(--shadow);*/
   transition: all .3s ease;
 
 }
 
 button:hover,
 .btn:hover {
-  transform: translateY(-2px);
+  /*transform: translateY(-1px);*/
   /*box-shadow: var(--shadow);*/
-  box-shadow: 0 2px 8px rgba(0, 0, 0, .5);
+  box-shadow: var(--shadow);
 }
 
 button.cancel,
@@ -376,21 +380,25 @@ textarea[disabled] {
 }
 
 fieldset {
-    border: 8px solid var(--border);
+    border: var(--border);
     padding: var(--spacing);
     border-radius: var(--radius);
     margin-bottom: var(--spacing);
 }
 
+fieldset[style*="border: none"] legend {
+  color: #888;
+}
+
 fieldset legend {
-    padding: 0 .5rem;
-    
-    text-align: right;
-    color: var(--text-dark);
+    padding: .5rem .2rem;
+    text-align: left;
+    color: var(--accent);
     background: var(--card);
 }
 
 input:not([type="checkbox"]),
+input:not([type="radio"]),
 select,
 textarea {
   padding: var(--spacing);
@@ -403,6 +411,7 @@ textarea {
 }
 
 input:not([type="checkbox"]):focus,
+input:not([type="radio"]):focus,
 /*select:focus,*/
 textarea:focus {
   outline: none;

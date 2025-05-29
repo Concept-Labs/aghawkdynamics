@@ -77,9 +77,9 @@ $user = $userModel->getData() ?? [];
 </script>
 <div style="max-width: 600px; margin: 0 auto;">
     <div class="card">
-        <h2>My Profile</h2>
+        <h2>Profile</h2>
         <form method="post" id="profile-form" onsubmit="return submitProfile()">
-            <fieldset id="address" class="card">
+            <fieldset id="address" class="">
                 <legend>Info</legend>
                 <div class="fld"><input name="email" disabled value="<?= htmlspecialchars($user['email']) ?>" placeholder=" "><label>Email (login)</label></div>
                 <div class="fld"><input name="name" value="<?= htmlspecialchars($user['name']) ?>" placeholder=" "><label>Name</label></div>
@@ -94,7 +94,7 @@ $user = $userModel->getData() ?? [];
                     <label>Total Approximate Acreage</label>
                 </div>
             </fieldset>
-            <fieldset id="address" class="card">
+            <fieldset id="address" class="">
                 <legend>Address</legend>
                 <div class="fieldset">
                     <div class="fld"><input name="street" value="<?= htmlspecialchars($user['street']) ?>" placeholder=" "><label>Street</label></div>
@@ -112,7 +112,7 @@ $user = $userModel->getData() ?? [];
                 </div>
             </fieldset>
 
-            <fieldset id="billing" class="card">
+            <fieldset id="billing" class="">
                 <legend>Billing Address</legend>
                 <div class="fieldset">
                     <div class="fld">
@@ -138,7 +138,7 @@ $user = $userModel->getData() ?? [];
                     </div>
                 </div>
             </fieldset>
-            <fieldset id="password" class="card">
+            <fieldset id="password" class="">
                 <legend>Additional</legend>
                 <div class="fieldset">
                     <div class="fld">
@@ -149,7 +149,7 @@ $user = $userModel->getData() ?? [];
             </fieldset>     
 
             <div id="change-password-container">
-                <fieldset id="password" class="card">
+                <fieldset id="password" class="">
                     <legend>Change Password</legend>
                     <div class="fieldset">
                         <div class="fld"><input type="password" name="old_password" placeholder=" "><label>Old password</label></div>

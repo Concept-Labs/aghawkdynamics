@@ -29,11 +29,11 @@ class ServiceController extends Controller
         $uid = User::getInstance()->getId();
         $RequestCollection = (new ServiceRequest())->getCollection();
         $RequestCollection->setItemMode(Collection::ITEM_MODE_OBJECT);
-        $RequestCollection->addFilter(
-            [
-                'account_id' => $uid,
-            ]
-        );
+        
+        if (!User::isAdmin()) {
+            $RequestCollection->addFilter(['account_id' => $uid]);
+        }
+        
         $RequestCollection->sort('created_at', 'DESC');
 
         $this->render('service/list', ['requestCollection' => $RequestCollection]);
@@ -61,6 +61,7 @@ class ServiceController extends Controller
                 ->sort('created_at', 'DESC');
 
                 $currentParcelId = $this->getRequest()->request('parcel', null);
+
                 if ($currentParcelId) {
                     $parcels->addFilter(['main.id' => $currentParcelId]);
                     $blocks = (new Parcel())
@@ -99,7 +100,7 @@ class ServiceController extends Controller
             try {
                 $data = $this->getRequest()->getPost('service');
 
-                $data['account_id'] = User::getInstance()->getId();
+                $data['account_id'] ??= User::getInstance()->getId();
                 $data['status'] = ServiceRequest::STATUS_PENDING;
 
 
@@ -127,6 +128,62 @@ class ServiceController extends Controller
         $this->redirectReferer();
     }
 
+
+    public function edit(): void
+    {
+        $requestId = (int)$this->getRequest()->request('id', 0);
+        if (!$requestId) {
+            $this->getRequest()->addError('Invalid service request ID.');
+            $this->redirectReferer();
+            return;
+        }
+
+        $serviceRequest = (new ServiceRequest())->load($requestId);
+        if (!$serviceRequest->getId()) {
+            $this->getRequest()->addError('Service request not found.');
+            $this->redirectReferer();
+            return;
+        }
+
+        if (!User::isAdmin() && $serviceRequest->getAccount()->getId() !== User::getInstance()->getId()) {
+            $this->getRequest()->addError('You do not have permission to edit this service request.');
+            $this->redirectReferer();
+            return;
+        }
+
+        if ($this->getRequest()->isPost()) {
+            try {
+                $data = $this->getRequest()->post('service');
+                $data['id'] = $data['id'] ?? $requestId;
+
+                $this->validateServiceData($data);
+
+                $serviceRequest->setData($data)->save();
+
+                $this->getRequest()->addMessage('Service request has been updated successfully.');
+                $this->redirect('/?q=service/details&id=' . $requestId);
+                return;
+
+            } catch (\Throwable $e) {
+                $this->getRequest()->addError(
+                    'An error occurred while processing your request: ' . $e->getMessage()
+                );
+                $this->redirectReferer();
+            }
+        }
+
+        // Render the edit form with the existing service request data
+        $this->render('service/edit', ['requestModel' => $serviceRequest]);
+    }
+    
+
+    
+
+    /**
+     * View details of a specific service request.
+     *
+     * @return void
+     */
     public function details()
     {
         $requestId = (int)$this->getRequest()->request('id', 0);
@@ -143,13 +200,52 @@ class ServiceController extends Controller
             return;
         }
 
-        if ($serviceRequest->getAccount()->getId() !== User::getInstance()->getId()) {
+        if (!User::isAdmin() && $serviceRequest->getAccount()->getId() !== User::getInstance()->getId()) {
             $this->getRequest()->addError('You do not have permission to view this service request.');
             $this->redirectReferer();
             return;
         }
 
         $this->render('service/details', ['requestModel' => $serviceRequest]);
+        //$this->render('service/request', ['requestModel' => $serviceRequest]);
+    }
+
+    /**
+     * View details of a specific service request.
+     *
+     * @return void
+     */
+    public function cancel(): void
+    {
+        $requestId = (int)$this->getRequest()->request('id', 0);
+        if (!$requestId) {
+            $this->getRequest()->addError('Invalid service request ID.');
+            $this->redirectReferer();
+            return;
+        }
+
+        $serviceRequest = (new ServiceRequest())->load($requestId);
+        if (!$serviceRequest->getId()) {
+            $this->getRequest()->addError('Service request not found.');
+            $this->redirectReferer();
+            return;
+        }
+
+        if (!User::isAdmin() && $serviceRequest->getAccount()->getId() !== User::getInstance()->getId()) {
+            $this->getRequest()->addError('You do not have permission to cancel this service request.');
+            $this->redirectReferer();
+            return;
+        }
+
+        if ($serviceRequest->canCancel()) {
+            $serviceRequest->setStatus(ServiceRequest::STATUS_CANCELLED);
+            $serviceRequest->save();
+            $this->getRequest()->addMessage('Service request has been cancelled successfully.');
+        } else {
+            $this->getRequest()->addError('This service request cannot be cancelled.');
+        }
+
+        $this->redirectReferer();
     }
 
     /**
@@ -160,7 +256,23 @@ class ServiceController extends Controller
      */
     protected function validateServiceData(array $data): void
     {
-        //@todo validation
+        if ($data['account_id'] !== User::getInstance()->getId() && !User::isAdmin()) {
+            throw new \InvalidArgumentException('Account issue');
+        }
+
+        if (empty($data['parcel_id'])) {
+            throw new \InvalidArgumentException('Parcel ID is required.');
+        }
+        if (empty($data['block_id'])) {
+            throw new \InvalidArgumentException('Block ID is required.');
+        }
+        if (empty($data['account_id'])) {
+            throw new \InvalidArgumentException('Account ID is required.');
+        }
+        if (empty($data['type'])) {
+            throw new \InvalidArgumentException('Service type is required.');
+        }
+
     }
     
 

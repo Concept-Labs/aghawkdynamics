@@ -8,8 +8,43 @@ class ServiceRequest extends Model
 {
     const STATUS_PENDING = 'pending';
     const STATUS_COMPLETED = 'completed';
+    const STATUS_CANCELLED = 'cancelled';
+
+    const STATUSES = [
+        self::STATUS_PENDING,
+        self::STATUS_COMPLETED,
+        self::STATUS_CANCELLED,
+    ];
+
+    private ?Account $account = null;
+    private ?Parcel $parcel = null;
+    private ?Block $block = null;
     
     protected string $table = 'service_request';
+
+    /**
+     * Get the additional data associated with the service request.
+     *
+     * @return array
+     */
+    public function getAdditionalData(): array
+    {
+        $adds = $this->get('adds');
+        if (is_string($adds)) {
+            $adds = json_decode($adds, true);
+        }
+        return is_array($adds) ? $adds : [];
+    }
+
+    /**
+     * Set additional data for the service request.
+     *
+     * @param array $adds
+     */
+    public function setAdditionalData(array $adds): void
+    {
+        $this->set('adds', json_encode($adds));
+    }
 
     /**
      * Get the parcel associated with the service request.
@@ -18,8 +53,12 @@ class ServiceRequest extends Model
      */
     public function getParcel(): Parcel
     {
-        return (new Parcel())
-            ->load($this->get('parcel_id'));
+        if (!$this->parcel instanceof Parcel) {
+            $this->parcel =  (new Parcel())
+                ->load($this->get('parcel_id'));
+        }
+
+        return $this->parcel;
     }
 
     /**
@@ -29,8 +68,12 @@ class ServiceRequest extends Model
      */
     public function getBlock(): Block
     {
-        return (new Block())
-            ->load($this->get('block_id'));
+        if (!$this->block instanceof Block) {
+            $this->block =  (new Block())
+                ->load($this->get('block_id'));
+        }
+
+        return $this->block;
     }
 
     /**
@@ -40,8 +83,12 @@ class ServiceRequest extends Model
      */
     public function getAccount(): Account
     {
-        return (new Account())
+        if (!$this->account instanceof Account) {
+            $this->account = (new Account())
             ->load($this->get('account_id'));
+        }
+
+        return $this->account;
     }
 
     /**
@@ -62,29 +109,22 @@ class ServiceRequest extends Model
      */
     public function setStatus(string $status): void
     {
-        if (!in_array($status, [self::STATUS_PENDING, self::STATUS_COMPLETED])) {
+        if (!in_array($status, self::STATUSES)) {
             throw new \InvalidArgumentException('Invalid status');
         }
         $this->set('status', $status);
     }
 
+    /**
+     * Check if the service request can be completed.
+     *
+     * @return bool
+     */
     public function canCancel(): bool
     {
-        return $this->getStatus() === self::STATUS_PENDING;
+        return in_array($this->getStatus(), [self::STATUS_PENDING]);
     }
 
-    public function getAdds(): array
-    {
-        $adds = $this->get('adds');
-        if (is_string($adds)) {
-            $adds = json_decode($adds, true);
-        }
-        return is_array($adds) ? $adds : [];
-    }
-
-    public function setAdds(array $adds): void
-    {
-        $this->set('adds', json_encode($adds));
-    }
+    
 
 }

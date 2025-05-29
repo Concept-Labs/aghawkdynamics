@@ -1,0 +1,568 @@
+<?php
+
+use App\Core\Config;
+$requestModel = $this->var('requestModel', null);
+$requestId = $this->var('request_id', null);
+$blocks = $this->var('blocks', []);
+$parcels = $this->var('parcels', []);
+$currentParcelId = $requestModel?->get('parcel_id') ?? $this->var('parcel_id', null);
+$currentBlockId = $requestModel?->get('block_id') ?? $this->var('block_id', null);
+// Calculate minimum date for non-urgent (7 business days ahead)
+$minDate = new DateTime();
+$businessDays = 0;
+while ($businessDays < 7) {
+  $minDate->modify('+1 day');
+  if ($minDate->format('N') < 6) { // 1-5 = Mon-Fri
+    $businessDays++;
+  }
+}
+$minDateStr = $minDate->format('Y-m-d');
+
+// Calculate minimum date for urgent (next business day)
+$minUrgentDate = new DateTime();
+do {
+  $minUrgentDate->modify('+1 day');
+} while ($minUrgentDate->format('N') > 5); // 6-7 = Sat/Sun
+$minUrgentDateStr = $minUrgentDate->format('Y-m-d');
+
+?>
+<style>
+  .fld input.urgent {
+    background-color: #ffcccc;
+  }
+
+  .fld input.urgent+label {
+    background-color: #ffcccc;
+  }
+
+  .icon-help {
+    cursor: pointer;
+    color: var(--brand-green);
+    font-size: 1.2rem;
+    margin-left: 0.5rem;
+    border-radius: 50%;
+    border: 1px solid var(--brand-green);
+    padding: 0.2rem 0.7rem;
+  }
+
+  .icon-help:hover {
+    color: var(--text);
+  }
+</style>
+<div class="entity-form card">
+  <form method="post" id="service-form" action="<?php echo $requestId ? '/?q=service/edit&id=' . $requestId : '/?q=service/create' ?>">
+    <?php if ($requestId): ?>
+      <input type="hidden" name="service[id]" value="<?= htmlspecialchars($requestId) ?>">
+    <?php endif ?>
+    <?php if (!empty($currentParcelId)): ?>
+      <input type="hidden" name="service[parcel_id]" value="<?= htmlspecialchars($currentParcelId) ?>">
+    <?php endif ?>
+    <?php if (!empty($currentBlockId)): ?>
+      <input type="hidden" name="service[block_id]" value="<?= htmlspecialchars($currentBlockId) ?>">
+    <?php endif ?>
+    <div style="display:flex; justify-content: flex-start; margin-bottom: 1rem;">
+      <h2>Request a Service</h2>
+
+    </div>
+    <div class="fld-row" style="display: flex; gap: 5px;">
+      <div class="fld" style="flex: 1;">
+        <select name="service[parcel_id]" required <?php if ($currentParcelId ): ?>disabled<?php endif ?> title="">
+          <option value="" hidden></option>
+          <?php foreach ($parcels as $parcelModel):
+            if (!$parcelModel->canRequestService()) continue;
+          ?>
+            <option value="<?= $parcelModel->get('id') ?>" <?php if ($parcelModel->get('id') == $currentParcelId): ?>selected<?php endif ?>><?= htmlspecialchars($parcelModel->get('name')) ?></option>
+          <?php endforeach ?>
+        </select>
+        <label>Parcel</label>
+        <script>
+          document.querySelector('select[name="service[parcel_id]"]').addEventListener('change', function() {
+            const selectedParcelId = this.value;
+            const blockSelect = document.querySelector('select[name="service[block_id]"]');
+            blockSelect.disabled = !selectedParcelId; // Disable if no parcel selected
+            const options = fetch('/?q=block/api/list&parcel_id=' + selectedParcelId)
+              .then(response => response.json())
+              .then(data => {
+                blockSelect.innerHTML = '<option value="" hidden></option>'; // Reset options
+                data.forEach(block => {
+                  const option = document.createElement('option');
+                  option.value = block.id;
+                  option.textContent = block.name;
+                  if (block.id == <?= json_encode($currentBlockId) ?>) {
+                    option.selected = true; // Pre-select current block if exists
+                  }
+                  blockSelect.appendChild(option);
+                });
+              })
+              .catch(error => alert('Error fetching blocks:', error) && console.error('Error fetching blocks:', error));
+          });
+        </script>
+      </div>
+      <div class="fld" style="flex: 1;">
+        <select name="service[block_id]" required <?php if ($currentBlockId): ?>disabled<?php endif ?>>
+          <option value="" hidden></option>
+          <?php foreach ($blocks as $b): ?>
+            <option value="<?= $b['id'] ?>" <?php if ($b['id'] == $currentBlockId): ?>selected<?php endif ?>><?= htmlspecialchars($b['name']) ?></option>
+          <?php endforeach ?>
+        </select>
+        <label>Block</label>
+      </div>
+    </div>
+
+    <div class="fld " style="display: flex; gap: 5px; align-items: flex-end; flex-wrap: wrap;">
+      <div class="fld">
+        <select name="service[urgent]" required>
+          <option value="0">No</option>
+          <option value="1">Yes</option>
+        </select>
+        <label>Urgent?</label>
+      </div>
+      <div id="fld_date" class="fld tooltipable" style="flex: 2;">
+        <input type="date" name="service[date]" placeholder=" " required min="<?= $minDateStr ?>"
+          title="">
+        <label>Service need by date</label>
+        <tooltip class="tooltip bottom">
+          <p>
+            Urgent services must be requested at least 1 day in advance.
+            <br>
+            Non-urgent services must be requested at least 7 days in advance.
+          </p>
+        </tooltip>
+      </div>
+      <script>
+        // Handle urgent date logic
+        document.querySelector('select[name="service[urgent]"]').addEventListener('change', function() {
+          const isUrgent = this.value === '1';
+          const dateField = document.getElementById('fld_date');
+          if (isUrgent) {
+            dateField.querySelector('input').setAttribute('min', '<?= $minUrgentDateStr ?>');
+            dateField.querySelector('input').value = '<?= $minUrgentDateStr ?>';
+            dateField.querySelector('input').classList.add('urgent');
+          } else {
+            dateField.querySelector('input').setAttribute('min', '<?= $minDateStr ?>');
+            dateField.querySelector('input').value = '';
+            dateField.querySelector('input').classList.remove('urgent');
+          }
+        });
+      </script>
+    </div>
+
+    <div class="fld">
+      <select name="service[type]" placeholder=" " required>
+        <option value="" hidden></option>
+        <?php
+        foreach (Config::get('service_type') as $type): ?>
+          <option value="<?= htmlspecialchars($type) ?>"><?= htmlspecialchars($type) ?></option>
+        <?php endforeach ?>
+      </select>
+      <label>Service Type</label>
+      <script>
+        // Handle service type change to show/hide fieldsets
+        document.querySelector('select[name="service[type]"]').addEventListener('change', function() {
+          const selectedType = this.value;
+          document.querySelectorAll('fieldset[data-allowed-types]').forEach(fieldset => {
+            const allowedTypes = JSON.parse(fieldset.getAttribute('data-allowed-types'));
+            if (allowedTypes.includes(selectedType)) {
+              fieldset.style.display = 'block';
+            } else {
+              fieldset.style.display = 'none';
+            }
+          });
+        });
+      </script>
+    </div>
+
+    <div class="fld">
+      <textarea name="reason" placeholder=" " rows="4"></textarea>
+      <label>Reason & Notes</label>
+    </div>
+
+    
+    <fieldset>
+      <div class="switch-container">
+        <label class="switch-group">
+          <input type="radio" name="choice" value="no" checked>
+          <span class="switch-label">No</span>
+        </label>
+        <label class="switch-group">
+          <input type="radio" name="choice" value="yes">
+          <span class="switch-label">Yes</span>
+        </label>
+        <div class="switch-background"></div>
+      </div>
+    </fieldset>
+    <style>
+      .switch-container {
+  display: inline-flex;
+  background-color: #f0f2f5;
+  border-radius: 20px;
+  padding: 4px;
+  font-family: Arial, sans-serif;
+}
+
+.switch-group {
+  position: relative;
+  cursor: pointer;
+}
+
+.switch-group input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+
+.switch-label {
+  display: inline-block;
+  padding: 8px 16px;
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+  border-radius: 16px;
+  transition: all 0.2s ease;
+}
+
+.switch-group input:checked + .switch-label {
+  background-color: #4a90e2;
+  color: white;
+}
+
+.switch-group input:not(:checked) + .switch-label:hover {
+  background-color: #e1e4e8;
+}
+  .switch-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 20px;
+  background-color: #f0f2f5;
+  transition: background-color 0.2s ease;
+  z-index: -1;
+}
+.switch-group input:checked ~ .switch-background {
+  background-color: #4a90e2;
+}
+
+    </style>
+
+    <fieldset
+      id="custom_products"
+      data-allowed-types='<?= json_encode(Config::get('service_type_custom_products')) ?>'
+      class="custom-products-fieldset"
+      style="border: none; display: none;">
+      <legend style="padding:0;">
+        <!--div class="switch-field" style="display:flex;align-items:center;position:relative;top:.5rem;left:-.5rem;">
+          <input type="checkbox" name="service[adds][products][use_custom]" class="switch-input" data-content-id="custom_products_content" 
+           id="use_custom_products">
+          <label for="use_custom_products" class="switch-label" style="margin-bottom:0;margin-left:1rem;">
+            <span class="switch-slider"></span>
+            Do you know type of product needs to be applied?
+          </label>  
+        </div-->
+
+        <div class="switch-container">
+          <label class="switch-group">
+            <input type="radio" name="custom_products" value="no" checked>
+            <span class="switch-label">No</span>
+          </label>
+          <label class="switch-group">
+            <input type="radio" class="content-show" name="custom_products" value="yes" data-content-id="custom_products_content">
+            <span class="switch-label">Yes</span>
+          </label>
+          <div class="switch-background"></div>
+        </div>
+
+      </legend>
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          const switchGroups = document.querySelectorAll('input.content-show');
+          switchGroups.forEach(switchGroup => {
+            
+            switchGroup.addEventListener('change', function() {
+              alert('changed');
+              const contentId = this.getAttribute('data-content-id');
+              const content = document.getElementById(contentId);
+              if (this.checked) {
+                content.style.height = 'auto';
+                content.style.display = 'block';
+              } else {
+                content.style.height = '0';
+                content.style.display = 'none';
+              }
+            });
+          });
+        });
+
+      </script>
+
+      <div id="custom_products_content" style="height:0; overflow:hidden; transition: height 0.3s ease;">
+        
+        <div class="product-list">
+          <div class="product-item" style="margin-top:.5rem;">
+            <div class="fld" >
+              <select name="service[adds][products][0][type]" >
+                <option value="" hidden></option>
+                <?php foreach (Config::get('product_types') as $type): ?>
+                  <option value="<?= htmlspecialchars($type) ?>"><?= htmlspecialchars($type) ?></option>
+                <?php endforeach ?>
+              </select>
+              <label>Product Type</label>
+            </div>
+            <div class="fld">
+              <input type="text" name="service[adds][products][0][name]" placeholder="" >
+              <label>Product Name</label>
+            </div>
+            <div class="fld">
+              <select name="service[adds][products][0][unit]" >
+                <?php foreach (Config::get('units') as $unit): ?>
+                  <option value="<?= htmlspecialchars($unit) ?>"><?= htmlspecialchars($unit) ?></option>
+                <?php endforeach ?>
+              </select>
+              <label>Unit</label>
+            </div>
+            <div class="fld">
+              <input type="number" name="service[adds][products][0][volume]" placeholder="" >
+              <label>Volume</label>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" id="add-product-btn" title="Add Product" >+</button>
+      </div>
+
+  
+      <style>
+
+        
+      </style>
+    </fieldset>
+
+    <fieldset
+      data-allowed-types='<?= json_encode(Config::get('service_type_custom_products')) ?>'
+      style="border: none; display: none;">
+          <legend>
+            <div class="switch-field" style="display:flex;align-items:center;position:relative;top:.5rem;left:-.5rem;">
+              <input type="checkbox" name="service[adds][custom_supplier]" class="switch-input" data-content-id="custom_supplier_content" 
+              id="use_custom_supplier">
+              <label for="use_custom_supplier" class="switch-label" style="margin-bottom:0;margin-left:1rem;">
+                <span class="switch-slider"></span>
+                Supplier?
+              </label>  
+            </div>
+          </legend>
+
+        <div class="fld-row" id="custom_supplier_content" style="height:0; overflow:hidden; transition: height 0.3s ease;">
+          <div class="fld">
+            <input type="text" name="service[adds][supplier]" placeholder="">
+            <label>Supplier Name</label>
+          </div>
+          <div class="fld">
+            <input type="text" name="service[adds][supplier_phone]" placeholder="">
+            <label>Phone</label>
+          </div>
+          <div class="fld">
+            <input type="text" name="service[adds][supplier_name]" placeholder="">
+            <label>Contact Name</label>
+          </div>
+        </div>
+        </fieldset>
+
+    <fieldset id="water_usage" class="" data-allowed-types='<?= json_encode(Config::get('service_type_application')) ?>' style="display: none;">
+      <legend>Application</legend>
+      <div class="fld-row">
+        <div class="fld" style="flex: 1;">
+          <select name="service[adds][application][unit]">
+            <?php foreach (Config::get('units') as $unit): ?>
+              <option value="<?= htmlspecialchars($unit) ?>"><?= htmlspecialchars($unit) ?></option>
+            <?php endforeach ?>
+          </select>
+          <label>Unit</label>
+
+        </div>
+        <div class="fld" style="flex: 1;">
+          <input type="number" name="service[adds][application][volume]" placeholder="">
+          <label>Volume</label>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset id="water_usage" class="" data-allowed-types='<?= json_encode(Config::get('service_type_water_usage')) ?>' style="display: none;">
+      <legend>Water Usage</legend>
+      <div class="fld-row">
+        <div class="fld" style="flex: 1;">
+          <select name="service[adds][water_usage][unit]">
+            <?php foreach (Config::get('units') as $unit): ?>
+              <option value="<?= htmlspecialchars($unit) ?>"><?= htmlspecialchars($unit) ?></option>
+            <?php endforeach ?>
+          </select>
+          <label>Unit</label>
+
+        </div>
+        <div class="fld" style="flex: 1;">
+          <input type="number" name="service[adds][water_usage][volume]" placeholder="">
+          <label>Volume</label>
+        </div>
+      </div>
+
+    </fieldset>
+
+    <div class="button-set ">
+      <button class="btn cancel" type="button" onclick="window.history.back()">Cancel</button>
+      <button class="btn brand-green" type="submit">Create</button>
+    </div>
+  </form>
+</div>
+
+<!-- styles for the product item template -->
+<style>
+  .product-item {
+    display: flex;
+    gap: 5px;
+  }
+
+  .product-item input,
+  .product-item select,
+  .product-item textarea,
+  .product-item button {
+    flex: 1;
+  }
+
+  .product-item label {
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  .remove-product-btn {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    margin: .5rem 0;
+  }
+
+  .remove-product-btn:hover {
+    background-color: #ff1a1a;
+  }
+
+  .product-list {
+    
+  }
+
+  .product-list .product-item {
+    
+  }
+</style>
+
+<div id="product-template" style="display:none;">
+  <div class="product-item" style="margin-bottom: 10px;">
+    <div class="fld">
+      <select name="service[adds][products][{index}][type]" placeholder=" " >
+        <option value="" hidden></option>
+        <?php foreach (Config::get('product_types') as $type): ?>
+          <option value="<?= htmlspecialchars($type) ?>"><?= htmlspecialchars($type) ?></option>
+        <?php endforeach ?>
+      </select>
+      <label>Product Type</label>
+    </div>
+    <div class="fld">
+      <input type="text" name="service[adds][products][{index}][name]" placeholder="" >
+      <label>Product Name</label>
+    </div>
+    <div class="fld">
+      <select name="service[adds][products][{index}][unit]" >
+        <?php foreach (Config::get('units') as $unit): ?>
+          <option value="<?= htmlspecialchars($unit) ?>"><?= htmlspecialchars($unit) ?></option>
+        <?php endforeach ?>
+      </select>
+      <label>Unit</label>
+    </div>
+    <div class="fld">
+      <input type="number" name="service[adds][products][{index}][volume]" placeholder="" >
+      <label>Volume</label>
+    </div>
+    <div class="fld">
+      <button type="button" class="remove-product-btn">X</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+        document.addEventListener('DOMContentLoaded', function() {
+          
+          const MAX_PRODUCTS = 10;
+          // const fieldset = document.getElementById('custom_products');
+          // const legend = fieldset.querySelector('legend');
+          // const switcher = document.getElementById('use_custom_products');
+          // const content = document.getElementById('custom_products_content');
+
+          // // Toggle fieldset border and content visibility
+          // function toggleCustomProducts() {
+          //   if (switcher.checked) {
+          //     fieldset.style.border = 'var(--border)';
+          //     content.style.height = 'auto';
+          //     legend.style.marginLeft = '10px';
+          //   } else {
+          //     fieldset.style.border = 'none';
+          //     content.style.height = '0';
+          //     legend.style.marginLeft = '0';
+          //   }
+          // }
+
+          // switcher.addEventListener('change', toggleCustomProducts);
+          // // On page load, ensure correct state
+          // toggleCustomProducts();
+
+          document.getElementById('add-product-btn').addEventListener('click', function() {
+            const productList = document.querySelector('.product-list');
+            if (productList.children.length >= MAX_PRODUCTS) {
+              alert('You can add up to 10 products only.');
+              return;
+            }
+            var template = document.getElementById('product-template').innerHTML;
+            template = template.replace(/{index}/g, productList.children.length);
+            productList.insertAdjacentHTML('beforeend', template);
+          });
+
+          document.querySelector('.product-list').addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-product-btn')) {
+              e.target.closest('.product-item').remove();
+            }
+          });
+
+          toggleSwitcher = function(el) {
+              const content = document.getElementById(el.getAttribute('data-content-id'));
+              const fieldset = el.closest('fieldset');
+              const legend = fieldset ? fieldset.querySelector('legend') : null;
+              if (!content) return;
+              if (el.checked) {
+                content.style.height = 'auto';
+                //content.style.display = 'block';
+                if (fieldset && legend) {
+                  fieldset.style.border = 'var(--border)';
+                  //legend.style.marginLeft = '1rem';
+                }
+              } else {
+                content.style.height = '0';
+                //content.style.display = 'none';
+                if (fieldset && legend) {
+                  fieldset.style.border = 'none';
+                  //legend.style.marginLeft = '0';
+                }
+              }
+            };
+
+          document.querySelectorAll('input.switch-input').forEach(function(switchInput) {
+            toggleSwitcher(switchInput);
+            switchInput.addEventListener('change', function() {
+              toggleSwitcher(switchInput);
+            });
+          });
+        
+        });
+        
+      </script>

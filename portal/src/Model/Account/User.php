@@ -13,6 +13,9 @@ class User
     private ?Request $request = null;
     private Account $accountModel;
 
+    /**
+     * 
+     */
     private function __construct()
     {
         $this->request = Request::getInstance();
@@ -25,6 +28,21 @@ class User
         
     }
 
+    /**
+     * Get the singleton instance of User
+     *
+     * @return User
+     */
+    protected function getRequest(): Request
+    {
+        return $this->request;
+    }
+
+    /**
+     * Get the singleton instance of User.
+     *
+     * @return User
+     */
     public static function getInstance(): User
     {
         if (self::$instance === null) {
@@ -34,11 +52,39 @@ class User
         return self::$instance;
     }
 
+    /**
+     * Get the account model of the logged-in user.
+     *
+     * @return Account
+     */
     public function getAccount(): Account
     {
         return $this->accountModel;
     }
 
+    /**
+     * Get the ID of the logged-in user.
+     *
+     * @return int|null
+     */
+    public function getId(): ?int
+    {
+        return $this->getAccount()?->getId();
+    }
+
+    /**
+     * Check if the user is logged in.
+     *
+     * @return bool
+     */
+    public function isLoggedIn(): bool
+    {
+        return null !== $this->getRequest()->getSession('uid');
+    }
+
+    /**
+     * @deprecated
+     */
     public function hasParcels(): bool
     {
         $parcels = (new Parcel())->getCollection();
@@ -47,14 +93,14 @@ class User
         return $parcels->addFilter(['account_id' => $this->getId()])->count() > 0;
     }
 
-    public function isLoggedIn(): bool
+    public static function uid(): ?int
     {
-        return $this->request->session('uid') !== null;
+        return self::getInstance()->getId();
     }
 
-    public function getId(): int
+    public static function isAdmin(): bool
     {
-        return $this->request->session('uid');
+        return self::getInstance()->getAccount()->isAdmin();
     }
 
 }

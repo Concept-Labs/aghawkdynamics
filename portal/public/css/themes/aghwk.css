@@ -14,6 +14,7 @@
     --brand-black: #222223;
     --brand-gray: #5b6770;
     --brand-light: #a2aaad;
+    --brand-red: #e61c1c;
 
     --spacing: 0.5rem;
     --header-bg: #4797a8;
@@ -39,6 +40,10 @@
     background: var(--brand-green) !important;
     color: #efefef !important;
 }
+.hover-brand-yellow:hover {
+    background: var(--brand-yellow) !important;
+    color: #222223 !important;
+}
 
 .brand-green {
     background: var(--brand-green) !important;
@@ -48,6 +53,11 @@
 .brand-yellow {
     background: var(--brand-yellow) !important;
     color: #222223 !important;
+}
+
+.brand-red {
+    background: var(--brand-red) !important;
+    color: #efefef !important;
 }
 
 html,
@@ -98,6 +108,8 @@ body.theme-light {
     --border: 1px solid #4797a840;
 
     --menu-bg: #f9f9fb;
+
+    --brand-gray: #a2aaad;
 }
 
 body.theme-dark {
@@ -116,6 +128,8 @@ body.theme-dark {
     --border: 1px solid #4f5355;
 
     --menu-bg: #2c2f34;
+
+    --brand-gray: #5b6770;
     
 }
 

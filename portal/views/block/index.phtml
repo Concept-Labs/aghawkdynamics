@@ -1,6 +1,8 @@
 <?php
 
 use App\Core\Config;
+use App\Model\Account\User;
+
 ?>
 <style>
     #block-list {
@@ -22,6 +24,9 @@ use App\Core\Config;
         <table class="grid">
             <thead>
                 <tr>
+                    <?php if (User::isAdmin()): ?>
+                        <th>Account</th>
+                    <?php endif; ?>
                     <th>
                     </th>
                     <th>
@@ -47,6 +52,13 @@ use App\Core\Config;
                     $p = $b->getParcel()->getData();
                     ?>
                     <tr>
+                        <?php if (User::isAdmin()): ?>
+                            <td>
+                                <a href="/?q=account/view&id=<?= $b->getParcel()->get('account_id') ?>">
+                                    <?= htmlspecialchars($b->getParcel()->getAccount()->get('name')) ?>
+                                </a>
+                            </td>
+                        <?php endif; ?>
                         <td>
                             <?php if ($p['latitude'] && $p['longitude']): ?>
                                 <span class="minimap-tooltip-trigger" style="cursor:pointer;position:relative;">
@@ -120,9 +132,9 @@ use App\Core\Config;
                             <div class="action-wrap" style="position:relative">
                                 <button class="action-btn">⋮</button>
                                 <div class="actions-menu">
-                                    <a href="/?q=block/edit&id=<?= $b->get('id') ?>">Edit</a>
+                                    <a href="/?q=block/edit&id=<?= $b->get('id') ?>">Details</a>
                                     <div class="sep"></div>
-                                    <a class="hover-brand-green" href="/?q=service/request&parcel=<?= $b->get('parcel_id') ?>&block=<?= $b->get('id') ?>">Request Service</a>
+                                    <a class="hover-brand-yellow" href="/?q=service/request&parcel=<?= $b->get('parcel_id') ?>&block=<?= $b->get('id') ?>">Request Service</a>
                                     <a class="hover-brand-green" href="#" onclick="alert('Coming soon')">Self Tracking</a>
                                     <div class="sep"></div>
                                     <a href="/?q=block/disableAll&parcel=<?= $b->get('parcel_id') ?>" class="disable">Disable</a>

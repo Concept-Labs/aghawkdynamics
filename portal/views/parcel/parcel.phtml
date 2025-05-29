@@ -1,4 +1,7 @@
 <?php
+
+use App\Core\Config;
+
 $parcelModel = $this->var('parcelModel');
 $parcel = $parcelModel?->getData() ?? [];
 $parcelBlocks = $parcelModel?->getBlocks();
@@ -72,20 +75,22 @@ $parcelBlocks = $parcelModel?->getBlocks();
 <div class=" entity-form">
 
   <form method="post" id="parcel-form" class="card">
-    
-    <fieldset>
+      <?php
+      //if (User::
+        ?>
+
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
         <h2>Parcel Info</h2>
       <?php if ($parcel['id'] && $parcelModel->canRequestService()): ?>
         <div class="button-top-set">
-          <a class="btn brand-green" href="/?q=service/request&parcel=<?= $parcel['id'] ?>">Request Service</a>
+          <a class="btn brand-yellow" href="/?q=service/request&parcel=<?= $parcel['id'] ?>">Request Service</a>
         </div>
       <?php endif ?>
     </div>
       
       <div class="fld">
         <input name="parcel[name]" placeholder=" " required value="<?= htmlspecialchars($parcel['name']) ?>">
-        <label>Identifier</label>
+        <label>Parcel Identifier</label>
       </div>
       <div class="fld">
         <input name="parcel[street]" placeholder=" " value="<?= htmlspecialchars($parcel['street']) ?>" required>
@@ -94,7 +99,7 @@ $parcelBlocks = $parcelModel?->getBlocks();
       <div class="fld">
         <select name="parcel[state]" required>
           <option value="" hidden></option>
-          <?php foreach ($this->var('states', []) as $code => $name): ?>
+          <?php foreach (Config::get('states') ?? [] as $code => $name): ?>
             <option
               value="<?= $code ?>"
               <?php if ($code === $parcel['state']): ?>
@@ -103,6 +108,10 @@ $parcelBlocks = $parcelModel?->getBlocks();
           <?php endforeach ?>
         </select>
         <label>State</label>
+      </div>
+      <div class="fld">
+        <input name="parcel[city]" placeholder=" " value="<?= htmlspecialchars($parcel['city']) ?>" required>
+        <label>City</label>
       </div>
       <div class="fld">
         <input name="parcel[zip]" placeholder=" " value="<?= htmlspecialchars($parcel['zip']) ?>" required>
@@ -169,12 +178,11 @@ $parcelBlocks = $parcelModel?->getBlocks();
         <textarea name="parcel[notes]" placeholder=" " rows="3"><?= htmlspecialchars($parcel['notes']) ?></textarea>
         <label>Notes</label>
       </div>
-    </fieldset>
     <div class=button-set>
       <!--button class="btn cancel" type="button" onclick="location.href='/?q=parcel/index'">Back to List</button-->
       <button class="btn cancel" type="button" onclick="window.history.back()">Back</button>
       <div style="display:flex;gap:1rem">
-        <button class="btn end" type="submit">
+        <button class="btn end brand-green" type="submit">
           <?php if ($parcel['id']): ?>
             Save
           <?php else: ?>
@@ -185,7 +193,7 @@ $parcelBlocks = $parcelModel?->getBlocks();
     </div>
   </form>
 
-
+  <?php if ($parcel['id']): ?>
   <fieldset class="card">
     <legend>Blocks</legend>
     <div class="flex" style="flex-direction:row;justify-content:flex-end;align-items:center;margin-bottom:1rem">
@@ -195,13 +203,13 @@ $parcelBlocks = $parcelModel?->getBlocks();
         <button class="btn" type="button" onclick="addBlockDialog()">Quick Add Block</button>
       <?php endif ?>
     </div>
-    <?php if ($parcel['id'] && $parcelBlocks->count() > 0): ?>
+    <?php if ($parcelBlocks->count() > 0): ?>
       <table class="grid" width="100%">
         <thead>
           <tr>
             <!--th>Status</th-->
             <th>
-              Identifier
+              Block Identifier
             </th>
             <th>Acres</th>
             <th>Usage Type</th>
@@ -230,7 +238,6 @@ $parcelBlocks = $parcelModel?->getBlocks();
                   <div class="actions-menu" style="text-align:left">
                     <a href="/?q=block/edit&id=<?= $block['id'] ?>">Edit</a>
                     <div class="sep"></div>
-                    <a class="hover-brand-green disabled" href="/?q=block/activity&block_id=<?= $block['id'] ?>">Activity History</a>
                     <a class="hover-brand-green" href="/?q=service/request&parcel=<?= $block['parcel_id'] ?>&block=<?= $block['id'] ?>">Request Service</a>
                   </div>
 
@@ -241,7 +248,7 @@ $parcelBlocks = $parcelModel?->getBlocks();
       </table>
     <?php endif ?>
   </fieldset>
-
+  <?php endif; ?>
 
 
 </div>
@@ -261,14 +268,14 @@ $parcelBlocks = $parcelModel?->getBlocks();
       <div class="fld">
         <select name="block[crop_category]" required>
           <option value="" hidden></option>
-          <?php foreach ($crop_category as $cat): ?>
+          <?php foreach (Config::get('crop_category') ?? [] as $cat): ?>
             <option value="<?= $cat ?>"><?= htmlspecialchars($cat) ?></option>
           <?php endforeach ?>
         </select>
         <label>Usage Type</label>
       </div>
 
-      <div class="fld"><input type="number" step="0.01" name="block[acres]" placeholder=" " required><label>Acres</label></div>
+      <!--div class="fld"><input type="number" step="0.01" name="block[acres]" placeholder=" " required><label>Acres</label></div-->
       <div class="fld"><textarea name="block[notes]" placeholder=" " rows="2"></textarea><label>Notes</label></div>
 
       <div class="modal-footer">

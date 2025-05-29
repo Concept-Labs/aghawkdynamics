@@ -7,23 +7,19 @@ $block = $blockModel?->getData() ?? [];
 $parcels = $this->var('parcels', []);
 ?>
 <div class="card entity-form">
-  <div  style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
     <h2>
       Block info
     </h2>
     <?php if ($blockModel?->getParcel()?->getId()): ?>
-        <div class="button-top-set">
-            <a class="btn brand-green" href="/?q=service/request&parcel=<?= $blockModel?->getParcel()?->getId() ?>&block=<?= $block['id'] ?>">Request Service</a>
-        </div>
+      <div class="button-top-set">
+        <a class="btn brand-yellow" href="/?q=service/request&parcel=<?= $blockModel?->getParcel()?->getId() ?>&block=<?= $block['id'] ?>">Request Service</a>
+      </div>
     <?php endif ?>
-</div>
-  
+  </div>
+
   <form method="post" id="block-form">
     <input type="hidden" name="block[id]" value="<?= $block['id'] ?>">
-    <div class="fld">
-      <input name="block[name]" placeholder=" " required value="<?= htmlspecialchars($block['name']) ?>">
-      <label>Block Identifier</label>
-    </div>
     <div class="fld">
       <?php if ($block['id']): ?>
         <input type="text" disabled value="<?= $blockModel->getParcel()->get('name') ?>">
@@ -38,6 +34,10 @@ $parcels = $this->var('parcels', []);
       <label>Parcel</label>
 
     </div>
+    <div class="fld">
+      <input name="block[name]" placeholder=" " required value="<?= htmlspecialchars($block['name']) ?>">
+      <label>Identifier</label>
+    </div>
 
     <div class="fld">
       <select name="block[crop_category]" required>
@@ -49,10 +49,10 @@ $parcels = $this->var('parcels', []);
       <label>Usage Type</label>
     </div>
 
-    <div class="fld">
+    <!--div class="fld">
       <input type="number" step="0.01" name="block[acres]" placeholder=" " required value="<?= htmlspecialchars($block['acres']) ?>">
       <label>Acres</label>
-    </div>
+    </div-->
     <div class="fld">
       <textarea name="block[notes]" placeholder=" " rows="2"><?= htmlspecialchars($block['notes']) ?></textarea>
       <label>Notes</label>
@@ -61,16 +61,13 @@ $parcels = $this->var('parcels', []);
 
     <div class=button-set>
       <div>
-        <?php if ($block['parcel_id']): ?>
-          <button class="btn cancel brand-green" type="button" onclick="location.href='/?q=parcel/edit&id=<?= $block['parcel_id'] ?>'">Go to Parcel</button>
-          <?php endif ?>
-          <button class="btn cancel brand-yellow" type="button" onclick="location.href='/?q=block/index'">Go to Block list</button>
+          <button class="btn cancel" type="button" onclick="window.history.back()">Back</button>
       </div>
       <div style="display:flex;gap:1rem">
         <form class="" method="post" action="/?q=block/deleteit">
           <input type="hidden" name="block[dp]" value="<?= $block['id'] ?>">
         </form>
-        <button class="btn end" type="submit">
+        <button class="btn end brand-green" type="submit">
           <?php if ($block['id']): ?>
             Save
           <?php else: ?>

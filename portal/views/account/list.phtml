@@ -1,0 +1,56 @@
+<?php 
+$accounts = $view->var('accounts');
+?>
+
+<div id="account-list">
+    <div class="table-toolbar flex flex-right" style="align-items:center;gap:.5rem;margin-bottom:.5rem">
+        <div class="button-top-set">
+            <a class="btn" href="/?q=account/add">Add Account</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <table class="grid">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($accounts as $account): ?>
+                    <tr>
+                        <td><?= htmlspecialchars($account->getUsername()) ?></td>
+                        <td><?= htmlspecialchars($account->getFullName()) ?></td>
+                        <td><?= htmlspecialchars($account->getEmail()) ?></td>
+                        <td><?= htmlspecialchars($account->getRole()) ?></td>
+                        <td class="action-wrap">
+                            <button class="action-btn">⋮</button>
+                            <div class="actions-menu">
+                                <a href="/?q=account/edit&id=<?= $account->getId() ?>">Edit</a>
+                                <?php if ($account->canDelete()): ?>
+                                    <a href="/?q=account/delete&id=<?= $account->getId() ?>">Delete</a>
+                                <?php endif; ?>
+                            </div>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+        <div class="pagination">
+            <?php if ($pagination): ?>
+                <span>Page <?= $pagination['current'] ?> of <?= $pagination['total'] ?></span>
+                <div class="page-links">
+                    <?php foreach ($pagination['links'] as $link): ?>
+                        <a href="<?= $link['url'] ?>" class="<?= $link['active'] ? 'active' : '' ?>"><?= $link['label'] ?></a>
+                    <?php endforeach; ?>
+                </div>
+            <?php else: ?>
+                <span>No accounts found</span>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
