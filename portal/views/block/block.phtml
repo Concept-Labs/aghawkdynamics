@@ -1,6 +1,7 @@
 <?php
 
 use App\Core\Config;
+use App\Model\Account\User;
 
 $blockModel = $this->var('blockModel');
 $block = $blockModel?->getData() ?? [];
@@ -53,20 +54,133 @@ $parcels = $this->var('parcels', []);
       <input type="number" step="0.01" name="block[acres]" placeholder=" " required value="<?= htmlspecialchars($block['acres']) ?>">
       <label>Acres</label>
     </div-->
+
     <div class="fld">
       <textarea name="block[notes]" placeholder=" " rows="2"><?= htmlspecialchars($block['notes']) ?></textarea>
       <label>Notes</label>
     </div>
 
+    <?php if ($blockModel?->getAttachments()?->count() > 0): ?>
+      <fieldset>
+        <legend>Attachments</legend>
+        <?php foreach ($blockModel->getAttachments() as $attachment): ?>
+          <div class="tooltipable">
+        <a href="<?= htmlspecialchars($attachment->getUrl()) ?>" target="_blank"><?= htmlspecialchars($attachment->getName()) ?></a>
+        <tooltip class="tooltip">
+          <?= htmlspecialchars($attachment->getComment()) ?>
+          <?php
+            $ext = strtolower(pathinfo($attachment->getName(), PATHINFO_EXTENSION));
+            $imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'];
+            if (in_array($ext, $imageTypes)):
+          ?>
+            <div style="margin-top:0.5rem;">
+          <img src="<?= htmlspecialchars($attachment->getUrl()) ?>" alt="Preview" style="max-width:200px;max-height:150px;display:block;">
+            </div>
+          <?php endif; ?>
+        </tooltip>
+          </div>
+        <?php endforeach ?>
+      </fieldset>
+    <?php endif ?>
+
+    <?php if (User::isAdmin()): ?>
+      <button class="btn" type="button" onclick="document.getElementById('attachment-modal').style.display='flex'">Add attachment</button>
+
+      <!-- Modal Dialog -->
+      <div id="attachment-modal" class="modal">
+        <div class="modal-content">
+          <h3>Add Attachment</h3>
+          <div class="fld">
+        <input type="file" name="block[attachment]" id="block-attachment">
+        <label for="block-attachment">Attachment</label>
+          </div>
+          <div class="fld">
+        <textarea name="block[attachment_comment]" placeholder=" " rows="2"></textarea>
+        <label>Comment</label>
+          </div>
+          <div style="display:flex;gap:1rem;justify-content:flex-end;margin-top:1rem">
+        <button type="button" class="btn" onclick="document.getElementById('attachment-modal').style.display='none'">Cancel</button>
+        <button type="button" class="btn brand-green" onclick="addAttachment()">Add</button>
+          </div>
+        </div>
+      </div>
+      <style>
+        .modal {
+          display: none;
+          position: fixed;
+          z-index: 1000;
+          left: 0;
+          top: 0;
+          width: 100vw;
+          height: 100vh;
+          background: rgba(30,30,30,0.25);
+          align-items: center;
+          justify-content: center;
+          flex-direction: row;
+          backdrop-filter: blur(2px);
+        }
+        .modal-content {
+          background: #fff;
+          padding: 2rem;
+          border-radius: 8px;
+          max-width: 400px;
+          width: 100%;
+          position: relative;
+          box-sizing: border-box;
+        }
+      </style>
+      <script>
+        // Move file and comment to main form on submit
+        function addAttachment() {
+          const fileInput = document.getElementById('block-attachment');
+          const commentInput = document.querySelector('textarea[name="block[attachment_comment]"]');
+
+          if (fileInput.files.length === 0) {
+            alert('Please select a file to upload.');
+            return;
+          }
+
+          const formData = new FormData();
+          formData.append('block_id', '<?= $block['id'] ?>'); // Ensure block ID is included
+          formData.append('attachment', fileInput.files[0]);
+          formData.append('comment', commentInput.value);
+
+          fetch('/?q=block/uploadAttachment', {
+            method: 'POST',
+            body: formData
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.status === 'success') {
+              Portal.notify('Attachment added successfully', 'info');
+              document.getElementById('attachment-modal').style.display = 'none';
+              window.location.reload();
+            } else {
+              alert('Error: ' + data.message);
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+        }
+      </script>
+
+    <?php endif ?>
+
+    <?php if ($block['attachment']): ?>
+      <div class="fld">
+        <a href="<?= htmlspecialchars($blockModel->getAttachmentUrl()) ?>" target="_blank"><?= htmlspecialchars($block['attachment']) ?></a>
+        <label>Attachment</label>
+      </div>
+    <?php endif ?>
+
 
     <div class=button-set>
       <div>
-          <button class="btn cancel" type="button" onclick="window.history.back()">Back</button>
+        <button class="btn cancel" type="button" onclick="window.history.back()">Back</button>
       </div>
       <div style="display:flex;gap:1rem">
-        <form class="" method="post" action="/?q=block/deleteit">
-          <input type="hidden" name="block[dp]" value="<?= $block['id'] ?>">
-        </form>
+
         <button class="btn end brand-green" type="submit">
           <?php if ($block['id']): ?>
             Save

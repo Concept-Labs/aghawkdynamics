@@ -8,6 +8,19 @@ return [
         'password' => 'smxksmxkmM1@',
         'database_name' => 'a_gpt'
     ],
+    'upload_dir' => 'uploads',
+    'upload_types' => [
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'text/plain'
+    ],
+    'max_upload_size' => 10485760, // 10 MB
     'states' => [
         'AL' => 'Alabama',
         'AK' => 'Alaska',

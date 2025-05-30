@@ -94,7 +94,6 @@
                 <a class="top-link" href="/?q=account/index">Accounts</a>
                 <div class="dropdown-content">
                     <a href="/?q=account/index">List All</a>
-                    <a href="/?q=account/add">Add Account</a>
                 </div>
             </li>
         <?php endif; ?>
@@ -117,8 +116,10 @@
             <a class="top-link" href="/?q=service/index">Activity</a>
             <div class="dropdown-content">
                 <a class="hover-brand-green" href="/?q=service/index">List All</a>
-                <a href="/?q=service/request">Request Service</a>
-                <a href="#">Self Tracking</a>
+                <?php if (!User::isAdmin()): ?>
+                    <a href="/?q=service/request">Request Service</a>
+                    <a href="#">Self Tracking</a>
+                <?php endif; ?>
             </div>
         </li>
     </ul>

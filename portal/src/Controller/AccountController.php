@@ -3,6 +3,7 @@ namespace App\Controller;
 
 use App\Core\Controller;
 use App\Model\Account;
+use App\Model\Account\User;
 
 /**
  * Handles account listing (admin) and profile editing for current user
@@ -12,14 +13,21 @@ class AccountController extends Controller
     /** List of accounts (admin usage) */
     public function index(): void
     {
-        $accounts = (new Account())->all();
-        $this->render('account/index', ['accounts'=>$accounts]);
+        $accounts = (new Account())->getCollection()
+            ->setItemMode(\App\Core\Model\Collection::ITEM_MODE_OBJECT)
+            ->sort('name', 'ASC');
+
+        $this->render('account/list', ['accounts'=>$accounts]);
     }
 
     /** Profile page for logged‑in user  */
     public function profile(): void
     {
-        $id = $this->getRequest()->session('uid');
+        if (User::isAdmin()) {
+            $id = $this->getRequest()->request('id') ?? User::getInstance()->getId();
+        } else {
+            $id = User::getInstance()->getId();
+        }
 
         if (!$id) {
             $this->redirect('/?q=auth/login');

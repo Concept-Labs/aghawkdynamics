@@ -140,7 +140,7 @@ $statusCssClass = [
                                 <div class="sep"></div>
                                 <?php if (User::isAdmin()): ?>
                                     <a href="/?q=service/edit&id=<?= $requestModel->get('id') ?>">Edit</a>
-                                    <a href="/?q=service/complete&id=<?= $requestModel->get('id') ?>" class="hover-brand-green">Complete</a>
+                                    <a href="javascript:void(0)" class="hover-brand-green" onclick="completeDialog(<?= $requestModel->get('id') ?>)">Complete</a>
                                 <?php endif; ?>
                                 <a href="/?q=service/cancel&id=<?= $requestModel->get('id') ?>" class="danger">Cancel Request</a>
                                 <?php endif; ?>
@@ -152,5 +152,96 @@ $statusCssClass = [
             <?php endforeach ?>
         </tbody>
     </table>
-
 </div>
+
+<style>
+    dialog#completeDialog {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+        padding: 0;
+        max-width: 380px;
+        width: 95%;
+        background: var(--card, #fff);
+        animation: fadeInDialog 0.2s;
+    }
+    @keyframes fadeInDialog {
+        from { transform: translateY(30px) scale(0.98); opacity: 0; }
+        to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .modal-card {
+        padding: 2rem 1.5rem 1.5rem 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+    }
+    .modal-card h3 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--brand, #222);
+    }
+    .modal-card p {
+        margin: 0 0 1rem 0;
+        color: #555;
+        font-size: 1rem;
+    }
+    .button-set {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: flex-end;
+    }
+    .btn.cancel {
+        background: #f5f5f5;
+        color: #444;
+        border: 1px solid #ddd;
+    }
+    .btn.brand-green {
+        background: #27ae60;
+        color: #fff;
+        border: none;
+    }
+    dialog#completeDialog::backdrop {
+        background: rgba(30, 30, 30, 0.25);
+        backdrop-filter: blur(2px);
+    }
+</style>
+<dialog id="completeDialog">
+    <form method="post" action="/?q=service/complete">
+        <input type="hidden" name="id" value="">
+        <div class="modal-card">
+            <h3>Complete Service Request</h3>
+            <div class="fld">
+                <input type="date" name="completion_date" required>
+                <label for="completion_date">Completion Date</label>
+            </div>
+            <div class="fld">
+                <input type="number" name="temperature" step="0.1" min="0" max="100" required>
+                <label for="temperature">Temperature (°F)</label>
+            </div>
+            <div class="fld">
+                <input type="number" name="wind" step="0.1" min="0" max="100" required>
+                <label for="wind">Wind Speed (MPH)</label>
+            </div>
+            <div class="fld">
+                <input type="number" name="exposure_hours" step="1" min="0" required>
+                <label for="exposure_hours">Restricted Exposure Hours (per label)</label>
+            </div>
+            <div class="button-set">
+                <button type="button" class="btn cancel" onclick="document.getElementById('completeDialog').close()">Cancel</button>
+                <button type="submit" class="btn brand-green">Complete</button>
+            </div>
+        </div>
+    </form>
+</dialog>
+<script>
+    completeDialog = function(id) {
+        var dialog = document.getElementById('completeDialog');
+        dialog.querySelector('input[name="id"]').value = id;
+        dialog.showModal();
+    };
+    document.addEventListener('DOMContentLoaded', function() {
+
+    });
+</script>
+        
