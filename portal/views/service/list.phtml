@@ -158,9 +158,12 @@ $statusCssClass = [
                                     <a href="javascript:void(0)" class="hover-brand-green" onclick="completeDialog(<?= $requestModel->get('id') ?>)">Complete</a>
                                     <?php endif; ?>
                                 <?php if ($requestModel->canCancel()): ?>
-                                <a href="javascript:void(0)" class="danger" onclick="cancelRequest(<?= $requestModel->get('id') ?>)">Cancel Request</a>
+                                    <a href="javascript:void(0)" class="danger" onclick="cancelRequest(<?= $requestModel->get('id') ?>)">Cancel Request</a>
                                 <?php endif; ?>
-                                
+                                <?php if ($requestModel->isCancelled()): ?>
+                                    <a href="javascript:void(0)" class="hover-brand-green" onclick="uncancelRequest(<?= $requestModel->get('id') ?>)">Restore Request</a>
+                                <?php endif; ?>
+
                             </div>
                         </div>
                     </td>
@@ -178,6 +181,15 @@ $statusCssClass = [
                 }
             });
     }
+
+    uncancelRequest = function(id) {
+        confirmAction('Are you sure you want to restore this service request?')
+            .then(confirmed => {
+                if (confirmed) {
+                    window.location.href = '/?q=service/uncancel&id=' + id;
+                }
+            });
+    };
 </script>
 
 <?php include_once __DIR__ . '/dialog/complete.phtml'; ?>

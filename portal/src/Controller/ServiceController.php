@@ -248,6 +248,41 @@ class ServiceController extends Controller
         $this->redirectReferer();
     }
 
+    public function uncancel(): void
+    {
+        try {
+            $requestId = (int)$this->getRequest()->request('id', 0);
+            if (!$requestId) {
+                throw new \InvalidArgumentException('Invalid service request ID.');
+            }
+
+            $serviceRequest = (new ServiceRequest())->load($requestId);
+            if (!$serviceRequest->getId()) {
+                throw new \InvalidArgumentException('Service request not found.');
+            }
+
+            if (!User::isAdmin() && $serviceRequest->getAccount()->getId() !== User::getInstance()->getId()) {
+                throw new \InvalidArgumentException('You do not have permission to uncancel this service request.');
+            }
+
+            if ($serviceRequest->isCancelled()) {
+
+                $serviceRequest->setStatus(ServiceRequest::STATUS_PENDING);
+                $serviceRequest->save();
+                $this->getRequest()->addMessage('Service request has been uncancelled successfully.');
+                
+            } else {
+                throw new \InvalidArgumentException('This service request is not cancelled.');
+            }
+        } catch (\Throwable $e) {
+            $this->getRequest()->addError(
+                'An error occurred while processing your request: ' . $e->getMessage()
+            );
+        }
+
+        $this->redirectReferer();
+    }
+
     
 
     /**

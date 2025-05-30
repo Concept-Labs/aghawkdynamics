@@ -125,6 +125,11 @@ class ServiceRequest extends Model
         return in_array($this->getStatus(), [self::STATUS_PENDING]);
     }
 
+    public function isCancelled(): bool
+    {
+        return $this->getStatus() === self::STATUS_CANCELLED;
+    }
+
     /**
      * Check if the service request can be completed.
      *
