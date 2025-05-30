@@ -131,8 +131,9 @@ $request = Request::getInstance();
 </head>
 
 <body <?php echo $request->cookie('theme') ? 'class="theme-' . $request->cookie('theme') . '"' : '' ?>>
-
-
+    <?php 
+      include_once(__DIR__ . '/../dialogs/confirm.phtml');
+    ?>
   <header class="flex">
       <?php if (User::isAdmin()): ?>
         <div id="admin-notice" class="admin-notice brand-yellow">
@@ -152,7 +153,7 @@ $request = Request::getInstance();
               <a href="/?q=account/profile">
                 <?= User::getInstance()->getAccount()->get('name') ?>
               </a> |
-              <a href="/?q=auth/logout">Logout</a>
+              <a href="javascript:void(0)" onclick="logoutAction()">Logout</a>
           </div>
         <?php endif; ?>
 
@@ -169,5 +170,12 @@ $request = Request::getInstance();
           </div>
         </div>
       </div>
+      <script>
+        logoutAction = () => {
+          confirmAction('Are you sure you want to logout?', () => {
+            window.location.href = '/?q=auth/logout';
+          });
+        };
+        </script>
+
   </header>
-  

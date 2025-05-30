@@ -128,7 +128,6 @@ $parcelCollection = $this->var('parcels', []);
                                 <button class="action-btn">⋮</button>
                                 <div class="actions-menu">
                                     <a href="/?q=parcel/edit&id=<?= $p['id'] ?>">Edit</a>
-                                    <div class="sep"></div>
                                     <a 
                                         class="hover-brand-yellow <?php if (!$parcelModel->canRequestService()): ?>disabled<?php endif; ?>" 
                                         href="/?q=service/request&parcel=<?= $p['id'] ?>">

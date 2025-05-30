@@ -158,7 +158,7 @@ $statusCssClass = [
                                     <a href="javascript:void(0)" class="hover-brand-green" onclick="completeDialog(<?= $requestModel->get('id') ?>)">Complete</a>
                                     <?php endif; ?>
                                 <?php if ($requestModel->canCancel()): ?>
-                                <a href="/?q=service/cancel&id=<?= $requestModel->get('id') ?>" class="danger">Cancel Request</a>
+                                <a href="javascript:void(0)" class="danger" onclick="cancelRequest(<?= $requestModel->get('id') ?>)">Cancel Request</a>
                                 <?php endif; ?>
                                 
                             </div>
@@ -169,6 +169,16 @@ $statusCssClass = [
         </tbody>
     </table>
 </div>
+<script>
+    cancelRequest = function(id) {
+        confirmAction('Are you sure you want to cancel this service request?')
+            .then(confirmed => {
+                if (confirmed) {
+                    
+                }
+            });
+    }
+</script>
 
 <?php include_once __DIR__ . '/dialog/complete.phtml'; ?>
         
