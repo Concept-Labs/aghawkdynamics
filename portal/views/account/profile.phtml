@@ -7,7 +7,6 @@ $user = $userModel->getData() ?? [];
 
 ?>
 <style>
-
     .hidden {
         height: 0;
         overflow: hidden;
@@ -34,7 +33,7 @@ $user = $userModel->getData() ?? [];
 
     });
 
-    
+
 
     function checkPassword() {
         const password = document.querySelector('input[name="password"]').value;
@@ -52,7 +51,7 @@ $user = $userModel->getData() ?? [];
                 alert('Password must be at least 8 characters long');
                 return false;
             }
-            
+
             // if (!/[A-Z]/.test(password)) {
             //     alert('Password must contain at least one uppercase letter');
             //     return false;
@@ -76,38 +75,35 @@ $user = $userModel->getData() ?? [];
     <div class="card">
         <h2>Profile</h2>
         <form method="post" id="profile-form" onsubmit="return submitProfile()">
-            <fieldset id="address" class="">
-                <legend>Info</legend>
-                <div class="fld"><input name="email" disabled value="<?= htmlspecialchars($user['email']) ?>" placeholder=" "><label>Email (login)</label></div>
-                <div class="fld"><input name="name" value="<?= htmlspecialchars($user['name']) ?>" placeholder=" "><label>Name</label></div>
-                <div class="fld"><input name="phone" value="<?= htmlspecialchars($user['phone']) ?>" placeholder=" "><label>Phone</label></div>
+
+            <div class="fld"><input name="email" disabled value="<?= htmlspecialchars($user['email']) ?>" placeholder=" "><label>Email (login)</label></div>
+            <div class="fld"><input name="name" value="<?= htmlspecialchars($user['name']) ?>" placeholder=" "><label>Name</label></div>
+            <div class="fld"><input name="phone" value="<?= htmlspecialchars($user['phone']) ?>" placeholder=" "><label>Phone</label></div>
+            <div class="fld">
+                <select name="acreage_size" required>
+                    <option value="" selected disabled hidden></option>
+                    <?php foreach (Config::get('acreage_size') as $key => $value): ?>
+                        <option value="<?= $key ?>" <?= $user['acreage_size'] === $key ? 'selected' : '' ?>><?= $value ?></option>
+                    <?php endforeach ?>
+                </select>
+                <label>Total Approximate Acreage</label>
+            </div>
+
+
+            <div class="fieldset">
+                <div class="fld"><input name="street" value="<?= htmlspecialchars($user['street']) ?>" placeholder=" "><label>Street</label></div>
+                <div class="fld"><input name="city" value="<?= htmlspecialchars($user['city']) ?>" placeholder=" "><label>City</label></div>
                 <div class="fld">
-                    <select name="acreage_size" required>
-                        <option value="" selected disabled hidden></option>
-                        <?php foreach (Config::get('acreage_size') as $key => $value): ?>
-                            <option value="<?= $key ?>" <?= $user['acreage_size'] === $key ? 'selected' : '' ?>><?= $value ?></option>
+                    <select name="state">
+                        <?php
+                        foreach (Config::get('states') as $code => $name): ?>
+                            <option value="<?= $code ?>" <?= $user['state'] === $code ? 'selected' : '' ?>><?= $name ?></option>
                         <?php endforeach ?>
                     </select>
-                    <label>Total Approximate Acreage</label>
+                    <label>State</label>
                 </div>
-            </fieldset>
-            <fieldset id="address" class="">
-                <legend>Address</legend>
-                <div class="fieldset">
-                    <div class="fld"><input name="street" value="<?= htmlspecialchars($user['street']) ?>" placeholder=" "><label>Street</label></div>
-                    <div class="fld"><input name="city" value="<?= htmlspecialchars($user['city']) ?>" placeholder=" "><label>City</label></div>
-                    <div class="fld">
-                        <select name="state">
-                            <?php
-                            foreach (Config::get('states') as $code => $name): ?>
-                                <option value="<?= $code ?>" <?= $user['state'] === $code ? 'selected' : '' ?>><?= $name ?></option>
-                            <?php endforeach ?>
-                        </select>
-                        <label>State</label>
-                    </div>
-                    <div class="fld"><input name="zip" value="<?= htmlspecialchars($user['zip']) ?>" placeholder=" "><label>ZIP</label></div>
-                </div>
-            </fieldset>
+                <div class="fld"><input name="zip" value="<?= htmlspecialchars($user['zip']) ?>" placeholder=" "><label>ZIP</label></div>
+            </div>
 
             <fieldset id="billing" class="">
                 <legend>Billing Address</legend>
@@ -135,24 +131,18 @@ $user = $userModel->getData() ?? [];
                     </div>
                 </div>
             </fieldset>
-            <fieldset id="password" class="">
-                <legend>Additional</legend>
-                <div class="fieldset">
-                    <div class="fld">
-                        <textarea name="additional_contacts" placeholder=" " rows="3"><?= htmlspecialchars($user['additional_contacts']) ?></textarea>
-                        <label>Additional Contacts & Notes</label>
-                    </div>
-                </div>
-            </fieldset>     
 
-            <div id="change-password-container">
-                <fieldset id="password" class="">
-                    <legend>Change Password</legend>
-                    <div class="fieldset">
-                        <div class="fld"><input type="password" name="password" placeholder=" "><label>New password</label></div>
-                        <div class="fld"><input type="password" name="password_repeat" placeholder=" "><label>Repeat new password</label></div>
-                    </div>
-                </fieldset>
+            <div class="fieldset">
+                <div class="fld">
+                    <textarea name="additional_contacts" placeholder=" " rows="3"><?= htmlspecialchars($user['additional_contacts']) ?></textarea>
+                    <label>Additional Contacts & Notes</label>
+                </div>
+            </div>
+
+
+            <div class="fieldset">
+                <div class="fld"><input type="password" name="password" placeholder=" "><label>New password</label></div>
+                <div class="fld"><input type="password" name="password_repeat" placeholder=" "><label>Repeat new password</label></div>
             </div>
             <div class="button-set">
                 <div></div>
@@ -162,5 +152,5 @@ $user = $userModel->getData() ?? [];
     </div>
 </div>
 <script>
-    
+
 </script>
