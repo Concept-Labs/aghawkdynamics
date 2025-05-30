@@ -110,7 +110,7 @@ $statusCssClass = [
                     </td>
                     <?php if (User::isAdmin()): ?>
                         <td>
-                            <a href="/?q=account/edit&id=<?= $requestModel->getAccount()->getId() ?>">
+                            <a href="/?q=account/profile&id=<?= $requestModel->getAccount()->getId() ?>">
                                 <?= htmlspecialchars($requestModel->getAccount()->get('name')) ?>
                             </a>
                         </td>
