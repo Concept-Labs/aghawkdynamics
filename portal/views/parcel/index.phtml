@@ -105,7 +105,7 @@ $parcelCollection = $this->var('parcels', []);
                                 <?php
                                 $account = $parcelModel->getAccount();
                                 if ($account) {
-                                    echo '<a href="/?q=account/edit&id=' . $account->getId() . '">' . htmlspecialchars($account->get('name')) . '</a>';
+                                    echo '<a href="/?q=account/profile&id=' . $account->getId() . '">' . htmlspecialchars($account->get('name')) . '</a>';
                                 } else {
                                     echo 'N/A';
                                 }

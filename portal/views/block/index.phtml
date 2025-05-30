@@ -24,11 +24,11 @@ use App\Model\Account\User;
         <table class="grid">
             <thead>
                 <tr>
+                    <th>
+                    </th>
                     <?php if (User::isAdmin()): ?>
                         <th>Account</th>
                     <?php endif; ?>
-                    <th>
-                    </th>
                     <th>
                         <input type="text" class="inline-search" placeholder="Parcel" />
                     </th>
@@ -52,13 +52,6 @@ use App\Model\Account\User;
                     $p = $b->getParcel()->getData();
                     ?>
                     <tr>
-                        <?php if (User::isAdmin()): ?>
-                            <td>
-                                <a href="/?q=account/view&id=<?= $b->getParcel()->get('account_id') ?>">
-                                    <?= htmlspecialchars($b->getParcel()->getAccount()->get('name')) ?>
-                                </a>
-                            </td>
-                        <?php endif; ?>
                         <td>
                             <?php if ($p['latitude'] && $p['longitude']): ?>
                                 <span class="minimap-tooltip-trigger" style="cursor:pointer;position:relative;">
@@ -116,6 +109,14 @@ use App\Model\Account\User;
                             
                             <?php endif; ?>
                         </td>
+                        <?php if (User::isAdmin()): ?>
+                            <td>
+                                <a href="/?q=account/profile&id=<?= $b->getParcel()->get('account_id') ?>">
+                                    <?= htmlspecialchars($b->getParcel()->getAccount()->get('name')) ?>
+                                </a>
+                            </td>
+                        <?php endif; ?>
+                        
                         <td>
                             <a href="/?q=parcel/edit&id=<?= $b->getParcel()->get('id') ?>">
                                 <strong><?= htmlspecialchars($b->getParcel()->get('name')) ?></strong>
