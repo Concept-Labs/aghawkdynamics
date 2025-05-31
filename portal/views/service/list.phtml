@@ -152,9 +152,9 @@ $statusCssClass = [
                         <div class="action-wrap" style="position:relative">
                             <button class="action-btn">⋮</button>
                             <div class="actions-menu">
-                                <a href="/?q=service/details&id=<?= $requestModel->get('id') ?>">Details</a>
+                                <!--a href="/?q=service/details&id=<?= $requestModel->get('id') ?>">Details</a-->
                                 <?php if (User::isAdmin() && $requestModel->canComplete()): ?>
-                                    <a href="/?q=service/edit&id=<?= $requestModel->get('id') ?>">Edit</a>
+                                    <a href="/?q=service/request&id=<?= $requestModel->get('id') ?>">Edit</a>
                                     <a href="javascript:void(0)" class="hover-brand-green" onclick="completeDialog(<?= $requestModel->get('id') ?>)">Complete</a>
                                     <?php endif; ?>
                                 <?php if ($requestModel->canCancel()): ?>

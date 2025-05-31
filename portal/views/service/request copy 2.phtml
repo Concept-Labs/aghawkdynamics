@@ -480,7 +480,7 @@ $minUrgentDateStr = $minUrgentDate->format('Y-m-d');
     document.getElementById('add-product-btn').addEventListener('click', function() {
       const productList = document.querySelector('.product-list');
       if (productList.children.length >= MAX_PRODUCTS) {
-        alert('You can add up to 10 products only.');
+        alertDialog('You can add up to 10 products only.');
         return;
       }
       var template = document.getElementById('product-template').innerHTML;

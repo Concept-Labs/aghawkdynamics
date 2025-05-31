@@ -136,7 +136,7 @@ $parcels = $this->var('parcels', []);
           const commentInput = document.querySelector('textarea[name="block[attachment_comment]"]');
 
           if (fileInput.files.length === 0) {
-            alert('Please select a file to upload.');
+            alertDialog('Please select a file to upload.');
             return;
           }
 
@@ -156,7 +156,7 @@ $parcels = $this->var('parcels', []);
               document.getElementById('attachment-modal').style.display = 'none';
               window.location.reload();
             } else {
-              alert('Error: ' + data.message);
+              alertDialog('Error: ' + data.message);
             }
           })
           .catch(error => {

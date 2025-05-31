@@ -129,7 +129,7 @@ $isBillingFilled = !empty($data['billing_street']) || !empty($data['billing_city
       const passwordRepeat = document.querySelector('input[name="password_repeat"]').value;
       if (password !== passwordRepeat) {
         e.preventDefault();
-        alert('Passwords do not match');
+        alertDialog('Passwords do not match');
       }
     });
   </script>

@@ -4,6 +4,7 @@ namespace App\Model;
 use App\Core\Model;
 use App\Core\Model\Collection;
 use App\Core\Model\CollectionInterface;
+use App\Model\Account\User;
 
 class Parcel extends Model
 {
@@ -12,6 +13,8 @@ class Parcel extends Model
     protected string $table = 'parcel';
 
     private ?Account $account = null;
+
+    private ?CollectionInterface $blocks = null;
 
     /**
      * Get the ID of the parcel.
@@ -23,6 +26,12 @@ class Parcel extends Model
         return (int)($this->data['account_id'] ?? 0);
     }
 
+    /**
+     * Set the account ID for the parcel.
+     *
+     * @param int $accountId
+     * @return $this
+     */
     public function getAccount(): Account
     {
         if ($this->account === null) {
@@ -32,22 +41,32 @@ class Parcel extends Model
     }
 
     /**
+     * Get the name of the parcel.
+     *
+     * @return string|null
+     */
+    public function getName(): string|null
+    {
+        return $this->get('name') ?? null;
+    }
+
+    /**
      * Get the collection of blocks associated with this parcel.
      *
      * @return CollectionInterface
      */
     public function getBlocks(): CollectionInterface
     {
-        $blockCollection = (new Block())->getCollection();
-        $blockCollection->setItemMode(Collection::ITEM_MODE_OBJECT);
-        $blockCollection->addFilter(
-            [
-                'parcel_id' => $this->getId(),
-            ]
-        );
-        $blockCollection->sort('created_at', 'DESC');
+        if ($this->blocks === null) {
+            $this->blocks = (new Block())
+                ->getCollection()
+                ->setItemMode(Collection::ITEM_MODE_OBJECT)
+                ->addFilter(['parcel_id' => $this->getId()])
+                ->setItemMode(Collection::ITEM_MODE_OBJECT)
+                ->sort('created_at', 'DESC');
+        }
 
-        return $blockCollection;
+        return $this->blocks;
     }
 
     /**

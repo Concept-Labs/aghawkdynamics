@@ -176,11 +176,13 @@ button.cancel,
   background: #ccc;
   color: #222;
 }
+
 button.delete,
 .btn.delete {
   background: #c6282870;
   color: #fff;
 }
+
 button.delete:hover,
 .btn.delete:hover {
   background: #c6282890;
@@ -201,9 +203,9 @@ button.delete:hover,
 }
 
 .entity-form {
-    width: 700px;
-    margin: 0 auto;
-    padding: 20px;
+  width: 700px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
 table {
@@ -313,9 +315,7 @@ footer .social a {
   /* hide theme icons inside hamburger for simplicity */
 }
 
-form {
-  
-}
+form {}
 
 div.separator {
   height: 1px;
@@ -338,6 +338,7 @@ textarea[disabled] {
   align-items: center;
   gap: .5rem;
 }
+
 .fld {
   position: relative;
   margin-bottom: 1rem
@@ -367,8 +368,7 @@ textarea[disabled] {
 .fld input:not([type="checkbox"]):focus+label,
 .fld input:not([type="checkbox"]):not(:placeholder-shown)+label,
 .fld textarea:focus+label,
-.fld textarea:not(:placeholder-shown)+label
-{
+.fld textarea:not(:placeholder-shown)+label {
   top: -.6rem;
   left: .6rem;
   font-size: .75rem;
@@ -376,20 +376,30 @@ textarea[disabled] {
   padding: 0 .25rem;
   color: var(--accent);
 }
-.fld select:valid + label,
-.fld select:focus + label{
-  top:-.6rem; left:.6rem;
-  font-size:.75rem;
-  background:var(--card);
-  padding:0 .25rem;
-  color:var(--accent);
+
+.fld select:valid+label,
+.fld select:focus+label {
+  top: -.6rem;
+  left: .6rem;
+  font-size: .75rem;
+  background: var(--card);
+  padding: 0 .25rem;
+  color: var(--accent);
+}
+
+.fld input.urgent {
+  background-color: #ffcccc;
+}
+
+.fld input.urgent+label {
+  background-color: #ffcccc;
 }
 
 fieldset {
-    border: var(--border);
-    padding: var(--spacing);
-    border-radius: var(--radius);
-    margin-bottom: var(--spacing);
+  border: var(--border);
+  padding: var(--spacing);
+  border-radius: var(--radius);
+  margin-bottom: var(--spacing);
 }
 
 fieldset[style*="border: none"] legend {
@@ -397,10 +407,10 @@ fieldset[style*="border: none"] legend {
 }
 
 fieldset legend {
-    padding: .5rem .2rem;
-    text-align: left;
-    color: var(--accent);
-    background: var(--card);
+  padding: .5rem .2rem;
+  text-align: left;
+  color: var(--accent);
+  background: var(--card);
 }
 
 input:not([type="checkbox"]),

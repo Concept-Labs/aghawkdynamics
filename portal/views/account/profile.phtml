@@ -44,11 +44,11 @@ $user = $userModel->getData() ?? [];
             password = document.querySelector('input[name="password"]').value;
             password_repeat = document.querySelector('input[name="password_repeat"]').value;
             if (password !== password_repeat) {
-                alert('Passwords do not match');
+                alertDialog('Passwords do not match');
                 return false;
             }
             if (password.length < 8) {
-                alert('Password must be at least 8 characters long');
+                alertDialog('Password must be at least 8 characters long');
                 return false;
             }
 

@@ -20,7 +20,7 @@ abstract class Controller
             return $this->request;
         }
 
-        return $this->request->request($key, $default);
+        return $this->request->getRequest($key, $default);
     }
 
     public function getSession(?string $key = null, mixed $default = null): mixed

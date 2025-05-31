@@ -1,16 +1,16 @@
 <?php
 
 use App\Core\Config;
-use App\Model\Account\User;
+use App\Model\ServiceRequest;
 
+//Edit mode
 $requestModel = $this->var('requestModel', null);
-$requestId = $this->var('request_id', null);
+$additionalData = $requestModel?->getAdditionalData() ?? [];
 
-$blocks = $this->var('blocks', []);
-$parcels = $this->var('parcels', []);
+//Collections
+$parcelCollection = $this->var('parcelCollection', []);
 
-$currentParcelId = $requestModel?->get('parcel_id') ?? $this->var('parcel_id', null);
-$currentBlockId = $requestModel?->get('block_id') ?? $this->var('block_id', null);
+$parcelModel = $requestModel?->getParcel() ?? $this->var('parcelModel', null);
 
 // Calculate minimum date for non-urgent (7 business days ahead)
 $minDate = new DateTime();
@@ -31,72 +31,57 @@ do {
 $minUrgentDateStr = $minUrgentDate->format('Y-m-d');
 
 ?>
-<style>
-  .fld input.urgent {
-    background-color: #ffcccc;
-  }
 
-  .fld input.urgent+label {
-    background-color: #ffcccc;
-  }
-
-  .icon-help {
-    cursor: pointer;
-    color: var(--brand-green);
-    font-size: 1.2rem;
-    margin-left: 0.5rem;
-    border-radius: 50%;
-    border: 1px solid var(--brand-green);
-    padding: 0.2rem 0.7rem;
-  }
-
-  .icon-help:hover {
-    color: var(--text);
-  }
-</style>
-<?php if (User::isAdmin()): ?>
-  <div id="admin-notice">
-    <span class="icon-help" title="Admin Mode">A</span>
-    <span>Admin not implemented</span>
-  </div>
-<?php 
-return;
-endif; ?>
 <div class="entity-form card">
-  <form method="post" id="service-form" action="<?php echo $requestId ? '/?q=service/edit&id=' . $requestId : '/?q=service/create' ?>">
-    <?php if ($requestId): ?>
-      <input type="hidden" name="service[id]" value="<?= htmlspecialchars($requestId) ?>">
+  <form method="post" id="service-form">
+    <?php if ($requestModel?->getId()): ?>
+      <input type="hidden" name="service[id]" value="<?= (int)$requestModel?->getId() ?>">
+      <input type="hidden" name="service[status]" value="<?= $requestModel?->getStatus() ?? ServiceRequest::STATUS_PENDING ?>">
+      <input type="hidden" name="service[account_id]" value="<?= (int)$requestModel?->getAccountId() ?>">
+
     <?php endif ?>
-    <?php if (!empty($currentParcelId)): ?>
-      <input type="hidden" name="service[parcel_id]" value="<?= htmlspecialchars($currentParcelId) ?>">
-    <?php endif ?>
-    <?php if (!empty($currentBlockId)): ?>
-      <input type="hidden" name="service[block_id]" value="<?= htmlspecialchars($currentBlockId) ?>">
-    <?php endif ?>
+
     <div style="display:flex; justify-content: flex-start; margin-bottom: 1rem;">
       <h2>Request a Service</h2>
 
     </div>
     <div class="fld-row" style="display: flex; gap: 5px;">
       <div class="fld" style="flex: 1;">
-        <select name="service[parcel_id]" required <?php if ($currentParcelId): ?>disabled<?php endif ?> title="">
-          <option value="" hidden></option>
-          <?php foreach ($parcels as $parcelModel):
-            if (!$parcelModel->canRequestService()) continue;
-          ?>
-            <option value="<?= $parcelModel->get('id') ?>" <?php if ($parcelModel->get('id') == $currentParcelId): ?>selected<?php endif ?>><?= htmlspecialchars($parcelModel->get('name')) ?></option>
-          <?php endforeach ?>
-        </select>
+        <?php if ($parcelModel?->getId()): ?>
+          <input type="text" disabled value="<?= htmlspecialchars($parcelModel->getName()) ?>">
+          <input type="hidden" name="service[parcel_id]" value="<?= (int)$parcelModel->getId() ?>">
+        <?php else: ?>
+          <select name="service[parcel_id]" required>
+            <option value="" hidden></option>
+            <?php foreach ($parcelCollection as $parcelModel):
+              if (!$parcelModel->canRequestService()) continue;
+            ?>
+              <option value="<?= $parcelModel->getId() ?>"><?= htmlspecialchars($parcelModel->getName()) ?></option>
+            <?php endforeach ?>
+          </select>
+        <?php endif ?>
         <label>Parcel</label>
 
       </div>
       <div class="fld" style="flex: 1;">
-        <select name="service[block_id]" required <?php if ($currentBlockId): ?>disabled<?php endif ?>>
-          <option value="" hidden></option>
-          <?php foreach ($blocks as $b): ?>
-            <option value="<?= $b['id'] ?>" <?php if ($b['id'] == $currentBlockId): ?>selected<?php endif ?>><?= htmlspecialchars($b['name']) ?></option>
-          <?php endforeach ?>
-        </select>
+        <?php if ($requestModel?->getId()): ?>
+          <input type="text" disabled value="<?= htmlspecialchars($requestModel?->getBlock()->get('name')) ?>">
+          <input type="hidden" name="service[block_id]" value="<?= (int)$requestModel?->get('block_id') ?>">
+        <?php elseif ($blockModel): ?>
+          <input type="text" disabled value="<?= htmlspecialchars($blockModel->getName()) ?>">
+          <input type="hidden" name="service[block_id]" value="<?= (int)$blockModel->getId() ?>">
+        <?php else: ?>
+          <select name="service[block_id]" required <?php if ($currentBlockId): ?>disabled<?php endif ?>>
+            <?php if ($blockCollection?->isEmpty()): ?>
+              <option value="" hidden></option>
+              <?php foreach ($blockCollection as $block): ?>
+                <option value="<?= $block->getId() ?>" <?php if ($block->getId() == $currentBlockId): ?>selected<?php endif ?>><?= htmlspecialchars($block->getName()) ?></option>
+              <?php endforeach ?>
+            <?php else: ?>
+              <option value="" disabled>Select Parcel first</option>
+            <?php endif ?>
+          </select>
+        <?php endif ?>
         <label>Block</label>
       </div>
     </div>
@@ -104,22 +89,16 @@ endif; ?>
     <div class="fld " style="display: flex; gap: 5px; align-items: flex-end; flex-wrap: wrap;">
       <div class="fld">
         <select name="service[urgent]" required>
-          <option value="0">No</option>
-          <option value="1">Yes</option>
+          <option value="0" <?php if ($requestModel?->get('urgent') == 0): ?>selected<?php endif ?>>No</option>
+          <option value="1" <?php if ($requestModel?->get('urgent') == 1): ?>selected<?php endif ?>>Yes</option>
         </select>
         <label>Urgent?</label>
       </div>
-      <div id="fld_date" class="fld tooltipable" style="flex: 2;">
+      <div id="fld_date" class="fld" style="flex: 2;">
         <input type="date" name="service[date]" placeholder=" " required min="<?= $minDateStr ?>"
-          title="">
+          value="<?= $requestModel?->get('date') ?: '' ?>"
+          title="Urgent services must be requested at least 1 day in advance. Non-urgent services must be requested at least 7 days in advance.">
         <label>Service need by date</label>
-        <tooltip class="tooltip bottom">
-          <p>
-            Urgent services must be requested at least 1 day in advance.
-            <br>
-            Non-urgent services must be requested at least 7 days in advance.
-          </p>
-        </tooltip>
       </div>
 
     </div>
@@ -129,14 +108,19 @@ endif; ?>
         <option value="" hidden></option>
         <?php
         foreach (Config::get('service_type') as $type): ?>
-          <option value="<?= htmlspecialchars($type) ?>"><?= htmlspecialchars($type) ?></option>
+          <option
+            value="<?= htmlspecialchars($type) ?>"
+            <?php if ($requestModel?->get('type') == $type): ?>selected<?php endif ?>>
+            <?= htmlspecialchars($type) ?>
+          </option>
         <?php endforeach ?>
       </select>
       <label>Service Type</label>
-      <script>
-        // Handle service type change to show/hide fieldsets
-        document.querySelector('select[name="service[type]"]').addEventListener('change', function() {
-          const selectedType = this.value;
+
+      <script type="text/javascript">
+        // Function to handle service type change and show/hide fieldsets
+        function handleServiceTypeChange(el) {
+          const selectedType = el.value;
           document.querySelectorAll('fieldset[data-allowed-types]').forEach(fieldset => {
             const allowedTypes = JSON.parse(fieldset.getAttribute('data-allowed-types'));
             if (allowedTypes.includes(selectedType)) {
@@ -145,12 +129,21 @@ endif; ?>
               fieldset.style.display = 'none';
             }
           });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+          // Handle service type change to show/hide fieldsets
+          document.querySelector('select[name="service[type]"]').addEventListener('change', function() {
+            handleServiceTypeChange(this);
+          });
+          // Trigger change on page load to set initial visibility
+          handleServiceTypeChange(document.querySelector('select[name="service[type]"]'));
         });
       </script>
     </div>
 
     <div class="fld">
-      <textarea name="reason" placeholder=" " rows="4"></textarea>
+      <textarea name="service[reason]" placeholder=" " rows="4"><?php echo $requestModel?->get('reason') ?: '' ?></textarea>
       <label>Reason & Notes</label>
     </div>
 
@@ -173,11 +166,13 @@ endif; ?>
 
         <div class="switch-container">
           <label class="switch-group">
-            <input type="radio" class="hide-content" name="custom_products" value="no" data-content-id="custom_products_content" checked>
+            <input type="radio" class="hide-content" name="custom_products" value="no" data-content-id="custom_products_content"
+              <?php if (empty($additionalData['products'])): ?>checked<?php endif ?>>
             <span class="switch-label">No</span>
           </label>
           <label class="switch-group">
-            <input type="radio" class="show-content" name="custom_products" value="yes" data-content-id="custom_products_content">
+            <input type="radio" class="show-content" name="custom_products" value="yes" data-content-id="custom_products_content"
+              <?php if (!empty($additionalData['products'])): ?>checked<?php endif ?>>
             <span class="switch-label">Yes</span>
           </label>
           <div class="switch-background"></div>
@@ -187,67 +182,74 @@ endif; ?>
 
       </legend>
 
-      <div id="custom_products_content" style="height:0; overflow:hidden; transition: height 0.3s ease;">
+      <div id="custom_products_content" style="display: <?= empty($additionalData['products']) ? 'none' : 'block' ?>;">
 
         <div class="product-list">
-          <div class="product-item" style="margin-top:.5rem;">
-            <div class="fld">
-              <select name="service[adds][products][0][type]">
-                <option value="" hidden></option>
-                <?php foreach (Config::get('product_types') as $type): ?>
-                  <option value="<?= htmlspecialchars($type) ?>"><?= htmlspecialchars($type) ?></option>
-                <?php endforeach ?>
-              </select>
-              <label>Product Type</label>
+          <?php
+          $products = $additionalData['products'] ?? [
+            []
+          ];
+          foreach ($products as $index => $product): ?>
+            <div class="product-item" style="margin-top:.5rem;">
+              <div class="fld">
+                <select name="service[adds][products][<?= $index ?>][type]">
+                  <option value="" hidden></option>
+                  <?php foreach (Config::get('product_types') as $type): ?>
+                    <option value="<?= htmlspecialchars($type) ?>" <?php if ($product['type'] == $type): ?>selected<?php endif ?>><?= htmlspecialchars($type) ?></option>
+                  <?php endforeach ?>
+                </select>
+                <label>Product Type</label>
+              </div>
+              <div class="fld">
+                <input type="text" name="service[adds][products][<?= $index ?>][name]" placeholder="" value="<?= htmlspecialchars($product['name']) ?>">
+                <label>Product Name</label>
+              </div>
+              <div class="fld">
+                <select name="service[adds][products][<?= $index ?>][unit]">
+                  <?php foreach (Config::get('units') as $unit): ?>
+                    <option value="<?= htmlspecialchars($unit) ?>" <?php if ($product['unit'] == $unit): ?>selected<?php endif ?>><?= htmlspecialchars($unit) ?></option>
+                  <?php endforeach ?>
+                </select>
+                <label>Unit</label>
+              </div>
+              <div class="fld">
+                <input type="number" name="service[adds][products][<?= $index ?>][volume]" placeholder="" value="<?= htmlspecialchars($product['volume']) ?>">
+                <label>Volume</label>
+              </div>
+              <div class="fld">
+                <button type="button" class="remove-product-btn">X</button>
+              </div>
             </div>
-            <div class="fld">
-              <input type="text" name="service[adds][products][0][name]" placeholder="">
-              <label>Product Name</label>
-            </div>
-            <div class="fld">
-              <select name="service[adds][products][0][unit]">
-                <?php foreach (Config::get('units') as $unit): ?>
-                  <option value="<?= htmlspecialchars($unit) ?>"><?= htmlspecialchars($unit) ?></option>
-                <?php endforeach ?>
-              </select>
-              <label>Unit</label>
-            </div>
-            <div class="fld">
-              <input type="number" name="service[adds][products][0][volume]" placeholder="">
-              <label>Volume</label>
-            </div>
-          </div>
+          <?php endforeach; ?>
+
         </div>
-
         <button type="button" id="add-product-btn" title="Add Product">+</button>
-      </div>
-
-
-      <style>
-
-
-      </style>
     </fieldset>
 
     <fieldset
       data-allowed-types='<?= json_encode(Config::get('service_type_custom_products')) ?>'
       style="border: 1px solid transparent; display: none;">
       <legend>
-        <!--div class="switch-field" style="display:flex;align-items:center;position:relative;top:.5rem;left:-.5rem;">
-          <input type="checkbox" name="service[adds][custom_supplier]" class="switch-input" data-content-id="custom_supplier_content"
-            id="use_custom_supplier">
-          <label for="use_custom_supplier" class="switch-label" style="margin-bottom:0;margin-left:1rem;">
-            <span class="switch-slider"></span>
-            Supplier?
-          </label>
-        </div-->
+
         <div class="switch-container">
           <label class="switch-group">
-            <input type="radio" class="hide-content" name="custom_supplier" value="no" data-content-id="custom_supplier_content" checked>
+            <input
+              type="radio"
+              class="hide-content"
+              name="custom_supplier"
+              value="no"
+              data-content-id="custom_supplier_content"
+              <?php if (empty($additionalData['supplier'])): ?>checked<?php endif ?>>
             <span class="switch-label">No</span>
           </label>
           <label class="switch-group">
-            <input type="radio" class="show-content" name="custom_supplier" value="yes" data-content-id="custom_supplier_content">
+            <input
+              type="radio"
+              class="show-content"
+              name="custom_supplier"
+              value="yes"
+              data-content-id="custom_supplier_content"
+              <?php if (!empty($additionalData['supplier'])): ?>checked<?php endif ?>>
             <span class="switch-label">Yes</span>
           </label>
           <div class="switch-background"></div>
@@ -255,17 +257,23 @@ endif; ?>
         Do you have preferred supplier?
       </legend>
 
-      <div class="fld-row" id="custom_supplier_content" style="height:0; overflow:hidden; transition: height 0.3s ease;">
+      <div class="fld-row" id="custom_supplier_content" style="display: <?= empty($additionalData['supplier']) ? 'none' : 'block' ?>;">
         <div class="fld">
-          <input type="text" name="service[adds][supplier]" placeholder="">
+          <input
+            type="text"
+            name="service[adds][supplier]"
+            placeholder=""
+            value="<?= htmlspecialchars($additionalData['supplier'] ?? '') ?>">
           <label>Supplier Name</label>
         </div>
         <div class="fld">
-          <input type="text" name="service[adds][supplier_phone]" placeholder="">
+          <input type="text" name="service[adds][supplier_phone]" placeholder=""
+            value="<?= htmlspecialchars($additionalData['supplier_phone'] ?? '') ?>">
           <label>Phone</label>
         </div>
         <div class="fld">
-          <input type="text" name="service[adds][supplier_name]" placeholder="">
+          <input type="text" name="service[adds][supplier_name]" placeholder=""
+            value="<?= htmlspecialchars($additionalData['supplier_name'] ?? '') ?>">
           <label>Contact Name</label>
         </div>
       </div>
@@ -277,33 +285,52 @@ endif; ?>
         <div class="fld">
           <select name="service[adds][application][unit]" style="width: auto;">
             <?php foreach (Config::get('units') as $unit): ?>
-              <option value="<?= htmlspecialchars($unit) ?>"><?= htmlspecialchars($unit) ?></option>
+              <option
+                value="<?= htmlspecialchars($unit) ?>"
+                <?php if (isset($additionalData['application']['unit']) && $additionalData['application']['unit'] == $unit): ?>selected<?php endif ?>>
+                <?= htmlspecialchars($unit) ?>
+              </option>
             <?php endforeach ?>
           </select>
           <label>Unit</label>
 
         </div>
         <div class="fld">
-          <input type="number" name="service[adds][application][volume]" placeholder="">
+          <input
+            type="number"
+            name="service[adds][application][volume]"
+            placeholder=""
+            value="<?= htmlspecialchars($additionalData['application']['volume'] ?? '') ?>">
           <label>Volume</label>
         </div>
       </div>
     </fieldset>
 
-    <fieldset id="water_usage" class="" data-allowed-types='<?= json_encode(Config::get('service_type_water_usage')) ?>' style="display: none;">
+    <fieldset
+      id="water_usage"
+      data-allowed-types='<?= json_encode(Config::get('service_type_water_usage')) ?>'
+      style="display: none;">
       <legend>Water Usage</legend>
       <div class="fld-row" style="justify-content: start;">
         <div class="fld" style="width: auto;">
           <select name="service[adds][water_usage][unit]">
             <?php foreach (Config::get('units') as $unit): ?>
-              <option value="<?= htmlspecialchars($unit) ?>"><?= htmlspecialchars($unit) ?></option>
+              <option
+                value="<?= htmlspecialchars($unit) ?>"
+                <?php if (isset($additionalData['water_usage']['unit']) && $additionalData['water_usage']['unit'] == $unit): ?>selected<?php endif ?>>
+                <?= htmlspecialchars($unit) ?>
+              </option>
             <?php endforeach ?>
           </select>
           <label>Unit</label>
 
         </div>
         <div class="fld" style="width: auto;">
-          <input type="number" name="service[adds][water_usage][volume]" placeholder="">
+          <input
+            type="number"
+            name="service[adds][water_usage][volume]"
+            placeholder=""
+            value="<?= htmlspecialchars($additionalData['water_usage']['volume'] ?? '') ?>">
           <label>Volume</label>
         </div>
       </div>
@@ -312,7 +339,13 @@ endif; ?>
 
     <div class="button-set ">
       <button class="btn cancel" type="button" onclick="window.history.back()">Cancel</button>
-      <button class="btn brand-green" type="submit">Create Service Request</button>
+      <button class="btn brand-green" type="submit">
+        <?php if ($requestModel?->getId()): ?>
+          Update Request
+        <?php else: ?>
+          Create Request
+        <?php endif; ?>
+      </button>
     </div>
   </form>
 </div>
@@ -386,10 +419,10 @@ endif; ?>
 
 </div>
 
-<script>
+<script type="text/javascript">
   document.addEventListener('DOMContentLoaded', function() {
     // Handle parcel selection to populate blocks
-    document.querySelector('select[name="service[parcel_id]"]').addEventListener('change', function() {
+    document.querySelector('select[name="service[parcel_id]"]')?.addEventListener('change', function() {
       const selectedParcelId = this.value;
       const blockSelect = document.querySelector('select[name="service[block_id]"]');
       blockSelect.disabled = !selectedParcelId; // Disable if no parcel selected
@@ -407,7 +440,11 @@ endif; ?>
             blockSelect.appendChild(option);
           });
         })
-        .catch(error => alert('Error fetching blocks:', error) && console.error('Error fetching blocks:', error));
+        .catch(
+          error =>
+          alertDialog('Error fetching blocks:' + error) &&
+          console.error('Error fetching blocks:', error)
+        );
     });
 
     // Handle urgent service selection to set date field
@@ -426,40 +463,29 @@ endif; ?>
     });
 
     // Handle the switch for showing/hiding content
-    const switchShow = document.querySelectorAll('input.show-content');
-    switchShow.forEach(switchGroup => {
+    function toggleContentVisibility(switchInput, isShow) {
+      const contentId = switchInput.getAttribute('data-content-id');
+      const content = document.getElementById(contentId);
+      if (isShow) {
+        content.style.display = 'block';
+        content.closest('fieldset').style.border = 'var(--border)';
+      } else {
+        content.style.display = 'none';
+        content.closest('fieldset').style.border = '1px solid transparent';
+      }
+    }
+    // Initialize switch inputs for showing/hiding content
+    document.querySelectorAll('input.show-content').forEach(switchGroup => {
       switchGroup.addEventListener('change', function() {
-        const contentId = this.getAttribute('data-content-id');
-        const content = document.getElementById(contentId);
-        if (this.checked) {
-          content.style.height = 'auto';
-          content.style.display = 'block';
-          content.closest('fieldset').style.border = 'var(--border)';
-        } else {
-          content.style.height = '0';
-          content.style.display = 'none';
-          content.closest('fieldset').style.border = '1px solid transparent';
-        }
+        toggleContentVisibility(this, true);
       });
-
-      const switchHide = document.querySelectorAll('input.hide-content');
-      switchHide.forEach(switchGroup => {
-        switchGroup.addEventListener('change', function() {
-          const contentId = this.getAttribute('data-content-id');
-          const content = document.getElementById(contentId);
-          if (this.checked) {
-            content.style.height = '0';
-            content.style.display = 'none';
-            content.closest('fieldset').style.border = '1px solid transparent';
-          } else {
-            content.style.height = 'auto';
-            content.style.display = 'block';
-            content.closest('fieldset').style.border = '1px solid silver';
-          }
-        });
-      });
-
     });
+    document.querySelectorAll('input.hide-content').forEach(switchGroup => {
+      switchGroup.addEventListener('change', function() {
+        toggleContentVisibility(this, false);
+      });
+    });
+
 
 
     const MAX_PRODUCTS = 10;
@@ -488,7 +514,7 @@ endif; ?>
     document.getElementById('add-product-btn').addEventListener('click', function() {
       const productList = document.querySelector('.product-list');
       if (productList.children.length >= MAX_PRODUCTS) {
-        alert('You can add up to 10 products only.');
+        alertDialog('You can add up to 10 products only.');
         return;
       }
       var template = document.getElementById('product-template').innerHTML;

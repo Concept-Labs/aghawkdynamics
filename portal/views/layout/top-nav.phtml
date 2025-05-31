@@ -92,31 +92,33 @@
         <?php if (User::isAdmin()): ?>
             <li class="dropdown">
                 <a class="top-link" href="/?q=account/index">Accounts</a>
-                <div class="dropdown-content">
-                    <a href="/?q=account/index">List All</a>
-                </div>
+                
             </li>
         <?php endif; ?>
         
         <li class="dropdown">
             <a class="top-link" href="/?q=parcel/index">Parcels</a>
             <div class="dropdown-content">
+                <?php if (!User::isAdmin()): ?>
                 <a href="/?q=parcel/index">List All</a>
-                <a href="/?q=parcel/add">Add new parcel</a>
+                    <a href="/?q=parcel/add">Add new parcel</a>
+                <?php endif; ?>
             </div>
         </li>
         <li class="dropdown">
             <a class="top-link" href="/?q=block/index">Blocks</a>
             <div class="dropdown-content">
+                <?php if (!User::isAdmin()): ?>
                 <a href="/?q=block/index">List All</a>
-                <a href="/?q=block/add">Add Block</a>
+                    <a href="/?q=block/add">Add Block</a>
+                <?php endif; ?>
             </div>
         </li>
         <li class="dropdown">
             <a class="top-link" href="/?q=service/index">Activity</a>
             <div class="dropdown-content">
-                <a class="hover-brand-green" href="/?q=service/index">List All</a>
                 <?php if (!User::isAdmin()): ?>
+                <a class="hover-brand-green" href="/?q=service/index">List All</a>
                     <a href="/?q=service/request" class="hover-brand-yellow">Request Service</a>
                     <a href="#">Self Tracking</a>
                 <?php endif; ?>

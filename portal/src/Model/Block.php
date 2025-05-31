@@ -8,13 +8,52 @@ class Block extends Model
 {
     protected string $table = 'block';
 
+    public function getAccountId(): int
+    {
+        return (int)($this->data['account_id'] ?? 0);
+    }
+    /**
+     * Get the ID of the block.
+     *
+     * @return int
+     */
+
+    /**
+     * Get the ID of the block.
+     *
+     * @return int
+     */
+    public function getName(): string
+    {
+        return $this->data['name'] ?? '';
+    }
+
+    /**
+     * Get the Parcel ID associated with this block.
+     *
+     * @return int
+     */
+    public function getParcelId(): int
+    {
+        return (int)($this->get('parcel_id') ?? 0);
+    }
+
+    /**
+     * Get the Parcel associated with this block.
+     * 
+     * @return Parcel
+     */
     public function getParcel(): Parcel
     {
         return (new Parcel())
             ->load($this->data['parcel_id']);
     }
 
-    
+    /**
+     * Add an attachment to this block.
+     * 
+     * @param array $data
+     */
     public function addAttachment(array $data): void
     {
         $data['block_id'] = $this->getId();

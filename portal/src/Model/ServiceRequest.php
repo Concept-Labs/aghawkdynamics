@@ -23,6 +23,40 @@ class ServiceRequest extends Model
     protected string $table = 'service_request';
 
     /**
+     * Get the ID of the service request.
+     *
+     * @return ?int
+     */
+    public function getAccountId(): ?int
+    {
+        return $this->get('account_id');
+    }
+
+    /**
+     * Get the status of the service request.
+     *
+     * @return string
+     */
+    public function getStatus(): string
+    {
+        return $this->get('status') ?? self::STATUS_PENDING;
+    }
+
+    /**
+     * Set the status of the service request.
+     *
+     * @param string $status
+     * @throws \InvalidArgumentException
+     */
+    public function setStatus(string $status): void
+    {
+        if (!in_array($status, self::STATUSES)) {
+            throw new \InvalidArgumentException('Invalid status');
+        }
+        $this->set('status', $status);
+    }
+
+    /**
      * Get the additional data associated with the service request.
      *
      * @return array
@@ -91,29 +125,7 @@ class ServiceRequest extends Model
         return $this->account;
     }
 
-    /**
-     * Get the status of the service request.
-     *
-     * @return string
-     */
-    public function getStatus(): string
-    {
-        return $this->get('status') ?? self::STATUS_PENDING;
-    }
-
-    /**
-     * Set the status of the service request.
-     *
-     * @param string $status
-     * @throws \InvalidArgumentException
-     */
-    public function setStatus(string $status): void
-    {
-        if (!in_array($status, self::STATUSES)) {
-            throw new \InvalidArgumentException('Invalid status');
-        }
-        $this->set('status', $status);
-    }
+    
 
     /**
      * Check if the service request can be completed.

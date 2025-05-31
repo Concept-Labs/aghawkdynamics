@@ -1,96 +1,57 @@
+.switch-container {
+  display: inline-flex;
+  border-radius: 20px;
 
-    .switch-container {
-        display: inline-flex;
-        border-radius: 20px;
-        padding: 4px;
-        font-family: Arial, sans-serif;
-      }
-
-      .switch-group {
-        position: relative;
-        cursor: pointer;
-      }
-
-      .switch-group input {
-        position: absolute;
-        opacity: 0;
-        width: 0;
-        height: 0;
-      }
-
-
-      .switch-label {
-        
-        display: inline-block;
-        padding: 8px 16px;
-        font-size: 14px;
-        color: var(--text);
-        font-weight: 500;
-        border-radius: 16px;
-        transition: all 0.2s ease;
-        background-color: var(--brand-gray);
-      }
-
-      .switch-group input:checked+.switch-label {
-        background-color: var(--accent);
-        color: white;
-      }
-
-      .switch-group input+.switch-label:hover {
-        box-shadow: var(--shadow);
-      }
-
-
-/*
-.switch-field {
-    display: flex;
-    align-items: center;
-    margin-bottom: 1rem;
+  font-family: Arial, sans-serif;
 }
 
-.switch-input {
-    display: none;
+.switch-group {
+  position: relative;
+  cursor: pointer;
 }
+
+.switch-group input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
 
 .switch-label {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    position: relative;
-    padding-left: 48px;
-    font-size: 1rem;
+
+  display: inline-block;
+  padding: 8px 16px;
+  font-size: 14px;
+  color: var(--text);
+  font-weight: 500;
+  border-radius: 16px;
+  transition: all 0.2s ease;
+  background-color: var(--brand-gray);
 }
 
-.switch-slider {
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 38px;
-    height: 22px;
-    background: var(--brand-gray);
-    border-radius: 22px;
-    transition: background 0.2s;
+.switch-group input:checked+.switch-label {
+  background-color: var(--accent);
+  color: white;
 }
 
-.switch-slider:before {
-    content: "";
-    position: absolute;
-    left: 3px;
-    top: 3px;
-    width: 16px;
-    height: 16px;
-    background: #fff;
-    border-radius: 50%;
-    transition: left 0.2s;
-    box-shadow: var(--shadow);
+.switch-group input+.switch-label:hover {
+  box-shadow: var(--shadow);
 }
 
-.switch-input:checked+.switch-label .switch-slider {
-    background: var(--brand-blue);
+/* 🔸 Скидаємо радіус усім кнопкам */
+.switch-container .switch-label{
+  border-radius:0;          /* середні одразу плоскі */
 }
 
-.switch-input:checked+.switch-label .switch-slider:before {
-    left: 19px;
+/* 🔸 Перша група — лише лівий бік округлий */
+.switch-container .switch-group:first-of-type .switch-label{
+  border-top-left-radius:16px;
+  border-bottom-left-radius:16px;
 }
-*/
+
+/* 🔸 Остання група — лише правий бік округлий */
+.switch-container .switch-group:last-of-type .switch-label{
+  border-top-right-radius:16px;
+  border-bottom-right-radius:16px;
+}
