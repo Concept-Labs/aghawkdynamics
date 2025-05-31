@@ -42,8 +42,11 @@ $minUrgentDateStr = $minUrgentDate->format('Y-m-d');
     <?php endif ?>
 
     <div style="display:flex; justify-content: flex-start; margin-bottom: 1rem;">
-      <h2>Request a Service</h2>
-
+      <?php if ($requestModel?->getId()): ?>
+        <h2>Update Service Request</h2>
+      <?php else: ?>
+        <h2>Request a Service</h2>
+      <?php endif; ?>
     </div>
     <div class="fld-row" style="display: flex; gap: 5px;">
       <div class="fld" style="flex: 1;">
