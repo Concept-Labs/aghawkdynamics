@@ -9,14 +9,7 @@ $error = $this->var('error');
     opacity: 0.9;
   }
 </style>
-<script type="text/javascript">
-  var onloadCallback = function() {
-    grecaptcha.render('recaptcha', {
-      'sitekey': '6LcNGy8rAAAAAOKK-vDcqv0bBu6DdWtbtxSQP46N'
-    });
-  };
-</script>
-<script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" async defer></script>
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
 <div class="card login-form">
   <div class="right">
@@ -40,7 +33,7 @@ $error = $this->var('error');
       <a class="right" href="/?q=auth/forgot">Forgot password?</a>
       <button class="btn" type="submit">Login</button>
     </div>
-    <div id="recaptcha" class="g-recaptcha" data-sitekey="your_site_key"></div>
+    <div class="g-recaptcha" data-sitekey="6Ld8DVIrAAAAADFAOfrJDDrLlxSmVPqhar4TLJlQ"></div>
     
 
   </form>
