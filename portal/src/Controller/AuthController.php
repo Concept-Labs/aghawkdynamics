@@ -8,10 +8,17 @@ use App\Exception\InvalidLoginException;
 use App\Exception\SignUpException;
 use App\Model\Account;
 use App\Model\Account\User;
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
 class AuthController extends Controller
 {
 
+    /**
+     * Sign up a new user
+     *
+     * @return void
+     */
     public function signup(): void
     {
         $err = null;
@@ -48,6 +55,12 @@ class AuthController extends Controller
         );
     }
 
+    /**
+     * Fill in billing address if not provided
+     *
+     * @param array $data The signup data
+     * @return array The updated data with billing address filled
+     */
     private function fillBillingAddress(array $data): array
     {
         $data['billing_street'] = empty($data['billing_street']) ? $data['street'] : $data['billing_street'];
@@ -58,6 +71,13 @@ class AuthController extends Controller
         return $data;
     }
 
+    /**
+     * Validate signup data
+     *
+     * @param array $data The signup data
+     * @return static
+     * @throws SignUpException If validation fails
+     */
     private function validateSignUpData(array $data): static
     {
         $requiredFields = [
@@ -100,6 +120,12 @@ class AuthController extends Controller
         return $this;
     }
 
+    /**
+     * Hash the password
+     *
+     * @param string $password The password to hash
+     * @return string The hashed password
+     */
     private function hashPassword(string $password): string
     {
         return password_hash($password, PASSWORD_DEFAULT);
@@ -173,15 +199,110 @@ class AuthController extends Controller
         return null;
     }
 
+    /**
+     * Logout user
+     *
+     * @return void
+     */
     public function logout(): void
     {
         session_destroy();
         $this->redirect('/?q=auth/login');
     }
 
+    /**
+     * Render forgot password page
+     *
+     * @return void
+     */
     public function forgot(): void
     {
+        if ($this->getRequest()->isPost()) {
+            try {
+                $data = $this->getRequest()->post();
+
+                if (!$this->validateForgotPasswordData($data)) {
+                    throw new \InvalidArgumentException('Invalid data provided');
+                }
+
+                $account = (new Account())->loadByEmail($data['email']);
+                if (!$account->getId()) {
+                    throw new \InvalidArgumentException('No account found with that email address');
+                }
+                $resetToken = $account->createResetToken();
+                $resetLink = Config::get('domain') . '/?q=auth/reset&token=' . $resetToken;
+
+                ob_start();
+                require __DIR__ . '/../../views/email/reset_password.phtml';
+                $emailContent = ob_get_clean();
+
+                // Send reset email
+
+                // Use PHPMailer to send the reset email
+
+                $mail = new PHPMailer(true);
+
+                try {
+                    //Server settings
+                    $mail->isSMTP();
+                    $mail->Host       = 'smtp.office365.com';
+                    $mail->SMTPAuth   = true;
+                    $mail->Username   = 'help@aghawkdynamics.com';
+                    $mail->Password   = 'W*572563179571ot';
+                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                    $mail->Port       = 587;
+
+                    //Recipients
+                    $mail->setFrom('noreply@aghawkdynamics.com', 'AG Hawk Dynamics');
+                    $mail->addAddress($data['email']);
+
+                    // Content
+                    $mail->isHTML(true);
+                    $mail->Subject = 'Password Reset Request';
+                    $mail->Body    = $emailContent;
+
+                    $mail->send();
+                } catch (Exception $e) {
+                    throw new \RuntimeException('Could not send reset email. Mailer Error: ' . $mail->ErrorInfo);
+                }
+
+                $this->getRequest()->addInfo('A password reset link has been sent to your email address.');
+                $this->redirect('/?q=auth/login');
+
+            } catch (\Throwable $e) {
+                $this->getRequest()->addError('An error occurred: ' . $e->getMessage());
+                
+            }
+        }
+
         $this->render('auth/forgot');
+    }
+
+    /**
+     * Validate forgot password data
+     *
+     * @param array $data The forgot password data
+     * @return bool True if valid, false otherwise
+     */
+    private function validateForgotPasswordData(array $data): bool
+    {
+        if (empty($data['email'])) {
+            $this->getRequest()->addError('Please enter your email address');
+            return false;
+        }
+
+        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            $this->getRequest()->addError('Invalid email address');
+            return false;
+        }
+
+        $account = (new Account())->findByEmail($data['email']);
+        if (!$account) {
+            $this->getRequest()->addError('No account found with that email address');
+            return false;
+        }
+
+        return true;
     }
 
 }

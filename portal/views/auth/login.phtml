@@ -1,5 +1,5 @@
 <?php
-  $error = $this->var('error');
+$error = $this->var('error');
 ?>
 <style>
   .login-form {
@@ -9,6 +9,14 @@
     opacity: 0.9;
   }
 </style>
+<script type="text/javascript">
+  var onloadCallback = function() {
+    grecaptcha.render('recaptcha', {
+      'sitekey': '6LcNGy8rAAAAAOKK-vDcqv0bBu6DdWtbtxSQP46N'
+    });
+  };
+</script>
+<script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" async defer></script>
 
 <div class="card login-form">
   <div class="right">
@@ -16,9 +24,9 @@
   </div>
   <h2>Welcome</h2>
   <form method="post">
-    
-<?php if ($error): ?><p style="color:red"><?= htmlspecialchars($error) ?></p><?php endif; ?>      
-      
+
+    <?php if ($error): ?><p style="color:red"><?= htmlspecialchars($error) ?></p><?php endif; ?>
+
     <div class="fld">
       <input type="email" name="email" placeholder=" " required>
       <label>Email</label>
@@ -32,5 +40,8 @@
       <a class="right" href="/?q=auth/forgot">Forgot password?</a>
       <button class="btn" type="submit">Login</button>
     </div>
+    <div id="recaptcha" class="g-recaptcha" data-sitekey="your_site_key"></div>
+    
+
   </form>
 </div>

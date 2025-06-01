@@ -2,7 +2,9 @@
     "name": "aghawk/portal",
     "description": "AGHAWK Portal",
     "type": "project",
-    "require": {},
+    "require": {
+        "phpmailer/phpmailer": "^6.10"
+    },
     "autoload": {
         "psr-4": {
             "App\\": "src/"

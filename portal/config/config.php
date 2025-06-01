@@ -1,6 +1,6 @@
 <?php
 return [
-    'date_format' => 'm/d/Y',
+    'domain' => 'https://portal.aghawkdynamics.com/',
     'db' => [
         'host' => 'localhost',
         'port' => 3306,
@@ -8,6 +8,7 @@ return [
         'password' => 'smxksmxkmM1@',
         'database_name' => 'a_gpt'
     ],
+    'date_format' => 'm/d/Y',
     'upload_dir' => 'uploads',
     'upload_types' => [
         'image/jpeg',
