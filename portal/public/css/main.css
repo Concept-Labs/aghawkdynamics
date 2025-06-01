@@ -146,6 +146,8 @@ a:hover {
 }
 
 button,
+input[type="submit"],
+input[type="button"],
 .btn {
   padding: .6rem 1.2rem;
   border: none;
@@ -415,6 +417,8 @@ fieldset legend {
 
 input:not([type="checkbox"]),
 input:not([type="radio"]),
+input:not([type="submit"]),
+input:not([type="button"]),
 select,
 textarea {
   padding: var(--spacing);
@@ -428,6 +432,8 @@ textarea {
 
 input:not([type="checkbox"]):focus,
 input:not([type="radio"]):focus,
+input:not([type="submit"]):focus,
+input:not([type="button"]):focus,
 /*select:focus,*/
 textarea:focus {
   outline: none;
