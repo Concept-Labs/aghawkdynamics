@@ -6,6 +6,7 @@ use IteratorAggregate;
 
 interface CollectionInterface extends IteratorAggregate
 {
+    public function getTable(): string;
     public function count(): int;
 
     public function isEmpty(): bool;

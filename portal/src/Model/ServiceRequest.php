@@ -2,6 +2,7 @@
 namespace App\Model;
 
 use App\Core\Model;
+use App\Core\Model\Collection;
 use App\Model\Account\User;
 
 class ServiceRequest extends Model
@@ -54,6 +55,76 @@ class ServiceRequest extends Model
             throw new \InvalidArgumentException('Invalid status');
         }
         $this->set('status', $status);
+    }
+
+    /**
+     * Check if the service request is completed.
+     *
+     * @return bool
+     */
+    public function isCompleted(): bool
+    {
+        return $this->getStatus() === self::STATUS_COMPLETED;
+    }
+
+    /**
+     * Check if the service request is pending.
+     *
+     * @return bool
+     */
+    public function isPending(): bool
+    {
+        return $this->getStatus() === self::STATUS_PENDING;
+    }
+    
+
+    /**
+     * Check if the service request can be completed.
+     *
+     * @return bool
+     */
+    public function canCancel(): bool
+    {
+        return in_array($this->getStatus(), [self::STATUS_PENDING]);
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->getStatus() === self::STATUS_CANCELLED;
+    }
+
+    /**
+     * Check if the service request can be completed.
+     *
+     * @return bool
+     */
+    public function canComplete(): bool
+    {
+        return in_array($this->getStatus(), [self::STATUS_PENDING]);
+    }
+
+    public function complete(array $data = []): static
+    {
+        if (!$this->canComplete()) {
+            throw new \Exception('Service request cannot be completed');
+        }
+
+        $this->setStatus(self::STATUS_COMPLETED);
+        $this->set('complete_data', json_encode($data));
+        $this->set('completed_at', date('Y-m-d H:i:s'));
+        $this->set('completed_by', User::getInstance()->getId());
+        $this->save();
+
+        return $this;
+    }
+
+    public function getCompleteData(): array
+    {
+        $data = $this->get('complete_data');
+        if (is_string($data)) {
+            $data = json_decode($data, true);
+        }
+        return is_array($data) ? $data : [];
     }
 
     /**
@@ -125,55 +196,36 @@ class ServiceRequest extends Model
         return $this->account;
     }
 
+    /**
+     * Add an attachment to this service request.
+     *
+     * @param array $data
+     */
+    public function addAttachment(array $data): void
+    {
+        $data['service_request_id'] = $this->getId();
+        if (empty($data['path']) || !file_exists($data['path'])) {
+            throw new \InvalidArgumentException('Attachment path is invalid or does not exist.');
+        }
+
+        (new ServiceRequestAttachment())
+            ->setData($data)
+            ->save();
+    }
     
-
     /**
-     * Check if the service request can be completed.
+     * Get the collection of attachments associated with this service request.
      *
-     * @return bool
+     * @return Collection
      */
-    public function canCancel(): bool
+    public function getAttachments(): Collection
     {
-        return in_array($this->getStatus(), [self::STATUS_PENDING]);
-    }
+        $collection = (new ServiceRequestAttachment())->getCollection();
+        $collection->setItemMode(Collection::ITEM_MODE_OBJECT);
+        $collection->addFilter(['service_request_id' => $this->getId()]);
+        $collection->sort('created_at', 'DESC');
 
-    public function isCancelled(): bool
-    {
-        return $this->getStatus() === self::STATUS_CANCELLED;
-    }
-
-    /**
-     * Check if the service request can be completed.
-     *
-     * @return bool
-     */
-    public function canComplete(): bool
-    {
-        return in_array($this->getStatus(), [self::STATUS_PENDING]);
-    }
-
-    public function complete(array $data = []): static
-    {
-        if (!$this->canComplete()) {
-            throw new \Exception('Service request cannot be completed');
-        }
-
-        $this->setStatus(self::STATUS_COMPLETED);
-        $this->set('complete_data', json_encode($data));
-        $this->set('completed_at', date('Y-m-d H:i:s'));
-        $this->set('completed_by', User::getInstance()->getId());
-        $this->save();
-
-        return $this;
-    }
-
-    public function getCompleteData(): array
-    {
-        $data = $this->get('complete_data');
-        if (is_string($data)) {
-            $data = json_decode($data, true);
-        }
-        return is_array($data) ? $data : [];
+        return $collection;
     }
     
 }

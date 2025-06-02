@@ -68,4 +68,25 @@ document.addEventListener('DOMContentLoaded', () => {
         i.addEventListener('change', filterRows);
     });
 
+    
+
+    cancelRequest = function(id) {
+        confirmAction('Are you sure you want to cancel this service request?')
+            .then(confirmed => {
+                if (confirmed) {
+                    window.location.href = '/?q=service/cancel&id=' + id;
+                }
+            });
+    }
+
+    uncancelRequest = function(id) {
+        confirmAction('Are you sure you want to restore this service request?')
+            .then(confirmed => {
+                if (confirmed) {
+                    window.location.href = '/?q=service/uncancel&id=' + id;
+                }
+            });
+    };
+
 });
+

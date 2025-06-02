@@ -1,3 +1,6 @@
+<?php
+use App\Core\Config;
+?>
 <style>
     dialog#completeDialog {
         border: none;
@@ -54,7 +57,7 @@
     <form method="post" action="/?q=service/complete">
         <input type="hidden" name="id" value="<?= $requestModel->get('id') ?>">
         <div class="modal-card">
-            <h3>Complete Service Request</h3>
+            <h3>Complete Service Request Details</h3>
             <div class="fld">
                 <input type="date" name="complete[date]" required>
                 <label for="completion_date">Completion Date</label>
@@ -71,6 +74,34 @@
                 <input type="number" name="complete[exposure_hours]" step="1" min="0" required>
                 <label for="exposure_hours">Restricted Exposure Hours (per label)</label>
             </div>
+            
+            <fieldset>
+                <legend>Water Usage</legend>
+                <div class="fld-row" style="justify-content: start;">
+                    <div class="fld" style="width: auto;">
+                    <select name="complete[water_used][unit]">
+                        <?php foreach (Config::get('units') as $unit): ?>
+                        <option value="<?= htmlspecialchars($unit) ?>">
+                            <?= htmlspecialchars($unit) ?>
+                        </option>
+                        <?php endforeach ?>
+                    </select>
+                    <label>Unit</label>
+
+                    </div>
+                    <div class="fld" style="width: auto;">
+                    <input
+                        type="number"
+                        name="complete[water_used][volume]"
+                        placeholder=""
+                        step="0.001"
+                        min="0"
+                    >
+                    <label>Volume per acre</label>
+                    </div>
+                </div>
+
+                </fieldset>
             <div class="button-set">
                 <button type="button" class="btn cancel" onclick="document.getElementById('completeDialog').close()">Cancel</button>
                 <button type="submit" class="btn brand-green">Complete</button>

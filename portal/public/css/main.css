@@ -189,6 +189,13 @@ button.delete:hover,
 .btn.delete:hover {
   background: #c6282890;
 }
+button:disabled,
+.btn:disabled {
+  background: #eee;
+  color: #666;
+  cursor: not-allowed;
+  pointer-events: none;
+}
 
 .card {
   background: var(--card);
@@ -636,3 +643,30 @@ table.grid tr:hover {
 table.grid>tbody>tr>td:last-child {
   text-align: right;
 }
+
+.status {
+    
+    display: inline-block;
+    padding: 0 0.5rem;
+    font-size: 0.875rem;
+    font-weight: bold;
+    text-transform: capitalize;
+    border-radius: var(--radius);
+    color: var(--text);
+    margin-left: 1rem;
+  }
+
+  .status-pending {
+    color: var(--text);
+    background: var(--brand-yellow);
+    
+    border-radius: var(--radius);
+  }
+  .status-completed {
+    color: var(--text);
+    background: var(--brand-green);
+  }
+  .status-cancelled {
+    color: var(--text);
+    background: var(--brand-red);
+  }

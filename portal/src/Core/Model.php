@@ -20,17 +20,33 @@ abstract class Model
         $this->db = Database::connect();
     }
 
+    /**
+     * Get the name of the table associated with this model.
+     *
+     * @return string
+     */
     public function getTable(): string
     {
         return $this->table;
     }
 
+    /**
+     * Set the name of the table associated with this model.
+     *
+     * @param string $table The name of the table
+     * @return static
+     */
     public function setTable(string $table): static
     {
         $this->table = $table;
         return $this;
     }
 
+    /**
+     * Describe the fields in the table.
+     *
+     * @return array
+     */
     public function describe(): array
     {
         if ($this->fields === null) {
@@ -41,16 +57,31 @@ abstract class Model
         return $this->fields;
     }
 
+    /**
+     * Get the primary key of the model.
+     *
+     * @return string
+     */
     public function getId(): ?int
     {
         return (int)($this->data[$this->primaryKey] ?? null);
     }
 
+    /**
+     * Get the primary key field name.
+     *
+     * @return string
+     */
     public function getPrimaryKey(): string
     {
         return $this->primaryKey;
     }
 
+    /**
+     * Get the collection associated with this model.
+     *
+     * @return CollectionInterface
+     */
     public function getCollection(): Collection
     {
         if (!$this->collection instanceof CollectionInterface) {
@@ -75,42 +106,40 @@ abstract class Model
         return $this->collection;    
     }
 
+    /**
+     * Get all records from the table.
+     *
+     * @return array
+     */
     public function all(): array
     {
         $sql = "SELECT * FROM {$this->table}";
         return $this->db->query($sql)->fetchAll();
     }
 
-    public function listWhere(string $where,array $params,string $sort,string $dir,int $limit,int $offset): array
-    {
-        $sql = "SELECT * FROM {$this->table} $where ORDER BY $sort $dir LIMIT :lim OFFSET :off";
-        $stmt = $this->db->prepare($sql);
-        foreach ($params as $k=>$v){
-            $stmt->bindValue(':'.$k,$v,is_int($v)?PDO::PARAM_INT:PDO::PARAM_STR);
-        }
-        $stmt->bindValue(':lim',$limit,PDO::PARAM_INT);
-        $stmt->bindValue(':off',$offset,PDO::PARAM_INT);
-        $stmt->execute();
+    
 
-        return $stmt->fetchAll();
-    }
-
-    public function find(int $id): ?array
+    /**
+     * Load a record by its ID.
+     *
+     * @param int $id The ID of the record to load
+     * @return static
+     */
+    public function load(int $id): static
     {
         $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE id = :id");
         $stmt->execute(['id' => $id]);
-        return $stmt->fetch() ?: null;
-    }
 
-    
-
-    public function load(int $id): static
-    {
-        $this->data = $this->find($id) ?? [];
+        $this->data = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
         return $this;
     }
 
+    /**
+     * Check if the model is loaded with data.
+     *
+     * @return bool
+     */
     public function isLoaded(): bool
     {
         return !empty($this->data) && isset($this->data[$this->getPrimaryKey()]);

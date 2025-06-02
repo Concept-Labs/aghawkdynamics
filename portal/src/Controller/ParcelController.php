@@ -6,6 +6,7 @@ use App\Core\Controller;
 use App\Model\Parcel;
 use App\Core\Database;
 use App\Core\Model\Collection;
+use App\Model\Account;
 use App\Model\Account\User;
 
 class ParcelController extends Controller
@@ -110,22 +111,57 @@ class ParcelController extends Controller
         );
     }
 
-    /** CSV export */
-    public function export(): void
+    /**
+     * Export the list of parcels as a CSV file.
+     *
+     * @return void
+     */
+     public function exportAll(): void
     {
-        $uid = User::getInstance()->getId();
-        if (!$uid) { header('Location: /?q=auth/login'); exit; }
+        $parcelCollection = (new Parcel())->getCollection();
 
-        $model = new Parcel();
-        $rows  = $model->listWhere('WHERE account_id = :id', ['id'=>$uid], 'name', 'ASC', 100000, 0);
+        $rawSql = sprintf(
+            'SELECT p.*, a.name AS account_name FROM %s p LEFT JOIN %s a ON p.account_id = a.id',
+            (new Parcel())->getTable(),
+            (new Account())->getTable()
+        );
 
-        header('Content-Type: text/csv');
-        header('Content-Disposition: attachment; filename="parcels.csv"');
-        $out = fopen('php://output', 'w');
-        fputcsv($out, ['ID','Name','Street','City','State','ZIP','Status','Created']);
-        foreach ($rows as $r) {
-            fputcsv($out, [$r['id'],$r['name'],$r['street'],$r['city'],$r['state'],$r['zip'],$r['status'],$r['created_at']]);
+        if (!User::isAdmin()) {
+            // If the user is not an admin, filter blocks by account ID
+            $parcelCollection->addFilter(
+                [
+                    'account_id' => User::getInstance()->getId(),
+                ]
+            );
         }
-        fclose($out);
+
+        $parcelCollection->setRawSql($rawSql);
+        $parcelCollection->setItemMode(Collection::ITEM_MODE_ARRAY);
+        $parcelCollection->sort('created_at', 'DESC');
+
+
+        header('Content-Type: application/csv');
+        header('Content-Disposition: attachment; filename="parcels.csv"');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+        $output = fopen('php://output', 'w');
+        $separator = ';';
+        fputcsv($output, ['Parcel UID', 'Parcel Nickname', 'Business Name', 'Parcel Address', 'City', 'State', 'ZIP', 'Acres'], $separator);
+
+        foreach ($parcelCollection as $parcel) {
+            fputcsv($output, [
+                $parcel['id'],
+                $parcel['name'],
+                $parcel['account_name'],
+                $parcel['street'],
+                $parcel['city'],
+                $parcel['state'],
+                $parcel['zip'],
+                number_format($parcel['estimated_acres'], 3)
+            ], $separator);
+        }
+        fclose($output);
+        exit;
+
     }
 }

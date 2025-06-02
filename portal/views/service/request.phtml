@@ -1,14 +1,18 @@
 <?php
 
 use App\Core\Config;
+use App\Core\Registry;
+use App\Model\Account\User;
 use App\Model\ServiceRequest;
 
 //Edit mode
 $requestModel = $this->var('requestModel', null);
+$attachments = $requestModel?->getAttachments();
 $additionalData = $requestModel?->getAdditionalData() ?? [];
 
 //Collections
 $parcelCollection = $this->var('parcelCollection', []);
+$blockCollection = $this->var('blockCollection', null);
 
 $parcelModel = $requestModel?->getParcel() ?? $this->var('parcelModel', null);
 
@@ -32,6 +36,24 @@ $minUrgentDateStr = $minUrgentDate->format('Y-m-d');
 
 ?>
 
+<?php if (Registry::get('service_request_readonly')): ?>
+  <script type="text/javascript">
+    window.addEventListener('DOMContentLoaded', function() {
+      
+      var form = document.getElementById('service-form');
+
+      form.querySelectorAll('input, select, textarea').forEach(function(el) {
+        el.disabled = true; // Disable all form fields
+      });
+
+
+      form.addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent default form submission
+        alertDialog('You do not have permission to change request a service. Please contact an administrator.');
+      });
+    });
+  </script>
+<?php endif?>
 <div class="entity-form card">
   <form method="post" id="service-form">
     <?php if ($requestModel?->getId()): ?>
@@ -41,9 +63,12 @@ $minUrgentDateStr = $minUrgentDate->format('Y-m-d');
 
     <?php endif ?>
 
-    <div style="display:flex; justify-content: flex-start; margin-bottom: 1rem;">
+    <div style="display:flex; justify-content: space-between; margin-bottom: 1rem; align-items: center;">
       <?php if ($requestModel?->getId()): ?>
         <h2>Update Service Request</h2>
+          <span class="status status-<?= htmlspecialchars($requestModel?->getStatus()) ?>">
+            <?php echo ucfirst($requestModel?->getStatus()) ?>
+          </span>
       <?php else: ?>
         <h2>Request a Service</h2>
       <?php endif; ?>
@@ -78,6 +103,11 @@ $minUrgentDateStr = $minUrgentDate->format('Y-m-d');
             <?php if ($blockCollection?->isEmpty()): ?>
               <option value="" hidden></option>
               <?php foreach ($blockCollection as $block): ?>
+                <option value="<?= $block->getId() ?>" <?php if ($block->getId() == $currentBlockId): ?>selected<?php endif ?>><?= htmlspecialchars($block->getName()) ?></option>
+              <?php endforeach ?>
+            <?php elseif ($parcelModel?->getId()): ?>
+              <option value="" hidden></option>
+              <?php foreach ($parcelModel->getBlocks() as $block): ?>
                 <option value="<?= $block->getId() ?>" <?php if ($block->getId() == $currentBlockId): ?>selected<?php endif ?>><?= htmlspecialchars($block->getName()) ?></option>
               <?php endforeach ?>
             <?php else: ?>
@@ -309,49 +339,62 @@ $minUrgentDateStr = $minUrgentDate->format('Y-m-d');
       </div>
     </fieldset>
 
-    <fieldset
-      id="water_usage"
-      data-allowed-types='<?= json_encode(Config::get('service_type_water_usage')) ?>'
-      style="display: none;">
-      <legend>Water Usage</legend>
-      <div class="fld-row" style="justify-content: start;">
-        <div class="fld" style="width: auto;">
-          <select name="service[adds][water_usage][unit]">
-            <?php foreach (Config::get('units') as $unit): ?>
-              <option
-                value="<?= htmlspecialchars($unit) ?>"
-                <?php if (isset($additionalData['water_usage']['unit']) && $additionalData['water_usage']['unit'] == $unit): ?>selected<?php endif ?>>
-                <?= htmlspecialchars($unit) ?>
-              </option>
+    <?php if ($attachments?->count() > 0): ?>
+        <fieldset>
+            <legend>Attachments</legend>
+            <?php foreach ($attachments as $attachment): ?>
+                <div class="tooltipable">
+                    <a href="<?= htmlspecialchars($attachment->getUrl()) ?>" target="_blank"><?= htmlspecialchars($attachment->getName()) ?></a>
+                    
+                        <tooltip class="tooltip tooltip-bottom">
+                            <?= htmlspecialchars($attachment->getComment()) ?>
+                            <?php
+                            $ext = strtolower(pathinfo($attachment->getName(), PATHINFO_EXTENSION));
+                            $imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'];
+                            if (in_array($ext, $imageTypes)):
+                            ?>
+                                <div style="margin-top:0.5rem;">
+                                    <img src="<?= htmlspecialchars($attachment->getUrl()) ?>" alt="Preview" style="max-width:200px;max-height:150px;display:block;">
+                                </div>
+                            <?php endif; ?>
+                        </tooltip>
+                    
+                </div>
             <?php endforeach ?>
-          </select>
-          <label>Unit</label>
-
-        </div>
-        <div class="fld" style="width: auto;">
-          <input
-            type="number"
-            name="service[adds][water_usage][volume]"
-            placeholder=""
-            value="<?= htmlspecialchars($additionalData['water_usage']['volume'] ?? '') ?>">
-          <label>Volume</label>
-        </div>
-      </div>
-
-    </fieldset>
+        </fieldset>
+    <?php endif ?>
 
     <div class="button-set ">
-      <button class="btn cancel" type="button" onclick="window.history.back()">Cancel</button>
-      <button class="btn brand-green" type="submit">
-        <?php if ($requestModel?->getId()): ?>
-          Update Request
-        <?php else: ?>
-          Create Request
+      <button class="btn cancel" type="button" onclick="window.history.back()">Back</button>
+      <?php if (!Registry::get('service_request_readonly')): ?>
+        
+        <?php if (User::isAdmin() && $requestModel?->getId()): ?>
+          <button class="btn" type="button" onclick="document.getElementById('attachment-modal').classList.add('show')">Add attachment</button>
+      <?php endif; ?>
+        <?php if (User::isAdmin() && $requestModel?->isPending()): ?>
+          <a href="javascript:void(0)" class="btn brand-red" type="button" onclick="cancelRequest(<?= $requestModel?->getId() ?>)">Cancel Request</a>
+          <a href="javascript:void(0)" class="btn brand-yellow" type="button" onclick="completeDialog(<?= $requestModel?->getId() ?>)">Complete</a>
         <?php endif; ?>
-      </button>
+        <?php if (User::isAdmin() && $requestModel?->isCancelled()): ?>
+          <a href="javascript:void(0)" class="btn" type="button" onclick="uncancelRequest(<?= $requestModel?->getId() ?>)">Restore</a>
+        <?php endif; ?>
+        <button class="btn brand-green" type="submit">
+          <?php if ($requestModel?->getId()): ?>
+            Update Request
+          <?php else: ?>
+            Create Request
+          <?php endif; ?>
+        </button>
+      <?php endif; ?>
     </div>
   </form>
 </div>
+
+<?php if (User::isAdmin()): ?>
+<?php include_once __DIR__ . '/dialog/complete.phtml'; ?>
+<?php include __DIR__ . '/dialog/attachment.phtml'; ?>
+<?php endif; ?>
+
 
 <!-- styles for the product item template -->
 <style>

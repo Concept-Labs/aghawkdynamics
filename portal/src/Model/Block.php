@@ -8,9 +8,20 @@ class Block extends Model
 {
     protected string $table = 'block';
 
+    private ?Account $account = null;
+
     public function getAccountId(): int
     {
         return (int)($this->data['account_id'] ?? 0);
+    }
+
+    public function getAccount(): Account
+    {
+        if (!$this->account instanceof Account) {
+            $this->account = (new Account())->load($this->getAccountId());
+        }
+        
+        return $this->account;
     }
     /**
      * Get the ID of the block.

@@ -161,6 +161,11 @@ class AuthController extends Controller
                     if ($user && password_verify($data['password'] ?? '', $user['password'])) {
                         $this->getRequest()->setSession('uid', $user['id']);
 
+                        if (User::isAdmin()) {
+                            $this->redirect('/?q=service/index');
+                            return;
+                        }
+
                         if (!User::getInstance()->hasParcels()) {
                             $this->redirect('/?q=parcel/add');
                             return;

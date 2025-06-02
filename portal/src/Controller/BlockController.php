@@ -4,6 +4,7 @@ namespace App\Controller;
 use App\Core\Config;
 use App\Core\Controller;
 use App\Core\Model\Collection;
+use App\Model\Account;
 use App\Model\Account\User;
 use App\Model\Block;
 use App\Model\Parcel;
@@ -156,6 +157,11 @@ class BlockController extends Controller
         ]);
     }
 
+    /**
+     * Upload an attachment to a block.
+     *
+     * @return void
+     */
     public function uploadAttachment(): void
     {
         try {
@@ -260,6 +266,40 @@ class BlockController extends Controller
         }
         
         return $data;
+    }
+
+    public function exportList(): void
+    {
+        $blockCollection = (new Block())->getCollection();
+
+        // $rawSql = sprintf(
+        //     'SELECT b.*, p.name AS parcel_name, a.name AS account_name FROM %s b
+        //     LEFT JOIN %s p ON b.parcel_id = p.id
+        //     LEFT JOIN %s a ON b.account_id = a.id',
+        //     $blockCollection->getTable(),
+        //     (new Parcel())->getCollection()->getTable(),
+        //     (new Account())->getCollection()->getTable()
+        // );
+
+        if (!User::isAdmin()) {
+            // If the user is not an admin, filter blocks by account ID
+            $blockCollection->addFilter(
+                [
+                    'account_id' => User::getInstance()->getId(),
+                ]
+            );
+        }
+
+        $blockCollection->setItemMode(Collection::ITEM_MODE_OBJECT);
+        $blockCollection->sort('created_at', 'DESC');
+
+        header('Content-Type: application/csv');
+        header('Content-Disposition: attachment; filename="blocks.csv"');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+        $output = fopen('php://output', 'w');
+        fputcsv($output, ['Block UID', 'Block Nickname', 'Parcel UID', 'Parcel Nickname', 'Business Name', 'Crop Type']);
+
     }
 
 

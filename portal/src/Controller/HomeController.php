@@ -7,6 +7,6 @@ class HomeController extends Controller
 {
     public function index(): void
     {
-        $this->render('home/index', ['title' => 'Welcome to AGHAWK Portal']);
+        $this->forward('service','index');
     }
 }

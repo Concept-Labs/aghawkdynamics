@@ -126,7 +126,7 @@ class Collection implements CollectionInterface
      *
      * @return string
      */
-    protected function getTable(): string
+    public function getTable(): string
     {
         return $this->table;
     }
