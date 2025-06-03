@@ -59,7 +59,7 @@ class ServiceController extends Controller
             ->sort('created_at', 'DESC');
         
         if (!User::isAdmin()) {
-            $requestCollection->addFilter(['account_id' => User::uid()]);
+            $requestCollection->addFilter(['main.account_id' => User::uid()]);
         }
 
         $requestCollection->applyPostFilters(

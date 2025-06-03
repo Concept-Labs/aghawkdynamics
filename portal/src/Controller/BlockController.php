@@ -19,43 +19,23 @@ class BlockController extends Controller
      */
     public function index(): void
     {
-        $filters = $this->getRequest()->request('filters', []);
-
         $blockCollection = (new Block())
             ->getCollection()
             ->setItemMode(Collection::ITEM_MODE_OBJECT)
-            ->join(
-                Parcel::TABLE,
-                sprintf(
-                    'main.parcel_id = %s.id',
-                    Parcel::TABLE
-                )
-            )
-            ->applyPostFilters($filters)
+            ->join(Parcel::TABLE, sprintf('main.parcel_id = %s.id',Parcel::TABLE))
+            ->join(Account::TABLE, sprintf('main.account_id = %s.id', Account::TABLE))
+            ->applyPostFilters($this->getRequest('filters', []))
             ->sort('created_at', 'DESC');
 
         if (!User::isAdmin()) {
-            // If the user is not an admin, filter blocks by account ID
-            $blockCollection->addFilter(
-                [
-                    'main.account_id' => User::getInstance()->getId(),
-                ]
-            );
-        } else {
-            $blockCollection->join(
-                Account::TABLE,
-                sprintf(
-                    'main.account_id = %s.id',
-                    Account::TABLE
-                )
-                );
+            $blockCollection->addFilter(['main.account_id' => User::getInstance()->getId()]);
         }
         
         $blockCollection->setPage((int)$this->getRequest('page', 1));
 
         $this->render('block/index', [
             'blocks' => $blockCollection,
-            'filters' => $filters,
+            'filters' => $this->getRequest('filters', []),
         ]);
     }
 
@@ -73,8 +53,7 @@ class BlockController extends Controller
                 ->setItemMode(Collection::ITEM_MODE_ARRAY);
 
             if (!User::isAdmin()) {
-                $parcels->addFilter(
-                    [
+                $parcels->addFilter([
                         'account_id' => User::getInstance()->getId(),
                     ]
                     );

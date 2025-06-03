@@ -41,34 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Inline search
-    document.querySelectorAll('.grid .inline-search').forEach(i => {
-        var grid = i.closest('.grid');
-        // Find the column index for this search input
-        const th = i.closest('th');
-        const allThs = Array.from(th.parentElement.children);
-        
 
-        function filterRows() {
-            const filters = Array.from(grid.querySelectorAll('.inline-search')).map(input => input.value.trim().toLowerCase());
-            const rows = grid.querySelectorAll('tbody tr');
-            rows.forEach(row => {
-                const cells = row.querySelectorAll('td');
-                let show = true;
-                filters.forEach((filter, idx) => {
-                    if (filter && cells[idx] && !cells[idx].textContent.toLowerCase().includes(filter)) {
-                        show = false;
-                    }
-                });
-                row.style.display = show ? '' : 'none';
-            });
-        }
-
-        i.addEventListener('input', filterRows);
-        i.addEventListener('change', filterRows);
-    });
-
-    
 
     cancelRequest = function(id) {
         confirmAction('Are you sure you want to cancel this service request?')
