@@ -5,6 +5,8 @@ use App\Model\Account\User;
 use App\Model\ServiceRequest;
 
 $requestCollection = $this->var('requestCollection', []);
+$filters = $this->var('filters', []);
+
 $statusCssClass = [
     ServiceRequest::STATUS_PENDING => 'brand-yellow ',
     ServiceRequest::STATUS_COMPLETED => 'brand-green',
@@ -15,8 +17,9 @@ $statusCssClass = [
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <style>
     .o50 {
-    opacity: 0.5;
-}
+        opacity: 0.5;
+    }
+
     #request-list {
         margin: 0 auto;
         max-width: 1200px;
@@ -32,155 +35,195 @@ $statusCssClass = [
             <a class="btn brand-green disabled" href="/?q=service/export">Export</a>
         </div>
     </div>
-
-
-    <table class="grid card">
-        <thead>
-            <tr>
-                <th></th>
-                <?php  if (User::isAdmin()):?>
-                    <th>Account</th>
-                <?php endif; ?>
-                <th>Need by Date</th>
-                <th>Type</th>
-                <th>
-                    <input class="tbl-filter inline-search" name="f_name" value="<?= htmlspecialchars($nameFilter) ?>" placeholder="Parcel name">
-                </th>
-                <th><input class="tbl-filter inline-search" name="f_address" value="<?= htmlspecialchars($addrFilter) ?>" placeholder="Block"></th>
-                <th>Status</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($requestCollection as $requestModel): 
-                $p = $requestModel->getParcel()->getData();
-                ?>
-                <tr>
-                    <td>
-                        <?php if ($p['latitude'] && $p['longitude']): 
-                                $minimapUid = uniqid('minimap-');
-                            ?>
-                                <span class="minimap-tooltip-trigger" style="cursor:pointer;position:relative;">
-                                    <img src="https://unpkg.com/leaflet/dist/images/marker-icon.png" alt="Marker" style="width:16px;">
-                                    <div class="minimap-tooltip" style="opacity:0;pointer-events:none;transition:opacity 0.25s;position:absolute;left:0;top:1.5em;z-index:1000;background:var(--card);padding:8px;border-radius:var(--radius);box-shadow:var(--shadow);min-width:220px;">
-                                        <div style="font-size:12px;margin-bottom:6px;">
-                                            Location: <?= htmlspecialchars($p['latitude']) ?>, <?= htmlspecialchars($p['longitude']) ?>
-                                        </div>
-                                        <div id="<?= $minimapUid ?>" style="width:200px;height:120px;"></div>
-                                    </div>
-                                </span>
-                                <script>
-                                    (function() {
-                                        var trigger = document.currentScript.previousElementSibling;
-                                        var tooltip = trigger.querySelector('.minimap-tooltip');
-                                        var minimapId = '<?= $minimapUid ?>';
-                                        var minimapInitialized = false;
-
-                                        function showTooltip() {
-                                            tooltip.style.opacity = '1';
-                                            tooltip.style.pointerEvents = 'auto';
-                                            if (!minimapInitialized) {
-                                                var map = L.map(minimapId, {
-                                                    attributionControl: false,
-                                                    zoomControl: false,
-                                                    dragging: false,
-                                                    scrollWheelZoom: false,
-                                                    doubleClickZoom: false
-                                                }).setView([<?= $p['latitude'] ?>, <?= $p['longitude'] ?>], 10);
-
-                                                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                                                    maxZoom: 19,
-                                                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                                }).addTo(map);
-
-                                                L.marker([<?= $p['latitude'] ?>, <?= $p['longitude'] ?>]).addTo(map);
-                                                minimapInitialized = true;
-                                            }
-                                        }
-
-                                        function hideTooltip() {
-                                            tooltip.style.opacity = '0';
-                                            tooltip.style.pointerEvents = 'none';
-                                        }
-
-                                        trigger.addEventListener('mouseenter', showTooltip);
-                                        trigger.addEventListener('mouseleave', hideTooltip);
-                                    })();
-                                </script>
-                            
+    <div class="card">
+        <form id="request-filter-form" method="POST" class="filter-form paginator-form">
+            <input type="hidden" name="page" value="<?= (int)$requestCollection->getPage() ?>">
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th>
+                            <?php if (!empty($filters)): ?>
+                                <a href="javascript:void(0);"
+                                    class="btn brand-green"
+                                    title="Reset filters"
+                                    onclick="window.location.href=window.location.href;">
+                                    X
+                                </a>
                             <?php endif; ?>
-                    </td>
-                    <?php if (User::isAdmin()): ?>
-                        <td>
-                            <a href="/?q=account/profile&id=<?= $requestModel->getAccount()->getId() ?>">
-                                <?= htmlspecialchars($requestModel->getAccount()->get('name')) ?>
-                            </a>
-                        </td>
-                    <?php endif; ?>
-                    <td><?= (new DateTimeImmutable($requestModel->get('date')))->format(Config::get('date_format')) ?></td>
-                    <td><?= htmlspecialchars($requestModel->get('type')) ?></td>
-                    <td>
-                        <a href="/?q=parcel/edit&id=<?= $requestModel->get('parcel_id') ?>">
-                            <?= htmlspecialchars($requestModel->getParcel()->get('name')) ?>
-                        </a>
-                    </td>
-                    <td>
-                        <a href="/?q=block/edit&id=<?= $requestModel->get('block_id') ?>">
-                            <?= htmlspecialchars($requestModel->getBlock()->get('name')) ?>
-                        </a>
-                    </td>
-                    <td class="<?= $statusCssClass[$requestModel->getStatus()] ?? 'brand-yellow' ?> tooltipable">
-                        <span class="status-indicator" style="background-color: <?= $statusCssClass[$requestModel->getStatus()] ?? '#ccc' ?>;"></span>
-                        <?= ucfirst(htmlspecialchars($requestModel->getStatus())) ?>
-                        <?php 
-                            if ($requestModel->getStatus() === ServiceRequest::STATUS_COMPLETED):
-                            $completeData = $requestModel->getCompleteData();
-                        ?>
-                            <tooltip class="tooltip brand-green" style="left: -100%;">
-                                <strong>Completion Details</strong>
-                                <br>
-                                <span >Completed on <?= (new DateTimeImmutable($requestModel->get('completed_at')))->format(Config::get('date_format')) ?></span>
-                                <br>
-                                <span >Temperature: <?= htmlspecialchars($completeData['temperature'] ?? '') ?>°F</span>
-                                <br>
-                                <span >Wind Speed: <?= htmlspecialchars($completeData['wind'] ?? '') ?> MPH</span>
-                                <br>
-                                <span >Restricted Exposure Hours: <?= htmlspecialchars($completeData['exposure_hours'] ?? '') ?></span>
-                                <span >Water used (per acre): <?= htmlspecialchars($completeData['water_used']['volume'] ?? '') ?> <?= htmlspecialchars($completeData['water_used']['unit'] ?? '') ?></span>
-                            </tooltip>
+                        </th>
+                        <?php if (User::isAdmin()): ?>
+                            <th>
+                                <input name="filters[account.name]" type="text" placeholder="Account" value="<?= htmlspecialchars($filters['account.name'] ?? '') ?>" />
+                            </th>
                         <?php endif; ?>
-                    </td>
-                    <td>
-                        <div class="action-wrap" style="position:relative">
-                            <button class="action-btn">⋮</button>
-                            <div class="actions-menu">
-                                <?php if ($requestModel->isCompleted()): ?>
-                                    <a class="hover-brand-green" href="/?q=service/complete_details&id=<?= $requestModel->get('id') ?>">Complete Details</a>
-                                <?php endif; ?>
-                                
-                                <?php if (User::isAdmin()): ?>
-                                    <a href="/?q=service/request&id=<?= $requestModel->get('id') ?>">Edit</a>
-                                <?php else: ?>
-                                    <a href="/?q=service/view&id=<?= $requestModel->get('id') ?>">Details</a>
-                                <?php endif; ?>
-                                <?php if (User::isAdmin() && $requestModel->canComplete()): ?>
-                                    <a href="javascript:void(0)" class="hover-brand-green" onclick="completeDialog(<?= $requestModel->get('id') ?>)">Complete</a>
-                                <?php endif; ?>
-                                <?php if ($requestModel->canCancel()): ?>
-                                    <a href="javascript:void(0)" class="danger" onclick="cancelRequest(<?= $requestModel->get('id') ?>)">Cancel Request</a>
-                                <?php endif; ?>
-                                <?php if ($requestModel->isCancelled()): ?>
-                                    <a href="javascript:void(0)" class="hover-brand-green" onclick="uncancelRequest(<?= $requestModel->get('id') ?>)">Restore Request</a>
-                                <?php endif; ?>
+                        <th>
+                            <!--input name="filters[main.date]" type="date" placeholder="Need by Date" value="<?= htmlspecialchars($filters['main.date'] ?? '') ?>" /-->
+                            Need by Date
+                        </th>
+                        <th>
+                            <select name="filters[main.type]" class="select" style="width:100%">
+                                <option value="">Any Type</option>
+                                <?php foreach (Config::get('service_type') as $type): ?>
+                                    <option value="<?= $type ?>" <?= isset($filters['main.type']) && $filters['main.type'] === $type ? 'selected' : '' ?>>
+                                        <?= ucfirst(htmlspecialchars($type)) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </th>
+                        <th>
+                            <input name="filters[parcel.name]" type="text" placeholder="Parcel" value="<?= htmlspecialchars($filters['parcel.name'] ?? '') ?>" />
+                        </th>
+                        <th>
+                            <input name="filters[block.name]" type="text" placeholder="Block" value="<?= htmlspecialchars($filters['block.name'] ?? '') ?>" />
+                        </th>
+                        <th>
+                            <select name="filters[main.status]" class="select" style="width:100%">
+                                <option value="" >Any Status</option>
+                                <?php foreach (ServiceRequest::STATUSES as $status): ?>
+                                    <option value="<?= $status ?>" <?= isset($filters['main.status']) && $filters['main.status'] === $status ? 'selected' : '' ?>>
+                                        <?= ucfirst(htmlspecialchars($status)) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($requestCollection as $requestModel):
+                        $p = $requestModel->getParcel()->getData();
+                    ?>
+                        <tr>
+                            <td>
+                                <?php if ($p['latitude'] && $p['longitude']):
+                                    $minimapUid = uniqid('minimap-');
+                                ?>
+                                    <span class="minimap-tooltip-trigger" style="cursor:pointer;position:relative;">
+                                        <img src="https://unpkg.com/leaflet/dist/images/marker-icon.png" alt="Marker" style="width:16px;">
+                                        <div class="minimap-tooltip" style="opacity:0;pointer-events:none;transition:opacity 0.25s;position:absolute;left:0;top:1.5em;z-index:1000;background:var(--card);padding:8px;border-radius:var(--radius);box-shadow:var(--shadow);min-width:220px;">
+                                            <div style="font-size:12px;margin-bottom:6px;">
+                                                Location: <?= htmlspecialchars($p['latitude']) ?>, <?= htmlspecialchars($p['longitude']) ?>
+                                            </div>
+                                            <div id="<?= $minimapUid ?>" style="width:200px;height:120px;"></div>
+                                        </div>
+                                    </span>
+                                    <script>
+                                        (function() {
+                                            var trigger = document.currentScript.previousElementSibling;
+                                            var tooltip = trigger.querySelector('.minimap-tooltip');
+                                            var minimapId = '<?= $minimapUid ?>';
+                                            var minimapInitialized = false;
 
-                            </div>
-                        </div>
-                    </td>
-                </tr>
-            <?php endforeach ?>
-        </tbody>
-    </table>
+                                            function showTooltip() {
+                                                tooltip.style.opacity = '1';
+                                                tooltip.style.pointerEvents = 'auto';
+                                                if (!minimapInitialized) {
+                                                    var map = L.map(minimapId, {
+                                                        attributionControl: false,
+                                                        zoomControl: false,
+                                                        dragging: false,
+                                                        scrollWheelZoom: false,
+                                                        doubleClickZoom: false
+                                                    }).setView([<?= $p['latitude'] ?>, <?= $p['longitude'] ?>], 10);
+
+                                                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                                        maxZoom: 19,
+                                                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                                    }).addTo(map);
+
+                                                    L.marker([<?= $p['latitude'] ?>, <?= $p['longitude'] ?>]).addTo(map);
+                                                    minimapInitialized = true;
+                                                }
+                                            }
+
+                                            function hideTooltip() {
+                                                tooltip.style.opacity = '0';
+                                                tooltip.style.pointerEvents = 'none';
+                                            }
+
+                                            trigger.addEventListener('mouseenter', showTooltip);
+                                            trigger.addEventListener('mouseleave', hideTooltip);
+                                        })();
+                                    </script>
+
+                                <?php endif; ?>
+                            </td>
+                            <?php if (User::isAdmin()): ?>
+                                <td>
+                                    <a href="/?q=account/profile&id=<?= $requestModel->getAccount()->getId() ?>">
+                                        <?= htmlspecialchars($requestModel->getAccount()->get('name')) ?>
+                                    </a>
+                                </td>
+                            <?php endif; ?>
+                            <td><?= (new DateTimeImmutable($requestModel->get('date')))->format(Config::get('date_format')) ?></td>
+                            <td><?= htmlspecialchars($requestModel->get('type')) ?></td>
+                            <td>
+                                <a href="/?q=parcel/edit&id=<?= $requestModel->get('parcel_id') ?>">
+                                    <?= htmlspecialchars($requestModel->getParcel()->get('name')) ?>
+                                </a>
+                            </td>
+                            <td>
+                                <a href="/?q=block/edit&id=<?= $requestModel->get('block_id') ?>">
+                                    <?= htmlspecialchars($requestModel->getBlock()->get('name')) ?>
+                                </a>
+                            </td>
+                            <td class="<?= $statusCssClass[$requestModel->getStatus()] ?? 'brand-yellow' ?> tooltipable">
+                                <span class="status-indicator" style="background-color: <?= $statusCssClass[$requestModel->getStatus()] ?? '#ccc' ?>;"></span>
+                                <?= ucfirst(htmlspecialchars($requestModel->getStatus())) ?>
+                                <?php
+                                if ($requestModel->getStatus() === ServiceRequest::STATUS_COMPLETED):
+                                    $completeData = $requestModel->getCompleteData();
+                                ?>
+                                    <tooltip class="tooltip brand-green" style="left: -100%;">
+                                        <strong>Completion Details</strong>
+                                        <br>
+                                        <span>Completed on <?= (new DateTimeImmutable($requestModel->get('completed_at')))->format(Config::get('date_format')) ?></span>
+                                        <br>
+                                        <span>Temperature: <?= htmlspecialchars($completeData['temperature'] ?? '') ?>°F</span>
+                                        <br>
+                                        <span>Wind Speed: <?= htmlspecialchars($completeData['wind'] ?? '') ?> MPH</span>
+                                        <br>
+                                        <span>Restricted Exposure Hours: <?= htmlspecialchars($completeData['exposure_hours'] ?? '') ?></span>
+                                        <span>Water used (per acre): <?= htmlspecialchars($completeData['water_used']['volume'] ?? '') ?> <?= htmlspecialchars($completeData['water_used']['unit'] ?? '') ?></span>
+                                    </tooltip>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <div class="action-wrap" style="position:relative">
+                                    <button class="action-btn" type="button">⋮</button>
+                                    <div class="actions-menu">
+                                        <?php if ($requestModel->isCompleted()): ?>
+                                            <a class="hover-brand-green" href="/?q=service/complete_details&id=<?= $requestModel->get('id') ?>">Complete Details</a>
+                                        <?php endif; ?>
+
+                                        <?php if (User::isAdmin()): ?>
+                                            <a href="/?q=service/request&id=<?= $requestModel->get('id') ?>">Edit</a>
+                                        <?php else: ?>
+                                            <a href="/?q=service/view&id=<?= $requestModel->get('id') ?>">Details</a>
+                                        <?php endif; ?>
+                                        <?php if (User::isAdmin() && $requestModel->canComplete()): ?>
+                                            <a href="javascript:void(0)" class="hover-brand-green" onclick="completeDialog(<?= $requestModel->get('id') ?>)">Complete</a>
+                                        <?php endif; ?>
+                                        <?php if ($requestModel->canCancel()): ?>
+                                            <a href="javascript:void(0)" class="danger" onclick="cancelRequest(<?= $requestModel->get('id') ?>)">Cancel Request</a>
+                                        <?php endif; ?>
+                                        <?php if ($requestModel->isCancelled()): ?>
+                                            <a href="javascript:void(0)" class="hover-brand-green" onclick="uncancelRequest(<?= $requestModel->get('id') ?>)">Restore Request</a>
+                                        <?php endif; ?>
+
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endforeach ?>
+                </tbody>
+            </table>
+            <?php
+            $paginatorCollection = $requestCollection;
+            include __DIR__ . '/../common/grid/paginator.phtml';
+            ?>
+        </form>
+    </div>
 </div>
 
 <?php include_once __DIR__ . '/dialog/complete.phtml'; ?>
-        

@@ -4,16 +4,22 @@ namespace App\Model;
 use App\Core\Model;
 use App\Core\Model\Collection;
 use App\Core\Model\CollectionInterface;
-use App\Model\Account\User;
 
 class Parcel extends Model
 {
     const BLOCKS_LIMIT = 10;
+    const TABLE = 'parcel';
 
-    protected string $table = 'parcel';
+    protected string $table = self::TABLE;
 
+    /**
+     * @var Account|null
+     */
     private ?Account $account = null;
 
+    /**
+     * @var CollectionInterface|null
+     */
     private ?CollectionInterface $blocks = null;
 
     /**

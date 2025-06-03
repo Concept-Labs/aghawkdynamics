@@ -7,6 +7,8 @@ use App\Model\Account\User;
 
 class ServiceRequest extends Model
 {
+    const TABLE = 'service_request';
+
     const STATUS_PENDING = 'pending';
     const STATUS_COMPLETED = 'completed';
     const STATUS_CANCELLED = 'cancelled';
@@ -20,8 +22,8 @@ class ServiceRequest extends Model
     private ?Account $account = null;
     private ?Parcel $parcel = null;
     private ?Block $block = null;
-    
-    protected string $table = 'service_request';
+
+    protected string $table = self::TABLE;
 
     /**
      * Get the ID of the service request.

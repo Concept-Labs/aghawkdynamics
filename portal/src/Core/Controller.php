@@ -98,9 +98,14 @@ abstract class Controller
      *
      * @param string $url The URL to redirect to
      */
-    public function redirect(string $url): void
+    public function redirect(string $url, array $args = []): void
     {
+        if (!empty($args)) {
+            $url .= '?' . http_build_query($args);
+        }
+
         header("Location: $url");
+
         exit;
     }
 

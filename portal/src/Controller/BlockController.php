@@ -19,25 +19,45 @@ class BlockController extends Controller
      */
     public function index(): void
     {
-        $blockCollection = (new Block())->getCollection();
+        $filters = $this->getRequest()->request('filters', []);
+
+        $blockCollection = (new Block())
+            ->getCollection()
+            ->setItemMode(Collection::ITEM_MODE_OBJECT)
+            ->join(
+                Parcel::TABLE,
+                sprintf(
+                    'main.parcel_id = %s.id',
+                    Parcel::TABLE
+                )
+            )
+            ->applyPostFilters($filters)
+            ->sort('created_at', 'DESC');
 
         if (!User::isAdmin()) {
             // If the user is not an admin, filter blocks by account ID
             $blockCollection->addFilter(
                 [
-                    'account_id' => User::getInstance()->getId(),
+                    'main.account_id' => User::getInstance()->getId(),
                 ]
             );
+        } else {
+            $blockCollection->join(
+                Account::TABLE,
+                sprintf(
+                    'main.account_id = %s.id',
+                    Account::TABLE
+                )
+                );
         }
-
-        $blockCollection->setItemMode(Collection::ITEM_MODE_OBJECT);
-        $blockCollection->sort('created_at', 'DESC');
+        
+        $blockCollection->setPage((int)$this->getRequest('page', 1));
 
         $this->render('block/index', [
             'blocks' => $blockCollection,
+            'filters' => $filters,
         ]);
     }
-   
 
     /**
      * Add a new block to a parcel.
@@ -90,10 +110,12 @@ class BlockController extends Controller
             (new Block())
                 //->setData($blockData)
                 //add account_id to block data (temporary solution)
-                ->create(['account_id' => $parcel->getAccountId()] + $blockData);
+                ->create(
+                    ['account_id' => $parcel->getAccountId()] + $blockData
+                );
 
             $this->getRequest()->addInfo(
-                'Block '.$blockData['name'].' has been created'
+                'Block "'.$blockData['name'].'" has been created'
             );
 
         

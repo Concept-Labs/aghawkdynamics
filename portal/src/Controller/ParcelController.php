@@ -1,10 +1,9 @@
 <?php
 namespace App\Controller;
 
-use App\Core\Config;
+
 use App\Core\Controller;
 use App\Model\Parcel;
-use App\Core\Database;
 use App\Core\Model\Collection;
 use App\Model\Account;
 use App\Model\Account\User;
@@ -12,42 +11,82 @@ use App\Model\Account\User;
 class ParcelController extends Controller
 {
 
+    /**
+     * @var Parcel|null
+     */
     private ?Parcel $parcel = null;
 
-    protected function getParcel(string $id): ?Parcel
+    /**
+     * Get the Parcel model by ID.
+     *
+     * @return Parcel
+     * @throws \Exception
+     */
+    protected function getParcel(): Parcel
     {
         if (!$this->parcel instanceof Parcel) {
+
+            $pid = (int)$this->getRequest('id', 0);
             
-            $parcel = new Parcel();
-            $parcel->load($id);
+            $parcel = (new Parcel())
+                ->load($pid);
+
             if (!$parcel->getId()) {
-                return null;
+                throw new \Exception('Parcel not found');
             }
         }
 
         if (!User::isAdmin() && $parcel->get('account_id') != User::getInstance()->getId()) {
-            return null;
+            throw new \Exception('You do not have permission to access this parcel');
         }
 
         return $this->parcel = $parcel;
     }
 
-    /** List with filters, sort, pagination, page size */
+    /**
+     * Display a list of parcels for the logged-in user.
+     *
+     * @return void
+     */
     public function index(): void
     {
         $collection = (new Parcel())->getCollection()
             ->setItemMode(Collection::ITEM_MODE_OBJECT)
             ->sort('name', 'ASC');
 
+        $filters = $this->getRequest()->request('filters', []);
+
+        $collection->applyPostFilters(
+            $filters
+        );
+
         if (!User::isAdmin()) {
             $collection->addFilter(['account_id' => User::uid()]);
+        } else {
+            $collection->join(
+                Account::TABLE,
+                sprintf(
+                    'main.account_id = %s.id',
+                    Account::TABLE
+                )
+            );
         }
 
+        
+
+        $collection->setPage((int)$this->getRequest('page', 1));
+
         $this->render('parcel/index', [
-            'parcels'     => $collection->fetch()
+            'parcels'     => $collection,
+            'filters'     => $filters,
         ]);
     }
 
+    /**
+     * Add a new parcel.
+     *
+     * @return void
+     */
     public function add(): void
     {
 
@@ -58,7 +97,8 @@ class ParcelController extends Controller
 
             $parcelModel = (new Parcel())->create($data);
 
-            $this->redirect('/?q=parcel/edit&id=' . $parcelModel->getId());
+            $this->redirect('/parcel/edit', ['id' => $parcelModel->getId()]);
+
             exit;
         }
 
@@ -72,9 +112,8 @@ class ParcelController extends Controller
     {
 
         try {
-            $pid = (int)$this->getRequest('id', 0);
-        
-            $parcel = $this->getParcel($pid);
+            
+            $parcel = $this->getParcel();
 
             if (!$parcel instanceof Parcel) {
                 throw new \Exception('Parcel not found');

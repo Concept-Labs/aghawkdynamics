@@ -5,6 +5,7 @@ use App\Core\Config;
 use App\Core\Controller;
 use App\Core\Model\Collection;
 use App\Core\Registry;
+use App\Model\Account;
 use App\Model\Account\User;
 use App\Model\Block;
 use App\Model\Parcel;
@@ -29,17 +30,50 @@ class ServiceController extends Controller
      */
     public function index(): void
     {
-        $uid = User::getInstance()->getId();
-        $RequestCollection = (new ServiceRequest())->getCollection();
-        $RequestCollection->setItemMode(Collection::ITEM_MODE_OBJECT);
+    
+        $filters = $this->getRequest()->request('filters', []);
+
+        $requestCollection = (new ServiceRequest())->getCollection()
+            ->setItemMode(Collection::ITEM_MODE_OBJECT)
+            ->join(
+                Parcel::TABLE,
+                sprintf(
+                    'main.parcel_id = %s.id',
+                    Parcel::TABLE
+                )
+            )
+            ->join(
+                Block::TABLE,
+                sprintf(
+                    'main.block_id = %s.id',
+                    Block::TABLE
+                )
+            )
+            ->join(
+                Account::TABLE,
+                sprintf(
+                    'main.account_id = %s.id',
+                    Account::TABLE
+                )
+            )
+            ->sort('created_at', 'DESC');
         
         if (!User::isAdmin()) {
-            $RequestCollection->addFilter(['account_id' => $uid]);
+            $requestCollection->addFilter(['account_id' => User::uid()]);
         }
-        
-        $RequestCollection->sort('created_at', 'DESC');
 
-        $this->render('service/list', ['requestCollection' => $RequestCollection]);
+        $requestCollection->applyPostFilters(
+            $filters
+        );
+
+        $requestCollection->setPage((int)$this->getRequest('page', 1));
+
+        $this->render('service/list', 
+            [
+                'requestCollection' => $requestCollection,
+                'filters' => $filters,
+            ]
+        );
     }
 
     public function view()
@@ -270,6 +304,10 @@ class ServiceController extends Controller
     public function cancel(): void
     {
         $requestId = (int)$this->getRequest()->request('id', 0);
+        $reason = $this->getRequest()->request('reason', '');
+
+        
+
         if (!$requestId) {
             $this->getRequest()->addError('Invalid service request ID.');
             $this->redirectReferer();
@@ -291,6 +329,7 @@ class ServiceController extends Controller
 
         if ($serviceRequest->canCancel()) {
             $serviceRequest->setStatus(ServiceRequest::STATUS_CANCELLED);
+
             $serviceRequest->save();
             $this->getRequest()->addMessage('Service request has been cancelled successfully.');
         } else {

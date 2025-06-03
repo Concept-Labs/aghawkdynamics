@@ -13,29 +13,74 @@ class Collection implements CollectionInterface
     const ITEM_MODE_ARRAY = 0;
     const ITEM_MODE_OBJECT = 1;
 
+    /**
+     * @var PDO
+     */
     private PDO $db;
+
+    /**
+     * @var string|null
+     */
     private ?string $rawSql = null;
+
+    /**
+     * @var string|null
+     */
     private ?string  $table = null;
+
+    /**
+     * @var array
+     */
     private array $params = [];
 
+    /**
+     * @var string
+     */
     private string $modelClass;
 
+    /**
+     * @var int
+     */
     private int $itemMode = self::ITEM_MODE_OBJECT;
 
+    /**
+     * @var array
+     */
     private array $filters = [];
 
+    /**
+     * @var array
+     */
     private array $joins = [];
 
+    /**
+     * @var array
+     */
     private array $sort = [];
 
+    /**
+     * @var string|null
+     */
     private ?string $groupBy = null;
 
+    /**
+     * @var string|null
+     */
     private ?string $having = null;
 
+    /**
+     * @var int
+     */
     private int $page = 1;
 
-    private int $pageSize = 10000;
+    /**
+     * @var int
+     */
+    private int $pageSize = 20;
 
+    /**
+     * @var int|null
+     */
     private ?int $count = null;
 
     /**
@@ -70,6 +115,16 @@ class Collection implements CollectionInterface
         }
         
         $this->db = Database::connect();
+    }
+
+    /**
+     * Get the table name.
+     *
+     * @return string
+     */
+    public function getTable(): string
+    {
+        return $this->table;
     }
 
     /**
@@ -122,16 +177,6 @@ class Collection implements CollectionInterface
     }
 
     /**
-     * Get the table name.
-     *
-     * @return string
-     */
-    public function getTable(): string
-    {
-        return $this->table;
-    }
-
-    /**
      * Set the item mode for fetching results.
      *
      * @param int $mode
@@ -160,7 +205,8 @@ class Collection implements CollectionInterface
     }
 
     /**
-     * Add a filter to the collection.
+     * Add a filter to the collection. 
+     * Simple version that allows for field => value pairs.
      *
      * @param array $filter Associative array of field => value pairs
      * @param string $operator The operator to use for combining filters (AND or OR)
@@ -185,6 +231,16 @@ class Collection implements CollectionInterface
                     'filter' => "$key IN (" . implode(',', array_fill(0, count($value), ":$placeholder")) . ")",
                     'operator' => $operator
                 ];
+            } elseif (is_null($value)) {
+                $this->filters[] = [
+                    'filter' => "$key IS NULL",
+                    'operator' => $operator
+                ];
+            } elseif (str_contains($value, '%')) {
+                $this->filters[] = [
+                    'filter' => "$key LIKE :$placeholder",
+                    'operator' => $operator
+                ];
             } else {
                 $this->filters[] = [
                     'filter' => "$key = :$placeholder",
@@ -193,6 +249,31 @@ class Collection implements CollectionInterface
             }
 
             $this->params[$placeholder] = $value;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Apply post-filters to the collection.
+     * This method is used to apply filters after the initial query has been built.
+     *
+     * @param array $filters Associative array of field => value pairs
+     * @return static
+     */
+    public function applyPostFilters(array $filters): static
+    {
+        foreach ($filters as $key => $value) {
+            if (empty($value)) {
+                continue; // Skip empty filters
+            }
+            if (is_array($value)) { //Handle array values
+                $this->addFilter([$key => $value]);
+            } elseif (is_numeric($value)) { // Handle numeric values
+                $this->addFilter([$key => (int)$value]);
+            } else { // Handle string values
+                $this->addFilter([$key => '%' . $value . '%']);
+            }
         }
 
         return $this;
@@ -296,6 +377,11 @@ class Collection implements CollectionInterface
             throw new \InvalidArgumentException("Page must be greater than 0");
         }
 
+        // Think about: when filters are usong or... 
+        if ($this->getPages() > 0 && $page > $this->getPages()) {
+            $page = $this->getPages(); // Ensure page does not exceed total pages
+        }
+
         $this->page = $page;
 
         return $this;
@@ -311,6 +397,17 @@ class Collection implements CollectionInterface
         return $this->page;
     }
 
+    public function getPages(): int
+    {
+        if ($this->pageSize <= 0) {
+            return 1; // No pagination if page size is not set
+        }
+
+        $totalCount = $this->count();
+
+        return (int) ceil($totalCount / $this->pageSize);
+    }
+
     /**
      * Join another table to the collection.
      *
@@ -318,11 +415,12 @@ class Collection implements CollectionInterface
      * @param string $on The ON condition for the join
      * @return static
      */
-    public function join(string $table, string $on): static
+    public function join(string|array $table, string $on, string $type = 'INNER'): static
     {
         $this->joins[] = [
             'table' => $table,
-            'on' => $on
+            'on' => $on,
+            'type' => $type
         ];
 
         return $this;
@@ -333,7 +431,7 @@ class Collection implements CollectionInterface
      *
      * @return string
      */
-    public function getSelect(): string
+    public function getSelect(bool $skipLimit = false): string
     {
         if ($this->rawSql) {
             return $this->rawSql;
@@ -343,7 +441,13 @@ class Collection implements CollectionInterface
 
         if ($this->joins) {
             foreach ($this->joins as $join) {
-                $sql .= " JOIN `{$join['table']}` ON {$join['on']}";
+                $sql .= sprintf(
+                    " %s JOIN `%s` %s ON %s",
+                    strtoupper($join['type']),
+                    !is_array($join['table']) ? $join['table'] : array_values($join['table'])[0],
+                    !is_array($join['table']) ? '' : 'AS ' . array_keys($join['table'])[0],
+                    is_array($join['on']) ? implode(' AND ', $join['on']) : $join['on']
+                );
             }
         }
 
@@ -367,7 +471,7 @@ class Collection implements CollectionInterface
             }, array_keys($this->sort), $this->sort));
         }
 
-        if ($this->pageSize > 0) {
+        if ($this->pageSize > 0 && !$skipLimit) {
             $offset = ($this->page - 1) * $this->pageSize;
             $sql .= " LIMIT :lim OFFSET :off";
             $this->params['lim'] = $this->pageSize;
@@ -426,7 +530,9 @@ class Collection implements CollectionInterface
             return $this->count;
         }
 
-        $sql = $this->getSelect();
+        $sql = $this->getSelect(true);
+
+        
         $sql = "SELECT COUNT(*) FROM ($sql) AS count_query";
         $stmt = $this->db->prepare($sql);
         foreach ($this->params as $key => $value) {

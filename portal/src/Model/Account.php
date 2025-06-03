@@ -7,8 +7,10 @@ use App\Core\Model\CollectionInterface;
 
 class Account extends Model
 {
+
+    const TABLE = 'account';
     
-    protected string $table = 'account';
+    protected string $table = self::TABLE;
 
     
     public function isAdmin(): bool

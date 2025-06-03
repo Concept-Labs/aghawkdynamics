@@ -6,7 +6,9 @@ use App\Core\Model\Collection;
 
 class Block extends Model
 {
-    protected string $table = 'block';
+    const TABLE = 'block';
+    
+    protected string $table = self::TABLE;
 
     private ?Account $account = null;
 
@@ -20,7 +22,7 @@ class Block extends Model
         if (!$this->account instanceof Account) {
             $this->account = (new Account())->load($this->getAccountId());
         }
-        
+
         return $this->account;
     }
     /**

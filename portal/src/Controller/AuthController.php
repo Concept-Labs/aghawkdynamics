@@ -162,15 +162,15 @@ class AuthController extends Controller
                         $this->getRequest()->setSession('uid', $user['id']);
 
                         if (User::isAdmin()) {
-                            $this->redirect('/?q=service/index');
+                            $this->redirect('/service/index');
                             return;
                         }
 
                         if (!User::getInstance()->hasParcels()) {
-                            $this->redirect('/?q=parcel/add');
+                            $this->redirect('/parcel/add');
                             return;
                         } else {
-                            $this->redirect('/?q=parcel/index');
+                            $this->redirect('/parcel/index');
                             return;
                         }
                     }

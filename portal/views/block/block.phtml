@@ -15,7 +15,7 @@ $parcels = $this->var('parcels', []);
     <?php if ($blockModel?->getParcel()?->getId()): ?>
       <div class="button-top-set">
         <?php if (!User::isAdmin()): ?>
-        <a class="btn brand-yellow" href="/?q=service/request&parcel=<?= $blockModel?->getParcel()?->getId() ?>&block=<?= $block['id'] ?>">Request Service</a>
+        <a class="btn brand-yellow" href="/service/request?parcel=<?= $blockModel?->getParcel()?->getId() ?>&block=<?= $block['id'] ?>">Request Service</a>
         <?php endif ?>
       </div>
     <?php endif ?>
@@ -48,10 +48,7 @@ $parcels = $this->var('parcels', []);
 
     
 
-    <div class="fld">
-      <input name="block[name]" placeholder=" " required value="<?= htmlspecialchars($block['name']) ?>">
-      <label>Identifier</label>
-    </div>
+    
     <div class="fld">
       <input name="block[name]" placeholder=" " required value="<?= htmlspecialchars($block['name']) ?>">
       <label>Identifier</label>
@@ -72,6 +69,7 @@ $parcels = $this->var('parcels', []);
       <?php if (!User::isAdmin()): ?>
         disabled
       <?php endif ?>
+      title="Acres of the block. (Admin only)"
       >
       <label>Acres</label>
     </div>

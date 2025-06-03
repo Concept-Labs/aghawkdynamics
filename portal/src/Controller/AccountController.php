@@ -13,11 +13,24 @@ class AccountController extends Controller
     /** List of accounts (admin usage) */
     public function index(): void
     {
-        $accounts = (new Account())->getCollection()
+        $accountCollection = (new Account())->getCollection()
             ->setItemMode(\App\Core\Model\Collection::ITEM_MODE_OBJECT)
             ->sort('name', 'ASC');
 
-        $this->render('account/list', ['accounts'=>$accounts]);
+        $filters = $this->getRequest()->request('filters', []);
+
+        $accountCollection->applyPostFilters(
+            $filters
+        );
+        
+        $accountCollection->setPage((int)$this->getRequest('page', 1));
+
+        $this->render('account/list', 
+            [
+                'accounts'=>$accountCollection,
+                'filters' => $filters,
+            ]
+    );
     }
 
     /** Profile page for logged‑in user  */

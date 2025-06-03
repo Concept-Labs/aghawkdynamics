@@ -7,6 +7,7 @@ use IteratorAggregate;
 interface CollectionInterface extends IteratorAggregate
 {
     public function getTable(): string;
+
     public function count(): int;
 
     public function isEmpty(): bool;
@@ -37,6 +38,10 @@ interface CollectionInterface extends IteratorAggregate
     public function setPageSize(int $size): static;
 
     public function getPageSize(): int;
+
+    public function join(string|array $table, string $on, string $type = 'INNER'): static;
+
+    public function applyPostFilters(array $filters): static;
 
     public function getIterator(): \Traversable;
 }
