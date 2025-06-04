@@ -46,7 +46,15 @@ $filters = $this->var('filters', []);
                                     <?= htmlspecialchars($account->get('name')) ?>
                                 </a>
                             </td>
-                            <td></td>
+                            <td>
+                                <div class="action-wrap" style="position:relative">
+                                    <button class="action-btn" type="button">⋮</button>
+                                    <div class="actions-menu">
+                                        <a href="/account/profile?id=<?= $account->getId() ?>">Edit</a>
+                                        <a class="danger" href="/account/admin/act?id=<?= $account->getId() ?>">Act as</a>
+                                    </div>
+                                </div>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>

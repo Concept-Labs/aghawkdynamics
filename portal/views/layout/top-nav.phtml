@@ -92,7 +92,9 @@
         <?php if (User::isAdmin()): ?>
             <li class="dropdown">
                 <a class="top-link" href="/account">Accounts</a>
-
+                <div class="dropdown-content">
+                    <a href="/account/admin/create">Create</a>
+                </div>
             </li>
         <?php endif; ?>
         

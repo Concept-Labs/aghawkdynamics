@@ -6,7 +6,7 @@ $data = $this->var('data', []);
 $states = $this->var('states', []);
 $error = $this->var('error', null);
 $isBillingFilled = !empty($data['billing_street']) || !empty($data['billing_city']) || !empty($data['billing_state']) || !empty($data['billing_zip']);
-
+$implicit = $this->var('implicit', false);
 ?>
 <style>
   .sign-up-form {
@@ -25,10 +25,15 @@ $isBillingFilled = !empty($data['billing_street']) || !empty($data['billing_city
   }
 </style>
 <div class="card sign-up-form">
-  <div class="right">
-    <a href="/?q=auth/login">Already have an account?</a><br>
-  </div>
-  <h2>Sign Up</h2>
+  <?php if(!$implicit): ?>
+    <div class="right">
+      <a href="/?q=auth/login">Already have an account?</a><br>
+    </div>
+    <h2>Sign Up</h2>
+  <?php else: ?>
+    <h2>Create (Implicit)</h2>
+  <?php endif; ?>
+  
   <?php if ($error): ?><p style="color:red"><?= htmlspecialchars($error) ?></p><?php endif; ?>
   <div>
     <form method="post" id="signup-form">
@@ -67,7 +72,7 @@ $isBillingFilled = !empty($data['billing_street']) || !empty($data['billing_city
         <div class="fld">
           <select name="state" required>
             <option value="" selected disabled hidden></option>
-            <?php foreach ($states as $code => $name): ?>
+            <?php foreach (Config::get('states') as $code => $name): ?>
               <option value="<?= $code ?>" <?= $data['state'] === $code ? 'selected' : '' ?>><?= $name ?></option>
             <?php endforeach ?>
           </select>
@@ -95,7 +100,7 @@ $isBillingFilled = !empty($data['billing_street']) || !empty($data['billing_city
           <div class="fld">
             <select name="state">
               <option value="" selected disabled hidden></option>
-              <?php foreach ($states as $code => $name): ?>
+              <?php foreach (Config::get('states') as $code => $name): ?>
                 <option value="<?= $code ?>" <?= $data['billing_state'] === $code ? 'selected' : '' ?>><?= $name ?></option>
               <?php endforeach ?>
             </select>

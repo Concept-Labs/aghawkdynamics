@@ -193,6 +193,10 @@ abstract class Model
         unset($data[$this->primaryKey]);
 
         foreach ($data as $key => $value) {
+            if (empty($value)) {
+                unset($data[$key]);
+                continue;
+            }
             if (!in_array($key, $this->describe())) {
                 unset($data[$key]);
             }

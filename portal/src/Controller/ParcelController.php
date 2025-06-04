@@ -89,25 +89,32 @@ class ParcelController extends Controller
      */
     public function add(): void
     {
-
-        if ($this->getRequest()->isPost()) {
-            $data = $this->getRequest()->post('parcel', []);
-
-            $data['account_id'] ??= User::getInstance()->getId();
-
-            $parcelModel = (new Parcel())->create($data);
-
-            $this->redirect('/parcel/edit', ['id' => $parcelModel->getId()]);
-
-            exit;
+        if (!$this->getRequest()->isPost()) {
+            // If the request is not a POST, render the add parcel form
+            $this->render(
+                'parcel/parcel',
+                ['parcelModel' => new Parcel()]
+            );
+            return;
         }
 
-        $this->render(
-            'parcel/parcel', 
-            ['parcelModel' => new Parcel()]
-        );
+        // If the request is a POST, attempt to create a new parcel
+        try {
+            (new Parcel())->create(
+                ['account_id' => User::uid()] + $this->getRequest()->post('parcel', [])
+            );
+        } catch (\Throwable $e) {
+            $this->getRequest()->addError($e->getMessage());
+        } finally {
+            $this->redirect('/parcel');
+        }
     }
 
+    /**
+     * Edit an existing parcel.
+     *
+     * @return void
+     */
     public function edit(): void
     {
 

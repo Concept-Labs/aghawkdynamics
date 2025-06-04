@@ -103,4 +103,9 @@ class User
         return self::getInstance()->getAccount()->isAdmin();
     }
 
+    public static function isActingAsUser(): bool
+    {
+        return self::getInstance()->getRequest()->getSession('acting_as_user') ?? false;
+    }
+
 }

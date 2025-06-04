@@ -46,18 +46,14 @@ class BlockController extends Controller
      */
     public function add(): void
     {
-
         if (!$this->getRequest()->isPost()) {
 
             $parcels = (new Parcel())->getCollection()
                 ->setItemMode(Collection::ITEM_MODE_ARRAY);
 
             if (!User::isAdmin()) {
-                $parcels->addFilter([
-                        'account_id' => User::getInstance()->getId(),
-                    ]
-                    );
-                }
+                $parcels->addFilter(['account_id' => User::uid()]);
+            }
 
             $parcels->sort('name', 'ASC');
 
@@ -135,10 +131,9 @@ class BlockController extends Controller
             }
 
             if ($this->getRequest()->isPost()) {
-                $data = $this->getRequest()->post('block', []);
-
+                
                 $block
-                    ->setData($data)
+                    ->setData($this->getRequest()->post('block', []))
                     ->save();
 
                 $this->getRequest()->addInfo('The Block has been updated');
@@ -269,18 +264,21 @@ class BlockController extends Controller
         return $data;
     }
 
-    public function exportList(): void
+    /**
+     * Export the list of parcels as a CSV file.
+     *
+     * @return void
+     */
+     public function exportAll(): void
     {
         $blockCollection = (new Block())->getCollection();
 
-        // $rawSql = sprintf(
-        //     'SELECT b.*, p.name AS parcel_name, a.name AS account_name FROM %s b
-        //     LEFT JOIN %s p ON b.parcel_id = p.id
-        //     LEFT JOIN %s a ON b.account_id = a.id',
-        //     $blockCollection->getTable(),
-        //     (new Parcel())->getCollection()->getTable(),
-        //     (new Account())->getCollection()->getTable()
-        // );
+        $rawSql = sprintf(
+            'SELECT b.*, p.name AS parcel_name, a.name AS account_name FROM %s b LEFT JOIN %s p ON b.parcel_id = p.id LEFT JOIN %s a ON b.account_id = a.id',
+            $blockCollection->getTable(),
+            (new Parcel())->getCollection()->getTable(),
+            (new Account())->getCollection()->getTable()
+        );
 
         if (!User::isAdmin()) {
             // If the user is not an admin, filter blocks by account ID
@@ -291,15 +289,33 @@ class BlockController extends Controller
             );
         }
 
-        $blockCollection->setItemMode(Collection::ITEM_MODE_OBJECT);
+        $blockCollection->setRawSql($rawSql);
+        $blockCollection->setItemMode(Collection::ITEM_MODE_ARRAY);
         $blockCollection->sort('created_at', 'DESC');
+
 
         header('Content-Type: application/csv');
         header('Content-Disposition: attachment; filename="blocks.csv"');
         header('Pragma: no-cache');
         header('Expires: 0');
         $output = fopen('php://output', 'w');
-        fputcsv($output, ['Block UID', 'Block Nickname', 'Parcel UID', 'Parcel Nickname', 'Business Name', 'Crop Type']);
+        $separator = ';';
+        $headers = ['Block UID', 'Block Nickname', 'Parcel UID', 'Parcel Nickname', 'Business Name', 'Acres'];
+        fputcsv($output, $headers, $separator);
+
+        foreach ($blockCollection as $block) {
+            fputcsv($output, [
+                $block['id'],
+                $block['name'],
+                $block['parcel_id'],
+                $block['parcel_name'],
+                $block['account_name'],
+                $block['acres'],
+                $block['crop_type'],
+            ], $separator);
+        }
+        fclose($output);
+        exit;
 
     }
 

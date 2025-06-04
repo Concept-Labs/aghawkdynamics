@@ -22,6 +22,11 @@ class View
         $this->params = $params;
     }
 
+    public static function hasMinifiedCSS(): bool
+    {
+        return file_exists(__DIR__ . '/../../public/css/minified.css');
+    }
+
     public function render(array $params = [], bool $standalone = false): void
     {
         try {

@@ -8,6 +8,14 @@ return [
         'password' => 'smxksmxkmM1@',
         'database_name' => 'a_gpt'
     ],
+    'email' => [
+        'smtp_host' => 'smtp.office365.com',
+        'smtp_port' => 587,
+        'smtp_username' => 'portal@aghawkdynamics.com',
+        'smtp_password' => '*&Gep3mP^&cXtMcq6rKHV',
+        'from_email' => 'noreply@aghawkdynamics.com',
+        'from_name' => 'AG Hawk Dynamics',
+    ],
     'date_format' => 'm/d/Y',
     'upload_dir' => 'uploads',
     'upload_types' => [

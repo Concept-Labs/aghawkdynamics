@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <?php
 use App\Core\Request;
+use App\Core\View;
 use App\Model\Account\User;
 
 $request = Request::getInstance();
@@ -12,13 +13,18 @@ $___t = time();
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>AGHAWK Portal</title>
   <link rel="icon" href="/img/favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="/css/themes/aghwk.css?<?php echo $___t; ?>">
-  <link rel="stylesheet" href="/css/main.css?<?php echo $___t; ?>">
-  <link rel="stylesheet" href="/css/topnav.css?<?php echo $___t; ?>">
-  <link rel="stylesheet" href="/css/tooltipeable.css?<?php echo $___t; ?>">
-  <link rel="stylesheet" href="/css/minimap.css?<?php echo $___t; ?>">
-  <link rel="stylesheet" href="/css/switch.css?<?php echo $___t; ?>">
-  <link rel="stylesheet" href="/css/theme-switcher.css?<?php echo $___t; ?>">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&family=Recursive:wght@300..1000&display=swap" rel="stylesheet">
+  <?php if (View::hasMinifiedCSS()): ?>
+    <link rel="stylesheet" href="/css/minified.css?<?php echo $___t; ?>">
+  <?php else: ?>
+    <link rel="stylesheet" href="/css/themes/aghwk.css?<?php echo $___t; ?>">
+    <link rel="stylesheet" href="/css/main.css?<?php echo $___t; ?>">
+    <link rel="stylesheet" href="/css/topnav.css?<?php echo $___t; ?>">
+    <link rel="stylesheet" href="/css/tooltipeable.css?<?php echo $___t; ?>">
+    <link rel="stylesheet" href="/css/minimap.css?<?php echo $___t; ?>">
+    <link rel="stylesheet" href="/css/switch.css?<?php echo $___t; ?>">
+    <link rel="stylesheet" href="/css/theme-switcher.css?<?php echo $___t; ?>">
+  <?php endif; ?>
 
   <script src="/js/app.js?<?php echo $___t; ?>"></script>
   <script src="/js/theme.js?<?php echo $___t; ?>"></script>
@@ -31,6 +37,11 @@ $___t = time();
       <?php if (User::isAdmin()): ?>
         <div id="admin-notice" class="admin-notice brand-yellow">
           Administrator mode
+        </div>
+      <?php endif; ?>
+      <?php if (User::isActingAsUser()): ?>
+        <div id="admin-notice" class="admin-notice brand-yellow">
+          Acting as Customer
         </div>
       <?php endif; ?>
       <div class="logo">

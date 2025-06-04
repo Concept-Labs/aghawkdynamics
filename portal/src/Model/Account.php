@@ -9,10 +9,31 @@ class Account extends Model
 {
 
     const TABLE = 'account';
+
+    const STATUS_ACTIVE = 1;
+    const STATUS_INACTIVE = 0;
     
     protected string $table = self::TABLE;
 
-    
+    /**
+     * Hash the password
+     *
+     * @param string $password The password to hash
+     * @return string The hashed password
+     */
+    public static function hashPassword(string $password): string
+    {
+        /**
+            @todo: password strength validation
+         */
+
+        if (empty($password)) {
+            throw new \InvalidArgumentException('Password cannot be empty.');
+        }
+
+        return password_hash($password, PASSWORD_DEFAULT);
+    }
+
     public function isAdmin(): bool
     {
         return (bool)$this->get('is_admin', false);
@@ -99,5 +120,21 @@ class Account extends Model
         $this->save();
 
         return true;
+    }
+
+    /**
+     * Fill billing address fields if they are empty
+     *
+     * @param array $data The data to fill
+     * @return array The filled data
+     */
+    public static function fillBilling(array $data): array
+    {
+        $data['billing_street'] = empty($data['billing_street']) ? $data['street'] : $data['billing_street'];
+        $data['billing_city'] = empty($data['billing_city']) ? $data['city'] : $data['billing_city'];
+        $data['billing_state'] = empty($data['billing_state']) ? $data['state'] : $data['billing_state'];
+        $data['billing_zip'] = empty($data['billing_zip']) ? $data['zip'] : $data['billing_zip'];
+
+        return $data;
     }
 }
