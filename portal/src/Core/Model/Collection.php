@@ -76,7 +76,7 @@ class Collection implements CollectionInterface
     /**
      * @var int
      */
-    private int $pageSize = 20;
+    private int $pageSize = 5;
 
     /**
      * @var int|null
