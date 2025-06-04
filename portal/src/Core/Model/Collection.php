@@ -269,8 +269,8 @@ class Collection implements CollectionInterface
             }
             if (is_array($value)) { //Handle array values
                 $this->addFilter([$key => $value]);
-            } elseif (is_numeric($value)) { // Handle numeric values
-                $this->addFilter([$key => (int)$value]);
+            // } elseif (is_numeric($value)) { // Handle numeric values
+            //     $this->addFilter([$key => (int)$value]);
             } else { // Handle string values
                 $this->addFilter([$key => '%' . $value . '%']);
             }
