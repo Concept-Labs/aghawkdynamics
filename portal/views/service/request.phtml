@@ -5,38 +5,28 @@ use App\Core\Registry;
 use App\Model\Account\User;
 use App\Model\ServiceRequest;
 
-//Edit mode
+//Readonly mode
+$readonly = $this->var('readonly', false);
+
+
+//for edit mode
 $requestModel = $this->var('requestModel', null);
-$attachments = $requestModel?->getAttachments();
 $additionalData = $requestModel?->getAdditionalData() ?? [];
+$attachments = $requestModel?->getAttachments();
+
+//Kind of service request (request or self track)
+$serviceKind = $requestModel?->get('kind') ?? $this->var('kind', ServiceRequest::KIND_REQUEST);
+$isSelfTracking = $serviceKind === ServiceRequest::KIND_SELF_TRACKING;
 
 //Collections
 $parcelCollection = $this->var('parcelCollection', []);
 $blockCollection = $this->var('blockCollection', null);
 
+// Parcel Model if requested for
 $parcelModel = $requestModel?->getParcel() ?? $this->var('parcelModel', null);
-
-// Calculate minimum date for non-urgent (7 business days ahead)
-$minDate = new DateTime();
-$businessDays = 0;
-while ($businessDays < 7) {
-  $minDate->modify('+1 day');
-  if ($minDate->format('N') < 6) { // 1-5 = Mon-Fri
-    $businessDays++;
-  }
-}
-$minDateStr = $minDate->format('Y-m-d');
-
-// Calculate minimum date for urgent (next business day)
-$minUrgentDate = new DateTime();
-do {
-  $minUrgentDate->modify('+1 day');
-} while ($minUrgentDate->format('N') > 5); // 6-7 = Sat/Sun
-$minUrgentDateStr = $minUrgentDate->format('Y-m-d');
-
 ?>
 
-<?php if (Registry::get('service_request_readonly')): ?>
+<?php if ($readonly): ?>
   <script type="text/javascript">
     window.addEventListener('DOMContentLoaded', function() {
       
@@ -56,21 +46,26 @@ $minUrgentDateStr = $minUrgentDate->format('Y-m-d');
 <?php endif?>
 <div class="entity-form card">
   <form method="post" id="service-form">
+    <input type="hidden" name="service[kind]" value="<?= htmlspecialchars($serviceKind) ?>">
     <?php if ($requestModel?->getId()): ?>
       <input type="hidden" name="service[id]" value="<?= (int)$requestModel?->getId() ?>">
       <input type="hidden" name="service[status]" value="<?= $requestModel?->getStatus() ?? ServiceRequest::STATUS_PENDING ?>">
       <input type="hidden" name="service[account_id]" value="<?= (int)$requestModel?->getAccountId() ?>">
-
     <?php endif ?>
 
     <div style="display:flex; justify-content: space-between; margin-bottom: 1rem; align-items: center;">
       <?php if ($requestModel?->getId()): ?>
-        <h2>Update Service Request</h2>
+        <h2>Update</h2>
+          <span class="status status-complete"><?php echo ucfirst($requestModel?->get('kind')) ?></span>
           <span class="status status-<?= htmlspecialchars($requestModel?->getStatus()) ?>">
             <?php echo ucfirst($requestModel?->getStatus()) ?>
           </span>
       <?php else: ?>
+        <?php if ($isSelfTracking): ?>
+          <h2>Self Tracking</h2>
+        <?php else: ?>
         <h2>Request a Service</h2>
+        <?php endif; ?>
       <?php endif; ?>
     </div>
     <div class="fld-row" style="display: flex; gap: 5px;">
@@ -119,22 +114,47 @@ $minUrgentDateStr = $minUrgentDate->format('Y-m-d');
       </div>
     </div>
 
-    <div class="fld " style="display: flex; gap: 5px; align-items: flex-end; flex-wrap: wrap;">
-      <div class="fld">
-        <select name="service[urgent]" required>
-          <option value="0" <?php if ($requestModel?->get('urgent') == 0): ?>selected<?php endif ?>>No</option>
-          <option value="1" <?php if ($requestModel?->get('urgent') == 1): ?>selected<?php endif ?>>Yes</option>
-        </select>
-        <label>Urgent?</label>
-      </div>
-      <div id="fld_date" class="fld" style="flex: 2;">
-        <input type="date" name="service[date]" placeholder=" " required min="<?= $minDateStr ?>"
-          value="<?= $requestModel?->get('date') ?: '' ?>"
-          title="Urgent services must be requested at least 1 day in advance. Non-urgent services must be requested at least 7 days in advance.">
-        <label>Service need by date</label>
-      </div>
+    <?php 
+      if (!$isSelfTracking):  //No need Date for self track
+        // Calculate minimum date for non-urgent (7 business days ahead)
+        $minDate = new DateTime();
+        $businessDays = 0;
+        while ($businessDays < 7) {
+          $minDate->modify('+1 day');
+          if ($minDate->format('N') < 6) { // 1-5 = Mon-Fri
+            $businessDays++;
+          }
+        }
+        $minDateStr = $minDate->format('Y-m-d');
 
-    </div>
+        // Calculate minimum date for urgent (next business day)
+        $minUrgentDate = new DateTime();
+        do {
+          $minUrgentDate->modify('+1 day');
+        } while ($minUrgentDate->format('N') > 5); // 6-7 = Sat/Sun
+        $minUrgentDateStr = $minUrgentDate->format('Y-m-d');
+    ?>
+      <div class="fld " style="display: flex; gap: 5px; align-items: flex-end; flex-wrap: wrap;">
+        <div class="fld">
+          <select name="service[urgent]" required>
+            <option value="0" <?php if ($requestModel?->get('urgent') == 0): ?>selected<?php endif ?>>No</option>
+            <option value="1" <?php if ($requestModel?->get('urgent') == 1): ?>selected<?php endif ?>>Yes</option>
+          </select>
+          <label>Urgent?</label>
+        </div>
+        <div id="fld_date" class="fld" style="flex: 2;">
+          <input type="date" name="service[date]" placeholder=" " required min="<?= $minDateStr ?>"
+            value="<?= $requestModel?->get('date') ?: '' ?>"
+            title="Urgent services must be requested at least 1 day in advance. Non-urgent services must be requested at least 7 days in advance.">
+          <label>Service need by date</label>
+        </div>
+      </div>
+    <?php else: ?>
+        <div id="fld_date" class="fld">
+          <input type="date" name="service[completed_at]" required>
+          <label>When completed?</label>
+        </div>
+    <?php endif; ?>
 
     <div class="fld">
       <select name="service[type]" placeholder=" " required>
@@ -148,7 +168,7 @@ $minUrgentDateStr = $minUrgentDate->format('Y-m-d');
           </option>
         <?php endforeach ?>
       </select>
-      <label>Service Type</label>
+      <label>Type</label>
 
       <script type="text/javascript">
         // Function to handle service type change and show/hide fieldsets
@@ -187,16 +207,6 @@ $minUrgentDateStr = $minUrgentDate->format('Y-m-d');
       class="custom-products-fieldset"
       style="border: 1px solid transparent; display: none;">
       <legend style="padding:0;">
-        <!--div class="switch-field" style="display:flex;align-items:center;position:relative;top:.5rem;left:-.5rem;">
-          <input type="checkbox" name="service[adds][products][use_custom]" class="switch-input" data-content-id="custom_products_content" 
-           id="use_custom_products">
-          <label for="use_custom_products" class="switch-label" style="margin-bottom:0;margin-left:1rem;">
-            <span class="switch-slider"></span>
-            Do you know type of product needs to be applied?
-          </label>  
-        </div-->
-
-
         <div class="switch-container">
           <label class="switch-group">
             <input type="radio" class="hide-content" name="custom_products" value="no" data-content-id="custom_products_content"
@@ -210,9 +220,11 @@ $minUrgentDateStr = $minUrgentDate->format('Y-m-d');
           </label>
           <div class="switch-background"></div>
         </div>
-
-        Do you know type of product needs to be applied?
-
+        <?php if ($isSelfTracking): ?>
+          <span class="text-muted">Products was applied?</span>
+        <?php else: ?>
+          <span class="text-muted">Do you know type of product needs to be applied?</span>
+        <?php endif; ?>
       </legend>
 
       <div id="custom_products_content" style="display: <?= empty($additionalData['products']) ? 'none' : 'block' ?>;">
@@ -293,7 +305,11 @@ $minUrgentDateStr = $minUrgentDate->format('Y-m-d');
           </label>
           <div class="switch-background"></div>
         </div>
-        Do you have preferred supplier?
+        <?php if ($isSelfTracking): ?>
+          <span class="text-muted">Want to specify products supplier?</span>
+        <?php else: ?>
+          <span class="text-muted">Do you have preferred supplier?</span>
+        <?php endif; ?>
       </legend>
 
       <div class="fld-row" id="custom_supplier_content" style="display: <?= empty($additionalData['supplier']) ? 'none' : 'block' ?>;">
@@ -372,13 +388,12 @@ $minUrgentDateStr = $minUrgentDate->format('Y-m-d');
 
     <div class="button-set ">
       <button class="btn cancel" type="button" onclick="window.history.back()">Back</button>
-      <?php if (!Registry::get('service_request_readonly')): ?>
-        
-        <?php if (User::isAdmin() && $requestModel?->getId()): ?>
+      <?php if (!$readonly): ?>
+        <?php if ((User::isAdmin() || $isSelfTracking) && $requestModel?->getId()): ?>
           <button class="btn" type="button" onclick="document.getElementById('attachment-modal').classList.add('show')">Add attachment</button>
       <?php endif; ?>
-        <?php if (User::isAdmin() && $requestModel?->isPending()): ?>
-          <a href="javascript:void(0)" class="btn brand-red" type="button" onclick="cancelRequest(<?= $requestModel?->getId() ?>)">Cancel Request</a>
+        <?php if (User::isAdmin() && $requestModel?->isPending() && !$isSelfTracking): ?>
+          <a href="javascript:void(0)" class="btn brand-red" type="button" onclick="cancelRequest(<?= $requestModel?->getId() ?>)">Cancel Service</a>
           <a href="javascript:void(0)" class="btn brand-yellow" type="button" onclick="completeDialog(<?= $requestModel?->getId() ?>)">Complete</a>
         <?php endif; ?>
         <?php if (User::isAdmin() && $requestModel?->isCancelled()): ?>
@@ -386,9 +401,9 @@ $minUrgentDateStr = $minUrgentDate->format('Y-m-d');
         <?php endif; ?>
         <button class="btn brand-green" type="submit">
           <?php if ($requestModel?->getId()): ?>
-            Update Request
+            Update
           <?php else: ?>
-            Create Request
+            Create
           <?php endif; ?>
         </button>
       <?php endif; ?>
@@ -398,6 +413,8 @@ $minUrgentDateStr = $minUrgentDate->format('Y-m-d');
 
 <?php if (User::isAdmin()): ?>
 <?php include_once __DIR__ . '/dialog/complete.phtml'; ?>
+<?php endif; ?>
+<?php if (User::isAdmin() || $isSelfTracking): ?>
 <?php include __DIR__ . '/dialog/attachment.phtml'; ?>
 <?php endif; ?>
 
@@ -500,7 +517,7 @@ $minUrgentDateStr = $minUrgentDate->format('Y-m-d');
     });
 
     // Handle urgent service selection to set date field
-    document.querySelector('select[name="service[urgent]"]').addEventListener('change', function() {
+    document.querySelector('select[name="service[urgent]"]')?.addEventListener('change', function() {
       const isUrgent = this.value === '1';
       const dateField = document.getElementById('fld_date');
       if (isUrgent) {

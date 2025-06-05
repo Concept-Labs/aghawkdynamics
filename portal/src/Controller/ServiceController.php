@@ -80,11 +80,15 @@ class ServiceController extends Controller
     {
         Registry::set('service_request_readonly', true);
 
-        $this->forward(
-            'service',
-            'request'
-        );
+        $this->forward('service','request');
             
+    }
+
+    public function selftrack(): void
+    {
+        Registry::set('service_kind', ServiceRequest::KIND_SELF_TRACKING);
+
+        $this->forward('service', 'request');
     }
 
     /**
@@ -148,6 +152,8 @@ class ServiceController extends Controller
             $this->render(
                 'service/request', 
                 [
+                    'readonly' => Registry::get('service_request_readonly', false),
+                    'kind' => Registry::get('service_kind') ?? $this->getRequest('kind', ServiceRequest::KIND_REQUEST),
                     'parcelModel' => $parcelModel ?? null,
                     'blockModel' => $blockModel ?? null,
                     'parcelCollection' => $parcelCollection,
@@ -165,6 +171,11 @@ class ServiceController extends Controller
         
     }
 
+    /**
+     * Display the edit form for a service request.
+     *
+     * @return void
+     */
     protected function editForm()
     {
         try {
@@ -425,9 +436,9 @@ class ServiceController extends Controller
     public function uploadAttachment(): void
     {
         try {
-            if (!User::isAdmin() ){
-                throw new \RuntimeException('Access denied. Only admins can upload attachments.');
-            }
+            // if (!User::isAdmin() ){
+            //     throw new \RuntimeException('Access denied. Only admins can upload attachments.');
+            // }
 
             $serviceId = (int)$this->getRequest()->request('service_id', 0);
             $service = (new ServiceRequest())->load($serviceId);
@@ -521,7 +532,7 @@ class ServiceController extends Controller
             throw new \InvalidArgumentException('Account ID is required.');
         }
 
-        if ($data['account_id'] !== User::getInstance()->getId() && !User::isAdmin()) {
+        if ((int)$data['account_id'] !== (int)User::uid() && !User::isAdmin()) {
             throw new \InvalidArgumentException('Permissions issue');
         }
 

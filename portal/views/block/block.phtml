@@ -16,6 +16,7 @@ $parcels = $this->var('parcels', []);
       <div class="button-top-set">
         <?php if (!User::isAdmin()): ?>
         <a class="btn brand-yellow" href="/service/request?parcel=<?= $blockModel?->getParcel()?->getId() ?>&block=<?= $block['id'] ?>">Request Service</a>
+        <a class="btn brand-green" href="/service/selftrack?parcel=<?= $blockModel?->getParcel()?->getId() ?>&block=<?= $block['id'] ?>">Self Tracking</a>
         <?php endif ?>
       </div>
     <?php endif ?>

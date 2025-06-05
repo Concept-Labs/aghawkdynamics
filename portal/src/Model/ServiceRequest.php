@@ -19,6 +19,14 @@ class ServiceRequest extends Model
         self::STATUS_CANCELLED,
     ];
 
+    const KIND_REQUEST = 'request';
+    const KIND_SELF_TRACKING = 'self_tracking';
+
+    const KINDS = [
+        self::KIND_REQUEST,
+        self::KIND_SELF_TRACKING,
+    ];
+
     private ?Account $account = null;
     private ?Parcel $parcel = null;
     private ?Block $block = null;
@@ -87,7 +95,9 @@ class ServiceRequest extends Model
      */
     public function canCancel(): bool
     {
-        return in_array($this->getStatus(), [self::STATUS_PENDING]);
+        return 
+            in_array($this->getStatus(), [self::STATUS_PENDING])
+            && $this->get('kind') !== self::KIND_SELF_TRACKING;
     }
 
     public function isCancelled(): bool

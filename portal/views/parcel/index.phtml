@@ -157,9 +157,12 @@ $parcelCollection = $this->var('parcels', []);
                                     <a href="/?q=parcel/edit&id=<?= $p['id'] ?>">Edit</a>
                                     <a 
                                         class="hover-brand-yellow <?php if (!$parcelModel->canRequestService()): ?>disabled<?php endif; ?>" 
-                                        href="/?q=service/request&parcel=<?= $p['id'] ?>">
+                                        href="/?q=service/request&parcel=<?= $p['id'] ?>"
+                                    >
                                         Request Service
                                     </a>
+
+                                    <a class="hover-brand-green" href="/service/selftrack&parcel=<?= $parcelModel->getId() ?>">Self Tracking</a>
                                 </div>
                             </div>
                         </td>

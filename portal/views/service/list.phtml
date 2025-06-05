@@ -57,11 +57,21 @@ $statusCssClass = [
                             </th>
                         <?php endif; ?>
                         <th>
+                            <select name="filters[main.kind]" class="select">
+                                <option value="">Any Kind</option>
+                                <?php foreach (ServiceRequest::KINDS as $kind): ?>
+                                    <option value="<?= $kind ?>" <?= isset($filters['main.kind']) && $filters['main.kind'] === $kind ? 'selected' : '' ?>>
+                                        <?= ucfirst(htmlspecialchars($kind)) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </th>
+                        <th>
                             <!--input name="filters[main.date]" type="date" placeholder="Need by Date" value="<?= htmlspecialchars($filters['main.date'] ?? '') ?>" /-->
                             Need by Date
                         </th>
                         <th>
-                            <select name="filters[main.type]" class="select" style="width:100%">
+                            <select name="filters[main.type]" class="select">
                                 <option value="">Any Type</option>
                                 <?php foreach (Config::get('service_type') as $type): ?>
                                     <option value="<?= $type ?>" <?= isset($filters['main.type']) && $filters['main.type'] === $type ? 'selected' : '' ?>>
@@ -155,6 +165,9 @@ $statusCssClass = [
                                     </a>
                                 </td>
                             <?php endif; ?>
+                            <td>
+                                <?= ucfirst(htmlspecialchars($requestModel->get('kind'))) ?>
+                            </td>
                             <td><?= (new DateTimeImmutable($requestModel->get('date')))->format(Config::get('date_format')) ?></td>
                             <td><?= htmlspecialchars($requestModel->get('type')) ?></td>
                             <td>
