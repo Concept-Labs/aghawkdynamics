@@ -184,7 +184,7 @@ $statusCssClass = [
                                 <span class="status-indicator" style="background-color: <?= $statusCssClass[$requestModel->getStatus()] ?? '#ccc' ?>;"></span>
                                 <?= ucfirst(htmlspecialchars($requestModel->getStatus())) ?>
                                 <?php
-                                if ($requestModel->getStatus() === ServiceRequest::STATUS_COMPLETED):
+                                if ($requestModel->getStatus() === ServiceRequest::STATUS_COMPLETED && !$requestModel->isSelfTracking()):
                                     $completeData = $requestModel->getCompleteData();
                                 ?>
                                     <tooltip class="tooltip brand-green" style="left: -100%;">
@@ -197,7 +197,7 @@ $statusCssClass = [
                                         <span>Wind Speed: <?= htmlspecialchars($completeData['wind'] ?? '') ?> MPH</span>
                                         <br>
                                         <span>Restricted Exposure Hours: <?= htmlspecialchars($completeData['exposure_hours'] ?? '') ?></span>
-                                        <span>Water used (per acre): <?= htmlspecialchars($completeData['water_used']['volume'] ?? '') ?> <?= htmlspecialchars($completeData['water_used']['unit'] ?? '') ?></span>
+                                        <span>Water Total: <?= htmlspecialchars($completeData['water_used']['volume'] ?? '') ?> <?= htmlspecialchars($completeData['water_used']['unit'] ?? '') ?></span>
                                     </tooltip>
                                 <?php endif; ?>
                             </td>
@@ -205,8 +205,8 @@ $statusCssClass = [
                                 <div class="action-wrap" style="position:relative">
                                     <button class="action-btn" type="button">⋮</button>
                                     <div class="actions-menu">
-                                        <?php if ($requestModel->isCompleted()): ?>
-                                            <a class="hover-brand-green" href="/?q=service/complete_details&id=<?= $requestModel->get('id') ?>">Complete Details</a>
+                                        <?php if ($requestModel->isCompleted() && !$requestModel->isSelfTracking()): ?>
+                                            <a class="hover-brand-green" href="/service/complete_details?id=<?= $requestModel->get('id') ?>">Complete Details</a>
                                         <?php endif; ?>
 
                                         <?php if (User::isAdmin()): ?>

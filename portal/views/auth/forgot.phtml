@@ -25,9 +25,10 @@
       <label>Your email</label>
     </div>
 
-    <div class="button-set">
-      <a href="/?q=auth/login" class="right">Back to login</a>
-      <button class="btn" type="submit">Follow instructions</button>
+    <div class="button-set" style="margin-bottom:1rem;">
+      <a href="/auth/login" class="right">Back to login</a>
+      <button class="btn recaptcha-btn" type="submit">Send Reset Link</button>
     </div>
+    <?php include __DIR__ . '/../common/recaptcha.phtml'; ?>
   </form>
 </div>

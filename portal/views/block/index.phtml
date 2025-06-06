@@ -162,8 +162,9 @@ $filters = $this->var('filters', []);
                                     <div class="actions-menu">
                                         <a href="/block/edit?id=<?= $b->get('id') ?>">Edit</a>
                                         <a class="hover-brand-yellow" href="/service/request&parcel=<?= $b->get('parcel_id') ?>&block=<?= $b->get('id') ?>">Request Service</a>
-                                        <a class="hover-brand-green" href="/service/selftrack&parcel=<?= $b->get('parcel_id') ?>&block=<?= $b->get('id') ?>">Self Tracking</a>
-
+                                        <?php if (User::getInstance()->getAccount()->isSubscribed()): ?>
+                                            <a class="hover-brand-green" href="/service/selftrack&parcel=<?= $b->get('parcel_id') ?>&block=<?= $b->get('id') ?>">Self Tracking</a>
+                                        <?php endif ?>
                                     </div>
                                 </div>
                             </td>

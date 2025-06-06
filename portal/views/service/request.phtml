@@ -56,10 +56,14 @@ $parcelModel = $requestModel?->getParcel() ?? $this->var('parcelModel', null);
     <div style="display:flex; justify-content: space-between; margin-bottom: 1rem; align-items: center;">
       <?php if ($requestModel?->getId()): ?>
         <h2>Update</h2>
-          <span class="status status-complete"><?php echo ucfirst($requestModel?->get('kind')) ?></span>
-          <span class="status status-<?= htmlspecialchars($requestModel?->getStatus()) ?>">
-            <?php echo ucfirst($requestModel?->getStatus()) ?>
-          </span>
+          <span class="kind kind-<?php echo $requestModel?->get('kind') ?>"><?php echo ucfirst(str_replace('_', ' ', $requestModel?->get('kind'))) ?></span>
+          <?php if (User::isAdmin() && $requestModel?->isCompleted()): ?>
+            <a class="status status-<?= htmlspecialchars($requestModel?->getStatus()) ?>" href="/service/complete_details?id=<?= $requestModel->get('id') ?>">Complete Details</a>
+          <?php else: ?>
+            <span class="status status-<?= htmlspecialchars($requestModel?->getStatus()) ?>">
+              <?php echo ucfirst($requestModel?->getStatus()) ?>
+            </span>
+            <?php endif;?>
       <?php else: ?>
         <?php if ($isSelfTracking): ?>
           <h2>Self Tracking</h2>
@@ -75,10 +79,16 @@ $parcelModel = $requestModel?->getParcel() ?? $this->var('parcelModel', null);
           <input type="hidden" name="service[parcel_id]" value="<?= (int)$parcelModel->getId() ?>">
         <?php else: ?>
           <select name="service[parcel_id]" required>
+            <?php if ($parcelCollection?->isEmpty()): ?>
+            <?php endif ?>
             <option value="" hidden></option>
-            <?php foreach ($parcelCollection as $parcelModel):
-              if (!$parcelModel->canRequestService()) continue;
-            ?>
+            <?php foreach ($parcelCollection as $parcelModel):?>
+              <?php if (!$parcelModel->canRequestService()):?>
+              <option value="<?= $parcelModel->getId() ?>" disabled><?= htmlspecialchars($parcelModel->getName()) ?>(Check Parcel)</option>
+              <?php 
+                continue; // Skip parcels that cannot be requested
+                endif; 
+              ?>
               <option value="<?= $parcelModel->getId() ?>"><?= htmlspecialchars($parcelModel->getName()) ?></option>
             <?php endforeach ?>
           </select>
@@ -262,8 +272,8 @@ $parcelModel = $requestModel?->getParcel() ?? $this->var('parcelModel', null);
                 <label>Unit</label>
               </div>
               <div class="fld">
-                <input type="number" name="service[adds][products][<?= $index ?>][volume]" placeholder="" value="<?= htmlspecialchars($product['volume']) ?>">
-                <label>Volume</label>
+                <input type="number" name="service[adds][products][<?= $index ?>][volume]" placeholder="" value="<?= htmlspecialchars($product['volume']) ?>" min="0" step="0.01">
+                <label>Volume per acre</label>
               </div>
               <?php if (!$requestModel?->getId() || User::isAdmin()): ?>
                 <div class="fld">
@@ -353,6 +363,8 @@ $parcelModel = $requestModel?->getParcel() ?? $this->var('parcelModel', null);
         <div class="fld">
           <input
             type="number"
+            min="0"
+            step="0.01"
             name="service[adds][application][volume]"
             placeholder=""
             value="<?= htmlspecialchars($additionalData['application']['volume'] ?? '') ?>">
@@ -367,7 +379,6 @@ $parcelModel = $requestModel?->getParcel() ?? $this->var('parcelModel', null);
             <?php foreach ($attachments as $attachment): ?>
                 <div class="tooltipable">
                     <a href="<?= htmlspecialchars($attachment->getUrl()) ?>" target="_blank"><?= htmlspecialchars($attachment->getName()) ?></a>
-                    
                         <tooltip class="tooltip tooltip-bottom">
                             <?= htmlspecialchars($attachment->getComment()) ?>
                             <?php
@@ -380,7 +391,6 @@ $parcelModel = $requestModel?->getParcel() ?? $this->var('parcelModel', null);
                                 </div>
                             <?php endif; ?>
                         </tooltip>
-                    
                 </div>
             <?php endforeach ?>
         </fieldset>
@@ -478,8 +488,8 @@ $parcelModel = $requestModel?->getParcel() ?? $this->var('parcelModel', null);
       <label>Unit</label>
     </div>
     <div class="fld">
-      <input type="number" name="service[adds][products][{index}][volume]" placeholder="">
-      <label>Volume</label>
+      <input type="number" min="0" step="0.01" name="service[adds][products][{index}][volume]" placeholder="">
+      <label>Volume pear acre</label>
     </div>
     <div class="fld">
       <button type="button" class="remove-product-btn">X</button>

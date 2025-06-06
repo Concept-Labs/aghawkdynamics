@@ -15,8 +15,10 @@ $parcels = $this->var('parcels', []);
     <?php if ($blockModel?->getParcel()?->getId()): ?>
       <div class="button-top-set">
         <?php if (!User::isAdmin()): ?>
-        <a class="btn brand-yellow" href="/service/request?parcel=<?= $blockModel?->getParcel()?->getId() ?>&block=<?= $block['id'] ?>">Request Service</a>
-        <a class="btn brand-green" href="/service/selftrack?parcel=<?= $blockModel?->getParcel()?->getId() ?>&block=<?= $block['id'] ?>">Self Tracking</a>
+          <a class="btn brand-yellow" href="/service/request?parcel=<?= $blockModel?->getParcel()?->getId() ?>&block=<?= $block['id'] ?>">Request Service</a>
+          <?php if (User::getInstance()->getAccount()->isSubscribed()): ?>
+            <a class="btn brand-green" href="/service/selftrack?parcel=<?= $blockModel?->getParcel()?->getId() ?>&block=<?= $block['id'] ?>">Self Tracking</a>
+          <?php endif ?>
         <?php endif ?>
       </div>
     <?php endif ?>
@@ -85,7 +87,7 @@ $parcels = $this->var('parcels', []);
         <legend>Attachments</legend>
         <?php foreach ($blockModel?->getAttachments() as $attachment): ?>
           <div class="tooltipable">
-        <a href="<?= htmlspecialchars($attachment->getUrl()) ?>" target="_blank"><?= htmlspecialchars($attachment->getName()) ?></a>
+          <a href="/<?= htmlspecialchars($attachment->getUrl()) ?>" target="_blank"><?= htmlspecialchars($attachment->getName()) ?></a>
         <tooltip class="tooltip">
           <?= htmlspecialchars($attachment->getComment()) ?>
           <?php
@@ -94,7 +96,7 @@ $parcels = $this->var('parcels', []);
             if (in_array($ext, $imageTypes)):
           ?>
             <div style="margin-top:0.5rem;">
-          <img src="<?= htmlspecialchars($attachment->getUrl()) ?>" alt="Preview" style="max-width:200px;max-height:150px;display:block;">
+          <img src="/<?= htmlspecialchars($attachment->getUrl()) ?>" alt="Preview" style="max-width:200px;max-height:150px;display:block;">
             </div>
           <?php endif; ?>
         </tooltip>

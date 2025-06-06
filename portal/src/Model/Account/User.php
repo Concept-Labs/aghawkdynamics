@@ -63,6 +63,16 @@ class User
     }
 
     /**
+     * Get the account model of the logged-in user.
+     *
+     * @return Account
+     */
+    public static function Account(): Account
+    {
+        return self::getInstance()->getAccount();
+    }
+
+    /**
      * Get the ID of the logged-in user.
      *
      * @return int|null

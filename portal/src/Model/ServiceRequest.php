@@ -86,7 +86,16 @@ class ServiceRequest extends Model
     {
         return $this->getStatus() === self::STATUS_PENDING;
     }
-    
+
+    /**
+     * Check if the service request is of kind 'request'.
+     *
+     * @return bool
+     */
+    public function isSelfTracking(): bool
+    {
+        return $this->get('kind') === self::KIND_SELF_TRACKING;
+    }
 
     /**
      * Check if the service request can be completed.

@@ -39,6 +39,16 @@ class Account extends Model
         return (bool)$this->get('is_admin', false);
     }
 
+    public function isActive(): bool
+    {
+        return (bool)$this->get('status', self::STATUS_INACTIVE);
+    }
+
+    public function isSubscribed(): bool
+    {
+        return (bool)$this->get('subscribed', false);
+    }
+
     /**
      * Find an account by email
      *
@@ -51,6 +61,21 @@ class Account extends Model
         $stmt->execute(['email' => $email]);
         
         return $stmt->fetch() ?: null;
+    }
+
+    /**
+     * Find an account by reset token
+     *
+     * @param string $token The reset token to search for
+     * 
+     * @return static Returns the Account object if found, empty object otherwise
+     */
+    public function findByResetToken(string $token): static
+    {
+        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE reset_token = :token");
+        $stmt->execute(['token' => $token]);
+
+        return (new static())->setData($stmt->fetch() ?: []);
     }
 
     /**
@@ -106,6 +131,14 @@ class Account extends Model
      */
     public function resetPassword(string $token, string $newPassword, string $confirmPassword): bool
     {
+        if (empty($newPassword) || empty($confirmPassword)) {
+            throw new \InvalidArgumentException('New password and confirmation cannot be empty.');
+        }
+
+        if (strlen($newPassword) < 8) {
+            throw new \InvalidArgumentException('Password must be at least 8 characters long.');
+        }
+
         if ($newPassword !== $confirmPassword) {
             throw new \InvalidArgumentException('Passwords do not match.');
         }
@@ -114,7 +147,7 @@ class Account extends Model
             throw new \InvalidArgumentException('Invalid reset token.');
         }
 
-        $this->set('password', password_hash($newPassword, PASSWORD_DEFAULT));
+        $this->set('password', Account::hashPassword($newPassword));
         $this->set('reset_token', null); // Clear the reset token after use
 
         $this->save();

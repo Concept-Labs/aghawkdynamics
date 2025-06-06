@@ -31,7 +31,7 @@ class BlockAttachment extends Model
 
     public function getComment(): string
     {
-        return $this->get('comment', '');
+        return $this->get('comment') ?? '';
     }
 
 }

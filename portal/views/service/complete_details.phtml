@@ -1,6 +1,5 @@
 <?php
 
-use App\Core\Config;
 use App\Model\Account\User;
 
 $requestModel = $this->var('requestModel');
@@ -42,7 +41,7 @@ $attachments = $requestModel->getAttachments();
     </div>
     <div class="fld">
         <input type="text" disabled value="<?= htmlspecialchars($completeData['water_used']['volume']) ?>">
-        <label>Water Used (<?= htmlspecialchars($completeData['water_used']['unit']) ?> per acre):</label>
+        <label>Water Total:</label>
     </div>
 
     <?php if ($attachments->count() > 0): ?>

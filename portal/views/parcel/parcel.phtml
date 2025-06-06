@@ -350,11 +350,8 @@ $parcelBlocks = $parcelModel?->getBlocks();
             <tr class="">
 
               <!--td><?= htmlspecialchars($block['status']) ?></td-->
-              <td class="tooltipable">
-                <a href="/?q=block/edit&id=<?= $block['id'] ?>"><?= htmlspecialchars($block['name']) ?></a>
-                <div class="tooltip">
-                  <?= htmlspecialchars($block['notes']) ?>
-                </div>
+              <td >
+                <a href="/block/edit&id=<?= $block['id'] ?>"><?= htmlspecialchars($block['name']) ?></a>
               </td>
               <td><?= htmlspecialchars($block['acres']) ?></td>
               <td><?= htmlspecialchars($block['crop_category']) ?></td>
@@ -362,10 +359,12 @@ $parcelBlocks = $parcelModel?->getBlocks();
                 <div class="action-wrap" style="position:relative; text-align:right">
                   <button class="action-btn" type="button">⋮</button>
                   <div class="actions-menu" style="text-align:left">
-                    <a href="/?q=block/edit&id=<?= $block['id'] ?>">Edit</a>
+                    <a href="/block/edit?id=<?= $block['id'] ?>">Edit</a>
                     <div class="sep"></div>
-                    <a class="hover-brand-yellow" href="/?q=service/request&parcel=<?= $block['parcel_id'] ?>&block=<?= $block['id'] ?>">Request Service</a>
-                    <a class="hover-brand-green" href="/?q=service/selftrack&parcel=<?= $block['parcel_id'] ?>&block=<?= $block['id'] ?>">Self Tracking</a>
+                    <a class="hover-brand-yellow" href="/service/request&parcel=<?= $block['parcel_id'] ?>?block=<?= $block['id'] ?>">Request Service</a>
+                    <?php if (User::getInstance()->getAccount()->isSubscribed()): ?>
+                      <a class="hover-brand-green" href="/service/selftrack&parcel=<?= $block['parcel_id'] ?>?block=<?= $block['id'] ?>">Self Tracking</a>
+                    <?php endif; ?>
                   </div>
 
                 </div>

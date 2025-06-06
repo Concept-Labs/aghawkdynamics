@@ -1,6 +1,7 @@
 <?php
 
 use App\Core\Config;
+use App\Model\Account\User;
 
 $userModel = $this->var('user', []);
 $user = $userModel->getData() ?? [];
@@ -139,11 +140,48 @@ $user = $userModel->getData() ?? [];
                 </div>
             </div>
 
-
             <div class="fieldset">
                 <div class="fld"><input type="password" name="password" placeholder=" "><label>New password</label></div>
                 <div class="fld"><input type="password" name="password_repeat" placeholder=" "><label>Repeat new password</label></div>
             </div>
+            <?php if (User::isAdmin()): ?>
+            <fieldset>
+                <legend>Subscription</legend>
+                <?php if ($userModel?->isSubscribed()): ?>
+                    <a href="/account/admin/unsubscribe?id=<?php echo $userModel?->getId() ?>" class="btn brand-red">Disable Subscription</a>
+                <?php else: ?>
+                    <a href="/account/admin/subscribe?id=<?php echo $userModel?->getId() ?>" class="btn brand-green">Enable Subscription</a>
+                <?php endif; ?>
+                
+            
+                <?php endif; ?>
+                <?php if (!User::isAdmin() && !User::getInstance()->getAccount()->isSubscribed()): ?>
+
+                    <div class="fieldset">
+                        <div id="paypal-button-container-P-4K230313VV8377501NBBK6EA"></div>
+                        <script src="https://www.paypal.com/sdk/js?client-id=AeESlAl2DwCHcUTBTXvQsazPg3JNyI2zOo_6Za7cxQgMeYhbqtt9WxWKkf6eOqDAb2Lz1wSVmk8oqay8&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
+                        <script>
+                        paypal.Buttons({
+                            style: {
+                                shape: 'pill',
+                                color: 'gold',
+                                layout: 'vertical',
+                                label: 'subscribe'
+                            },
+                            createSubscription: function(data, actions) {
+                                return actions.subscription.create({
+                                /* Creates the subscription */
+                                plan_id: 'P-4K230313VV8377501NBBK6EA'
+                                });
+                            },
+                            onApprove: function(data, actions) {
+                                alert(data.subscriptionID); // You can add optional success message for the subscriber here
+                            }
+                        }).render('#paypal-button-container-P-4K230313VV8377501NBBK6EA'); // Renders the PayPal button
+                        </script>
+                    </div>
+                <?php endif; ?>
+            </fieldset>
             <div class="button-set">
                 <a href="javascript:void(0)" class="btn cancel" onclick="window.history.back()">Back</a>
                 <button class="btn" type="submit">Update</button>

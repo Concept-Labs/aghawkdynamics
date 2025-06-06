@@ -119,8 +119,10 @@ $implicit = $this->var('implicit', false);
       </div>
 
       <div class="button-set">
-        <button class="btn" type="submit">Register</button>
+        <button class="btn recaptcha-btn" type="submit">Register</button>
       </div>
+
+      <?php include __DIR__ . '/../common/recaptcha.phtml'; ?>
     </form>
   </div>
   <script>

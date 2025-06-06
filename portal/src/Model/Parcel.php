@@ -96,4 +96,14 @@ class Parcel extends Model
         return !$this->getBlocks()->isEmpty(); 
     }
 
+    /**
+     * Check if the user can self-track based on the presence of blocks.
+     *
+     * @return bool
+     */
+    public function canSelfTrack(): bool
+    {
+        return !$this->getBlocks()->isEmpty(); 
+    }
+
 }

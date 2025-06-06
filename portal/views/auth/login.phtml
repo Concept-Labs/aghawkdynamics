@@ -1,6 +1,4 @@
-<?php
-$error = $this->var('error');
-?>
+
 <style>
   .login-form {
     width: 500px;
@@ -9,15 +7,6 @@ $error = $this->var('error');
     opacity: 0.9;
   }
 </style>
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
-<script>
-  // function enableLogin() {
-  //   document.getElementById('login-btn').disabled = false;
-  // }
-  // window.onload = function() {
-  //   document.getElementById('login-btn').disabled = true;
-  // };
-</script>
 
 <div class="card login-form">
   <div class="right">
@@ -25,8 +14,6 @@ $error = $this->var('error');
   </div>
   <h2>Welcome</h2>
   <form method="post">
-
-    <?php if ($error): ?><p style="color:red"><?= htmlspecialchars($error) ?></p><?php endif; ?>
 
     <div class="fld">
       <input type="email" name="email" placeholder=" " required>
@@ -39,10 +26,8 @@ $error = $this->var('error');
 
     <div class="button-set" style="display: flex; justify-content: space-between; align-items: center;">
       <a class="right" href="/?q=auth/forgot">Forgot password?</a>
-      <button class="btn" id="login-btn" type="submit" >Login</button>
+      <button class="btn recaptcha-btn" id="login-btn" type="submit" >Login</button>
     </div>
-    <div class="g-recaptcha" data-sitekey="6Ld8DVIrAAAAADFAOfrJDDrLlxSmVPqhar4TLJlQ" data-callback="enableLogin"></div>
-    
-
+    <?php include __DIR__ . '/../common/recaptcha.phtml'; ?>
   </form>
 </div>

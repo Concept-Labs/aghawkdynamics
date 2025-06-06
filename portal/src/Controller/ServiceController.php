@@ -86,6 +86,12 @@ class ServiceController extends Controller
 
     public function selftrack(): void
     {
+        if (!User::Account()->isSubscribed()) {
+            $this->getRequest()->addError('You must be subscribed to use self-tracking services.');
+            $this->redirectReferer();
+            return;
+        }
+        
         Registry::set('service_kind', ServiceRequest::KIND_SELF_TRACKING);
 
         $this->forward('service', 'request');
@@ -224,7 +230,10 @@ class ServiceController extends Controller
             $data = $this->getRequest()->getPost('service');
 
             $data['account_id'] ??= User::getInstance()->getId();
-            $data['status'] ??= ServiceRequest::STATUS_PENDING;
+            $data['status'] ??= $data['kind'] == ServiceRequest::KIND_REQUEST 
+                ? ServiceRequest::STATUS_PENDING 
+                : ServiceRequest::STATUS_COMPLETED;
+
             $data['adds'] = json_encode($data['adds'] ?? []);
 
             $this->validateServiceData($data);
@@ -246,9 +255,6 @@ class ServiceController extends Controller
         }
         
     }
-    
-
-    
 
     /**
      * View details of a specific service request.
@@ -281,6 +287,9 @@ class ServiceController extends Controller
         //$this->render('service/request', ['requestModel' => $serviceRequest]);
     }
 
+    /*
+     * @return void
+     */
     public function complete_details()
     {
         $requestId = (int)$this->getRequest()->request('id', 0);
@@ -314,10 +323,7 @@ class ServiceController extends Controller
      */
     public function cancel(): void
     {
-        $requestId = (int)$this->getRequest()->request('id', 0);
-        $reason = $this->getRequest()->request('reason', '');
-
-        
+        $requestId = (int)$this->getRequest()->request('id', 0);        
 
         if (!$requestId) {
             $this->getRequest()->addError('Invalid service request ID.');

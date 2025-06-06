@@ -122,7 +122,9 @@
                 <?php if (!User::isAdmin()): ?>
                 <a class="hover-brand-green" href="/service">List All</a>
                     <a href="/service/request" class="hover-brand-yellow">Request Service</a>
-                    <a href="/service/selftrack">Self Tracking</a>
+                    <?php if (User::getInstance()->getAccount()->isSubscribed()): ?>
+                        <a href="/service/selftrack">Self Tracking</a>
+                    <?php endif ?>
                 <?php endif; ?>
             </div>
         </li>

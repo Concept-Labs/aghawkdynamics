@@ -89,4 +89,6 @@ class AccountController extends Controller
         $this->render('account/list', ['accounts' => $accounts]);
 
     }
+
+    
 }

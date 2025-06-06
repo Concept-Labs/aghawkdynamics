@@ -18,7 +18,7 @@ class AdminController extends Controller
     {
         parent::__construct();
         if (!User::isAdmin()) {
-            $this->redirect('error/403');
+            $this->redirect('error/404');
         }
     }
     /**
@@ -107,4 +107,61 @@ class AdminController extends Controller
 
         return $account;
     }
+
+    /**
+     * Unsubscribe an account from notifications.
+     *
+     * @return void
+     */
+    public function subscribe(): void
+    {
+        $id = (int)$this->getRequest('id', 0);
+        if (!$id) {
+            $this->getRequest()->addError('Account ID is required');
+            $this->redirectReferer();
+            return;
+        }
+
+        $account = (new Account())->load($id);
+        if (!$account->getId()) {
+            $this->getRequest()->addError('Account not found');
+            $this->redirectReferer();
+            return;
+        }
+
+        $account->set('subscribed', 1);
+        $account->save();
+
+        $this->getRequest()->addInfo('Account subscribed successfully');
+        $this->redirectReferer();
+    }
+
+    /**
+     * Unsubscribe an account.
+     *
+     * @return void
+     */
+    public function unsubscribe(): void
+    {
+        $id = (int)$this->getRequest('id', 0);
+        if (!$id) {
+            $this->getRequest()->addError('Account ID is required');
+            $this->redirectReferer();
+            return;
+        }
+
+        $account = (new Account())->load($id);
+        if (!$account->getId()) {
+            $this->getRequest()->addError('Account not found');
+            $this->redirectReferer();
+            return;
+        }
+
+        $account->set('subscribed', 0);
+        $account->save();
+
+        $this->getRequest()->addInfo('Account unsubscribed successfully');
+        $this->redirectReferer();
+    }
+
 }
