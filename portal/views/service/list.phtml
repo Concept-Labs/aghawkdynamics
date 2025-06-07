@@ -166,17 +166,19 @@ $statusCssClass = [
                                 </td>
                             <?php endif; ?>
                             <td>
-                                <?= ucfirst(htmlspecialchars($requestModel->get('kind'))) ?>
+                                <a href="/service/request?id=<?= $requestModel->get('id') ?>">
+                                    <?= ucfirst(htmlspecialchars(str_replace('_', ' ', $requestModel->get('kind')))) ?>
+                                </a>
                             </td>
                             <td><?= (new DateTimeImmutable($requestModel->get('date')))->format(Config::get('date_format')) ?></td>
                             <td><?= htmlspecialchars($requestModel->get('type')) ?></td>
                             <td>
-                                <a href="/?q=parcel/edit&id=<?= $requestModel->get('parcel_id') ?>">
+                                <a href="/parcel/edit?id=<?= $requestModel->get('parcel_id') ?>">
                                     <?= htmlspecialchars($requestModel->getParcel()->get('name')) ?>
                                 </a>
                             </td>
                             <td>
-                                <a href="/?q=block/edit&id=<?= $requestModel->get('block_id') ?>">
+                                <a href="/block/edit?id=<?= $requestModel->get('block_id') ?>">
                                     <?= htmlspecialchars($requestModel->getBlock()->get('name')) ?>
                                 </a>
                             </td>
