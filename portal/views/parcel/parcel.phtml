@@ -82,11 +82,14 @@ $parcelBlocks = $parcelModel?->getBlocks();
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
         <h2>Parcel Info</h2>
         <?php if (!User::isAdmin()): ?>
-          <?php if ($parcel['id'] && $parcelModel->canRequestService()): ?>
-            <div class="button-top-set">
-              <a class="btn brand-yellow" href="/?q=service/request&parcel=<?= $parcel['id'] ?>">Request Service</a>
+          <div class="button-top-set">
+            <?php if ($parcel['id'] && $parcelModel->canRequestService()): ?>
+              <a class="btn brand-yellow" href="/service/request?parcel=<?= $parcel['id'] ?>">Request Service</a>
+            <?php endif ?>
+            <?php if ($parcel['id'] && User::getInstance()->getAccount()->isSubscribed()): ?>
+                <a class="btn brand-green" href="/service/selftrack?parcel=<?= $parcel['id'] ?>">Self Tracking</a>
+            <?php endif ?>
             </div>
-          <?php endif ?>
         <?php endif;?>
     </div>
 

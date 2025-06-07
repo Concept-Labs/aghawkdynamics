@@ -54,9 +54,13 @@ $___t = time();
         <?php if (User::getInstance()->isLoggedIn()): ?>
           <?php include_once('top-nav.phtml'); ?>
           <div class="user header-right">
-              <a href="/account/profile">
-                <?= User::getInstance()->getAccount()->get('name') ?>
-              </a> |
+                <a href="/account/profile" style="position: relative; display: inline-block;" title="My Account">
+                  <?= User::getInstance()->getAccount()->get('name') ?>
+                  <?php if (User::getInstance()->getAccount()->isSubscribed()): ?>
+                    <span class="badge-plus">+</span>
+                  <?php endif; ?>
+                </a>
+              |
               <a href="javascript:void(0)" onclick="confirmAction('Are you sure you want to logout?', ()=> window.location.href = '/auth/logout')">Logout</a>
           </div>
         <?php endif; ?>

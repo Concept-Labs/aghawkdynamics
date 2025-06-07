@@ -1,0 +1,28 @@
+<?php
+use App\Core\Config;
+
+$paypalConfig = Config::get('paypal');
+$paypalClientId = $paypalConfig['client_id'] ?? '';
+$paypalSecret = $paypalConfig['secret'] ?? '';
+$paypalPlanId = $paypalConfig['plan_id'] ?? '';
+?>
+<div id="paypal-button-container-<?php echo $paypalPlanId ?>"></div>
+<script src="https://www.paypal.com/sdk/js?client-id=<?php echo $paypalClientId ?>&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
+<script>
+  paypal.Buttons({
+      style: {
+          shape: 'rect',
+          color: 'blue',
+          layout: 'vertical',
+          label: 'subscribe'
+      },
+      createSubscription: function(data, actions) {
+        return actions.subscription.create({
+          plan_id: '<?php echo $paypalPlanId ?>'
+        });
+      },
+      onApprove: function(data, actions) {
+        alert(data.subscriptionID); 
+      }
+  }).render('#paypal-button-container-<?php echo $paypalPlanId ?>');
+</script>

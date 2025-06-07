@@ -27,6 +27,13 @@ return [
         'site_key' => '6Ld8DVIrAAAAADFAOfrJDDrLlxSmVPqhar4TLJlQ',
         'secret_key' => '6Ld8DVIrAAAAAO_Dnsd5JOEzA9nNUvjWGRg0D3qO',
     ],
+    'paypal' => [
+        'url' => 'https://api-m.sandbox.paypal.com', //sandbox
+        //'url' => 'https://api-m.paypal.com', //live
+        'client_id' => 'AeESlAl2DwCHcUTBTXvQsazPg3JNyI2zOo_6Za7cxQgMeYhbqtt9WxWKkf6eOqDAb2Lz1wSVmk8oqay8', //aghawk
+        'secret' => 'EFnRZJOWGLisBQMPc0fG9UKM6dfD2s9xiBTpPgnGk532xnSe2OTJkvb3pAV8WXTtzEz8tnnWzohYhqKw', //aghawk
+        'plan_id' => 'P-4K230313VV8377501NBBK6EA', 
+    ],
     'date_format' => 'm/d/Y',
     'upload_dir' => 'uploads',
     'upload_types' => [

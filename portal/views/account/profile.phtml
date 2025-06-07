@@ -144,43 +144,50 @@ $user = $userModel->getData() ?? [];
                 <div class="fld"><input type="password" name="password" placeholder=" "><label>New password</label></div>
                 <div class="fld"><input type="password" name="password_repeat" placeholder=" "><label>Repeat new password</label></div>
             </div>
-            <?php if (User::isAdmin()): ?>
-            <fieldset>
+            <fieldset >
+                <style>
+                    .subscribed {
+                        background-color: #7c803340;
+                        padding: 1rem;
+                        border-radius: 0.5rem;
+                    }
+                </style>
                 <legend>Subscription</legend>
-                <?php if ($userModel?->isSubscribed()): ?>
-                    <a href="/account/admin/unsubscribe?id=<?php echo $userModel?->getId() ?>" class="btn brand-red">Disable Subscription</a>
-                <?php else: ?>
-                    <a href="/account/admin/subscribe?id=<?php echo $userModel?->getId() ?>" class="btn brand-green">Enable Subscription</a>
+                <?php if (User::isAdmin()): ?>
+                    <?php if ($userModel?->isSubscribed()): ?>
+                        <a href="javascript:void(0);" class="btn brand-red"
+                            onclick="return confirmAction('Are you sure you want to disable the subscription for this user?', () => location.href='/account/admin/unsubscribe?id=<?php echo $userModel?->getId() ?>')"
+                        >
+                            Disable Subscription
+                        </a>
+                    <?php else: ?>
+                        <a 
+                            href="javascript:void(0)" class="btn brand-green"
+                            onclick="return confirmAction('Are you sure you want to enable the subscription for this user?', () => location.href='/account/admin/subscribe?id=<?php echo $userModel?->getId() ?>')"
+                        >Enable Subscription</a>
+                    <?php endif; ?>
                 <?php endif; ?>
                 
-            
-                <?php endif; ?>
                 <?php if (!User::isAdmin() && !User::getInstance()->getAccount()->isSubscribed()): ?>
+                        <p class="note">
+                            You can subscribe to the service to get access to additional features.
+                            <br>
+                            If you have any questions, please contact us at <a href="mailto:chris@aghawkdynamics.com">chris@aghawkdynamics.com</a>.
+                            <br>
+                            To subscribe, please click the button below and follow the instructions.
+                            <br>
+                        </p>
+                        <?php include __DIR__ . '/../common/paypal_subscription.phtml'; ?>
+                <?php elseif (!User::isAdmin() && User::getInstance()->getAccount()->isSubscribed()): ?>
+                        <p class="note subscribed">
+                            You are currently subscribed to the <span style="position:relative">service <span class="badge-plus" style="top:0.1rem; right: -1rem;">+</span></span>
+                            <br>
+                            To unsubscribe, please visit <a href="https://www.paypal.com" target="_blank">PayPal</a> and cancel your subscription.
+                            <br>
+                            If you have any questions, please contact us at <a href="mailto:chris@aghawkdynamics.com">chris@aghawkdynamics.com</a>.
+                        </p>
+                        <?php endif; ?>
 
-                    <div class="fieldset">
-                        <div id="paypal-button-container-P-4K230313VV8377501NBBK6EA"></div>
-                        <script src="https://www.paypal.com/sdk/js?client-id=AeESlAl2DwCHcUTBTXvQsazPg3JNyI2zOo_6Za7cxQgMeYhbqtt9WxWKkf6eOqDAb2Lz1wSVmk8oqay8&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
-                        <script>
-                        paypal.Buttons({
-                            style: {
-                                shape: 'pill',
-                                color: 'gold',
-                                layout: 'vertical',
-                                label: 'subscribe'
-                            },
-                            createSubscription: function(data, actions) {
-                                return actions.subscription.create({
-                                /* Creates the subscription */
-                                plan_id: 'P-4K230313VV8377501NBBK6EA'
-                                });
-                            },
-                            onApprove: function(data, actions) {
-                                alert(data.subscriptionID); // You can add optional success message for the subscriber here
-                            }
-                        }).render('#paypal-button-container-P-4K230313VV8377501NBBK6EA'); // Renders the PayPal button
-                        </script>
-                    </div>
-                <?php endif; ?>
             </fieldset>
             <div class="button-set">
                 <a href="javascript:void(0)" class="btn cancel" onclick="window.history.back()">Back</a>
