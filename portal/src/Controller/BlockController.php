@@ -282,11 +282,7 @@ class BlockController extends Controller
 
         if (!User::isAdmin()) {
             // If the user is not an admin, filter blocks by account ID
-            $blockCollection->addFilter(
-                [
-                    'account_id' => User::getInstance()->getId(),
-                ]
-            );
+            $rawSql .= sprintf(' WHERE b.account_id = %d', User::getInstance()->getId());
         }
 
         $blockCollection->setRawSql($rawSql);

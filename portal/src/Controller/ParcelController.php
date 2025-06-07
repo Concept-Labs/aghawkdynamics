@@ -174,11 +174,7 @@ class ParcelController extends Controller
 
         if (!User::isAdmin()) {
             // If the user is not an admin, filter blocks by account ID
-            $parcelCollection->addFilter(
-                [
-                    'account_id' => User::getInstance()->getId(),
-                ]
-            );
+            $rawSql .= ' WHERE p.account_id = ' . User::uid();
         }
 
         $parcelCollection->setRawSql($rawSql);
