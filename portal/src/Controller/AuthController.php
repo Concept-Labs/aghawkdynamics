@@ -84,7 +84,7 @@ class AuthController extends Controller
         }
 
         $this->getRequest()->setSession('uid', null);
-        
+
         $this->render(
             'auth/signup',
             [
@@ -124,7 +124,7 @@ class AuthController extends Controller
         if ($data['password'] !== $data['password_repeat']) {
             throw new SignUpException('Passwords do not match');
         }
-        if ((new Account())->findByEmail($data['email'])) {
+        if ((new Account())->findByEmail($data['email'])->getId()) {
             throw new SignUpException('Email already exists');
         }
 
@@ -163,45 +163,45 @@ class AuthController extends Controller
      */
     public function login(): void
     {
-        $err = null;
-        try {
-            if ($this->getRequest()->isPost()) {
-                
-                $this->assertRecaptcha();
+        if (!$this->getRequest()->isPost()) {
+            $this->getRequest()->clearSession();
+            $this->render('auth/login');
+            return;
+        }
 
-                $data = $this->getRequest()->post();
+        try {      
+            $this->assertRecaptcha();
 
-                if (null === $err = $this->validateLoginData($data)) {
-                    $acc = new Account();
-                    $user = $acc->findByEmail($data['email'] ?? '');
-                    if ($user && password_verify($data['password'] ?? '', $user['password'])) {
-                        $this->getRequest()->setSession('uid', $user['id']);
+            $loginData = $this->getRequest()->getPost();
 
-                        if (User::isAdmin()) {
-                            $this->redirect('/service/index');
-                            return;
-                        }
+            $this->validateLoginData($loginData);
 
-                        if (!User::getInstance()->hasParcels()) {
-                            $this->redirect('/parcel/add');
-                            return;
-                        } else {
-                            $this->redirect('/parcel/index');
-                            return;
-                        }
-                    }
+            $account = (new Account())->findByEmail($loginData['email'] ?? '');
 
-                    throw new InvalidLoginException('Invalid email or password');
-                }
+            if (!$account || !$account->getId() || !password_verify($loginData['password'] ?? '', $account->getPassword())) {
+                throw new InvalidLoginException('Invalid Credentials');
             }
+
+            $this->getRequest()->setSession('uid', $account->getId());
+
+            if (User::isAdmin()) {
+                $this->redirect('/service/index');
+                return;
+            }
+
+            if (!User::getInstance()->hasParcels()) {
+                $this->redirect('/parcel/add');
+                return;
+            } else {
+                $this->redirect('/parcel/index');
+                return;
+            }
+
         } catch (\Throwable $e) {
-            //$err = $e->getMessage();
             $this->getRequest()->addError($e->getMessage());
         }
 
-        $this->getRequest()->setSession('uid', null);
-
-        $this->render('auth/login');
+        $this->redirectReferer();
     }
 
     
@@ -210,14 +210,13 @@ class AuthController extends Controller
      * Validate login data
      *
      * @param array $data  The login data
-     * @return string|null Error message or null if valid
      */
-    private function validateLoginData(array $data): ?string
+    private function validateLoginData(array $data): void
     {
         if (empty($data['email']) || empty($data['password'])) {
-            return 'Please fill in all fields';
+            throw new \InvalidArgumentException('Please enter your email and password');
         }
-        return null;
+        
     }
 
     /**
@@ -380,7 +379,7 @@ class AuthController extends Controller
         }
 
         $account = (new Account())->findByEmail($data['email']);
-        if (!$account) {
+        if (!$account || !$account->getId()) {
             $this->getRequest()->addError('No account found with that email address');
             return false;
         }

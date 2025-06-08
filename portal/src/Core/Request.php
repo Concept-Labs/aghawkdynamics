@@ -331,6 +331,16 @@ class Request
     }
 
     /**
+     * Cleans the session data.
+     * @return void
+     */
+    public function clearSession(): void
+    {
+        $this->session = [];
+        $_SESSION = []; //fallback if not enough
+    }
+
+    /**
      * @deprecated
      * Get a value from $_COOKIE or all cookies.
      * 

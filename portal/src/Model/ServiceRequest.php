@@ -124,6 +124,13 @@ class ServiceRequest extends Model
         return in_array($this->getStatus(), [self::STATUS_PENDING]);
     }
 
+    /**
+     * Complete the service request.
+     * 
+     * @param array $data Additional data to store with the completion.
+     * 
+     * @return static
+     */
     public function complete(array $data = []): static
     {
         if (!$this->canComplete()) {
@@ -139,6 +146,11 @@ class ServiceRequest extends Model
         return $this;
     }
 
+    /**
+     * Get the complete data associated with the service request.
+     *
+     * @return array
+     */
     public function getCompleteData(): array
     {
         $data = $this->get('complete_data');
@@ -146,6 +158,16 @@ class ServiceRequest extends Model
             $data = json_decode($data, true);
         }
         return is_array($data) ? $data : [];
+    }
+
+    /**
+     * Set the complete data for the service request.
+     *
+     * @param array $data
+     */
+    public function setCompleteData(array $data): void
+    {
+        $this->set('complete_data', json_encode($data));
     }
 
     /**

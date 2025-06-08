@@ -1,0 +1,44 @@
+<?php
+
+use App\Model\Account\User;
+
+if (!$isSelfTracking):  //No need Date for self track or admin
+    // Calculate minimum date for non-urgent (7 business days ahead)
+    $minDate = new DateTime();
+    $businessDays = 0;
+    while ($businessDays < 7) {
+        $minDate->modify('+1 day');
+        if ($minDate->format('N') < 6) { // 1-5 = Mon-Fri
+            $businessDays++;
+        }
+    }
+    $minDateStr = $minDate->format('Y-m-d');
+
+    // Calculate minimum date for urgent (next business day)
+    $minUrgentDate = new DateTime();
+    do {
+        $minUrgentDate->modify('+1 day');
+    } while ($minUrgentDate->format('N') > 5); // 6-7 = Sat/Sun
+    $minUrgentDateStr = $minUrgentDate->format('Y-m-d');
+?>
+    <div class="fld " style="display: flex; gap: 5px; align-items: flex-end; flex-wrap: wrap;">
+        <div class="fld">
+            <select name="service[urgent]" required>
+                <option value="0" <?php if ($requestModel?->get('urgent') == 0): ?>selected<?php endif ?>>No</option>
+                <option value="1" <?php if ($requestModel?->get('urgent') == 1): ?>selected<?php endif ?>>Yes</option>
+            </select>
+            <label>Urgent?</label>
+        </div>
+        <div id="fld_date" class="fld" style="flex: 2;">
+            <input type="date" name="service[date]" placeholder=" " required min="<?= User::isAdmin() ? '' : $minDateStr ?>"
+                value="<?= $requestModel?->get('date') ?: '' ?>"
+                title="Urgent services must be requested at least 1 day in advance. Non-urgent services must be requested at least 7 days in advance.">
+            <label>Service need by date</label>
+        </div>
+    </div>
+<?php else: ?>
+    <div id="fld_date" class="fld">
+        <input type="date" name="service[completed_at]" required>
+        <label>When completed?</label>
+    </div>
+<?php endif; ?>

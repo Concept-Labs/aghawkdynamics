@@ -91,7 +91,7 @@ class ServiceController extends Controller
             $this->redirectReferer();
             return;
         }
-        
+
         Registry::set('service_kind', ServiceRequest::KIND_SELF_TRACKING);
 
         $this->forward('service', 'request');
@@ -439,6 +439,53 @@ class ServiceController extends Controller
         $this->redirectReferer();
     }
 
+    /**
+     * Uncomplete a completed service request.
+     *
+     * @return void
+     */
+    public function uncomplete(): void
+    {
+        try {
+            if (!User::isAdmin()) {
+                throw new \InvalidArgumentException('You do not have permission to uncomplete this service request.');
+            }
+
+            $requestId = (int)$this->getRequest()->request('id', 0);
+
+            if (!$requestId) {
+                throw new \InvalidArgumentException('Invalid service request ID.');
+            }
+
+            $serviceRequest = (new ServiceRequest())->load($requestId);
+
+            if (!$serviceRequest->getId()) {
+                throw new \InvalidArgumentException('Service request not found.');
+            }
+
+            if ($serviceRequest->isCompleted()) {
+                $serviceRequest->setStatus(ServiceRequest::STATUS_PENDING);
+                $serviceRequest->setCompleteData([]);
+                $serviceRequest->save();
+
+                $this->getRequest()->addMessage('Service request has been restored to pending status successfully.');
+            } else {
+                throw new \InvalidArgumentException('This service request is not completed.');
+            }
+        } catch (\Throwable $e) {
+            $this->getRequest()->addError(
+                'An error occurred while processing your request: ' . $e->getMessage()
+            );
+        }
+
+        $this->redirectReferer();
+    }
+
+    /**
+     * Upload an attachment to a service request.
+     *
+     * @return void
+     */
     public function uploadAttachment(): void
     {
         try {

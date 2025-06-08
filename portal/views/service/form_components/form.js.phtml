@@ -1,0 +1,41 @@
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        // <?php if ($readonly): ?> // If the form is read-only, disable all fields and prevent submission
+        //     window.addEventListener('DOMContentLoaded', function() {
+
+        //         var form = document.getElementById('service-form');
+
+        //         form.querySelectorAll('input, select, textarea').forEach(function(el) {
+        //             el.disabled = true; // Disable all form fields
+        //         });
+
+
+        //         form.addEventListener('submit', function(event) {
+        //             event.preventDefault(); // Prevent default form submission
+        //             alertDialog('You do not have permission to change request a service. Please contact an administrator.');
+        //         });
+        //     });
+
+        // <?php endif ?>
+
+        // Handle service type change to show/hide fieldsets
+        document.querySelector('select[name="service[type]"]').addEventListener('change', function() {
+            handleServiceTypeChange(this);
+        });
+        // Trigger change on page load to set initial visibility
+        handleServiceTypeChange(document.querySelector('select[name="service[type]"]'));
+    });
+
+    // Function to handle service type change and show/hide fieldsets
+    function handleServiceTypeChange(el) {
+        const selectedType = el.value;
+        document.querySelectorAll('fieldset[data-allowed-types]').forEach(fieldset => {
+            const allowedTypes = JSON.parse(fieldset.getAttribute('data-allowed-types'));
+            if (allowedTypes.includes(selectedType)) {
+                fieldset.style.display = 'block';
+            } else {
+                fieldset.style.display = 'none';
+            }
+        });
+    }
+</script>

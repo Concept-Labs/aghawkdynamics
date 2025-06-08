@@ -1,7 +1,7 @@
 <?php
 $_page = $paginatorCollection->getPage();
 $_pages = $paginatorCollection->getPages();
-$_pageSize = $paginatorCollection->getPageSize();
+//$_pageSize = $this->getRequest()->getSession('pagesize') ?? $paginatorCollection->getPageSize();
 
 function paginatorPageLink($page, $label = null, $active = false) {
     $label = $label ?? $page;
@@ -13,9 +13,8 @@ function paginatorPageLink($page, $label = null, $active = false) {
         $page,
         htmlspecialchars($label)
     );
-    
-    
 }
+
 ?>
 <?php if ($_pages > 1): ?>
     <script type="text/javascript">
@@ -93,6 +92,16 @@ function paginatorPageLink($page, $label = null, $active = false) {
             <?php if ($_page < $_pages): ?>
                 <?= paginatorPageLink($_page + 1, 'Next »') ?>
             <?php endif; ?>
+
+
+            <!--div class="fld" style="margin-left:auto;">
+                <label for="page_size" style="margin-right: 0.5em;">Items per page:</label>
+                <select name="page_size" class="page-size-select" onchange="this.closest('form').submit()">
+                    <?php foreach ([5, 10, 20, 50, 100] as $size): ?>
+                        <option value="<?= $size ?>" <?= $_pageSize == $size ? 'selected' : '' ?>><?= $size ?> per page</option>
+                    <?php endforeach; ?>
+                </select>
+            </div-->
 
             <!--span style="margin-left:1em;">
                 Page

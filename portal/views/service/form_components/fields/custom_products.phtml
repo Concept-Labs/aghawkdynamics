@@ -1,0 +1,324 @@
+<?php
+
+use App\Core\Config;
+use App\Model\Account\User;
+
+?>
+<fieldset
+    id="custom_products"
+    data-allowed-types='<?= json_encode(Config::get('service_type_custom_products')) ?>'
+    class="custom-products-fieldset"
+    style="border: 1px solid transparent; display: none;">
+    <legend style="padding:0;">
+        <div class="switch-container">
+            <label class="switch-group">
+                <input type="radio" class="hide-content" name="custom_products" value="no" data-content-id="custom_products_content"
+                    <?php if (empty($additionalData['products'])): ?>checked<?php endif ?>>
+                <span class="switch-label">No</span>
+            </label>
+            <label class="switch-group">
+                <input type="radio" class="show-content" name="custom_products" value="yes" data-content-id="custom_products_content"
+                    <?php if (!empty($additionalData['products'])): ?>checked<?php endif ?>>
+                <span class="switch-label">Yes</span>
+            </label>
+            <div class="switch-background"></div>
+        </div>
+        <span class="text-muted">
+            <?php if ($isSelfTracking): ?>
+                Products was applied?
+            <?php else: ?>
+                Do you know type of product needs to be applied?
+            <?php endif; ?>
+        </span>
+    </legend>
+
+    <div id="custom_products_content" style="display: <?= empty($additionalData['products']) ? 'none' : 'block' ?>;">
+        <div class="product-list">
+            <?php
+            $products = $additionalData['products'] ?? [[]];
+            foreach ($products as $index => $product):
+                // if (empty($product['name'])) {
+                //   continue; // Skip empty products
+                // }
+            ?>
+                <div class="product-item" style="margin-top:.5rem;">
+                    <div class="fld">
+                        <select name="service[adds][products][<?= $index ?>][type]">
+                            <option value="" hidden></option>
+                            <?php foreach (Config::get('product_types') as $type): ?>
+                                <option value="<?= htmlspecialchars($type) ?>" <?php if ($product['type'] == $type): ?>selected<?php endif ?>><?= htmlspecialchars($type) ?></option>
+                            <?php endforeach ?>
+                        </select>
+                        <label>Product Type</label>
+                    </div>
+                    <div class="fld">
+                        <input type="text" name="service[adds][products][<?= $index ?>][name]" placeholder="" value="<?= htmlspecialchars($product['name']) ?>">
+                        <label>Product Name</label>
+                    </div>
+                    <div class="fld">
+                        <select name="service[adds][products][<?= $index ?>][unit]">
+                            <?php foreach (Config::get('units') as $unit): ?>
+                                <option value="<?= htmlspecialchars($unit) ?>" <?php if ($product['unit'] == $unit): ?>selected<?php endif ?>><?= htmlspecialchars($unit) ?></option>
+                            <?php endforeach ?>
+                        </select>
+                        <label>Unit</label>
+                    </div>
+                    <div class="fld">
+                        <input type="number" name="service[adds][products][<?= $index ?>][volume]" placeholder="" value="<?= htmlspecialchars($product['volume']) ?>" min="0" step="0.01">
+                        <label>Volume per acre</label>
+                    </div>
+                    <?php if (!$requestModel?->getId() || User::isAdmin()): ?>
+                        <div class="fld">
+                            <button type="button" class="remove-product-btn">X</button>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            <?php endforeach; ?>
+
+        </div>
+        <button type="button" id="add-product-btn" title="Add Product">+</button>
+</fieldset>
+
+<fieldset
+    data-allowed-types='<?= json_encode(Config::get('service_type_custom_products')) ?>'
+    style="border: 1px solid transparent; display: none;">
+    <legend>
+
+        <div class="switch-container">
+            <label class="switch-group">
+                <input
+                    type="radio"
+                    class="hide-content"
+                    name="custom_supplier"
+                    value="no"
+                    data-content-id="custom_supplier_content"
+                    <?php if (empty($additionalData['supplier'])): ?>checked<?php endif ?>>
+                <span class="switch-label">No</span>
+            </label>
+            <label class="switch-group">
+                <input
+                    type="radio"
+                    class="show-content"
+                    name="custom_supplier"
+                    value="yes"
+                    data-content-id="custom_supplier_content"
+                    <?php if (!empty($additionalData['supplier'])): ?>checked<?php endif ?>>
+                <span class="switch-label">Yes</span>
+            </label>
+            <div class="switch-background"></div>
+        </div>
+        <span class="text-muted">
+            <?php if ($isSelfTracking): ?>
+                Want to specify products supplier?
+            <?php else: ?>
+                Do you have preferred supplier?
+            <?php endif; ?>
+        </span>
+    </legend>
+
+    <div class="fld-row" id="custom_supplier_content" style="display: <?= empty($additionalData['supplier']) ? 'none' : 'block' ?>;">
+        <div class="fld">
+            <input
+                type="text"
+                name="service[adds][supplier]"
+                placeholder=""
+                value="<?= htmlspecialchars($additionalData['supplier'] ?? '') ?>">
+            <label>Supplier Name</label>
+        </div>
+        <div class="fld">
+            <input type="text" name="service[adds][supplier_phone]" placeholder=""
+                value="<?= htmlspecialchars($additionalData['supplier_phone'] ?? '') ?>">
+            <label>Phone</label>
+        </div>
+        <div class="fld">
+            <input type="text" name="service[adds][supplier_name]" placeholder=""
+                value="<?= htmlspecialchars($additionalData['supplier_name'] ?? '') ?>">
+            <label>Contact Name</label>
+        </div>
+    </div>
+</fieldset>
+
+<!-- styles for the product item template -->
+<style>
+    .product-item {
+        display: flex;
+        gap: 5px;
+    }
+
+    .product-item input,
+    .product-item select,
+    .product-item textarea,
+    .product-item button {
+        flex: 1;
+    }
+
+    .product-item label {
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .remove-product-btn {
+        background-color: #ff4d4d;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        cursor: pointer;
+        margin: .5rem 0;
+    }
+
+    .remove-product-btn:hover {
+        background-color: #ff1a1a;
+    }
+</style>
+
+<div id="product-template" style="display:none;">
+  <div class="product-item" style="margin-bottom: 10px;">
+    <div class="fld">
+      <select name="service[adds][products][{index}][type]" placeholder=" ">
+        <option value="" hidden></option>
+        <?php foreach (Config::get('product_types') as $type): ?>
+          <option value="<?= htmlspecialchars($type) ?>"><?= htmlspecialchars($type) ?></option>
+        <?php endforeach ?>
+      </select>
+      <label>Product Type</label>
+    </div>
+    <div class="fld">
+      <input type="text" name="service[adds][products][{index}][name]" placeholder="">
+      <label>Product Name</label>
+    </div>
+    <div class="fld">
+      <select name="service[adds][products][{index}][unit]">
+        <?php foreach (Config::get('units') as $unit): ?>
+          <option value="<?= htmlspecialchars($unit) ?>"><?= htmlspecialchars($unit) ?></option>
+        <?php endforeach ?>
+      </select>
+      <label>Unit</label>
+    </div>
+    <div class="fld">
+      <input type="number" min="0" step="0.01" name="service[adds][products][{index}][volume]" placeholder="">
+      <label>Volume pear acre</label>
+    </div>
+    <div class="fld">
+      <button type="button" class="remove-product-btn">X</button>
+    </div>
+  </div>
+
+</div>
+
+<script type="text/javascript">
+  document.addEventListener('DOMContentLoaded', function() {
+    // Handle parcel selection to populate blocks
+    document.querySelector('select[name="service[parcel_id]"]')?.addEventListener('change', function() {
+      const selectedParcelId = this.value;
+      const blockSelect = document.querySelector('select[name="service[block_id]"]');
+      blockSelect.disabled = !selectedParcelId; // Disable if no parcel selected
+      const options = fetch('/?q=block/api/list&parcel_id=' + selectedParcelId)
+        .then(response => response.json())
+        .then(data => {
+          blockSelect.innerHTML = '<option value="" hidden></option>'; // Reset options
+          data.forEach(block => {
+            const option = document.createElement('option');
+            option.value = block.id;
+            option.textContent = block.name;
+            if (block.id == <?= json_encode($currentBlockId) ?>) {
+              option.selected = true; // Pre-select current block if exists
+            }
+            blockSelect.appendChild(option);
+          });
+        })
+        .catch(
+          error =>
+          alertDialog('Error fetching blocks:' + error) &&
+          console.error('Error fetching blocks:', error)
+        );
+    });
+
+    // Handle urgent service selection to set date field
+    document.querySelector('select[name="service[urgent]"]')?.addEventListener('change', function() {
+      const isUrgent = this.value === '1';
+      const dateField = document.getElementById('fld_date');
+      if (isUrgent) {
+        dateField.querySelector('input').setAttribute('min', '<?= $minUrgentDateStr ?>');
+        dateField.querySelector('input').value = '<?= $minUrgentDateStr ?>';
+        dateField.querySelector('input').classList.add('urgent');
+      } else {
+        dateField.querySelector('input').setAttribute('min', '<?= $minDateStr ?>');
+        dateField.querySelector('input').value = '';
+        dateField.querySelector('input').classList.remove('urgent');
+      }
+    });
+
+    // Handle the switch for showing/hiding content
+    function toggleContentVisibility(switchInput, isShow) {
+      const contentId = switchInput.getAttribute('data-content-id');
+      const content = document.getElementById(contentId);
+      if (isShow) {
+        content.style.display = 'block';
+        content.closest('fieldset').style.border = 'var(--border)';
+      } else {
+        content.style.display = 'none';
+        content.closest('fieldset').style.border = '1px solid transparent';
+      }
+    }
+    // Initialize switch inputs for showing/hiding content
+    document.querySelectorAll('input.show-content').forEach(switchGroup => {
+      switchGroup.addEventListener('change', function() {
+        toggleContentVisibility(this, true);
+      });
+    });
+    document.querySelectorAll('input.hide-content').forEach(switchGroup => {
+      switchGroup.addEventListener('change', function() {
+        toggleContentVisibility(this, false);
+      });
+    });
+
+    const MAX_PRODUCTS = 10;
+    
+    document.getElementById('add-product-btn').addEventListener('click', function() {
+      const productList = document.querySelector('.product-list');
+      if (productList.children.length >= MAX_PRODUCTS) {
+        alertDialog('You can add up to 10 products only.');
+        return;
+      }
+      var template = document.getElementById('product-template').innerHTML;
+      template = template.replace(/{index}/g, productList.children.length);
+      productList.insertAdjacentHTML('beforeend', template);
+    });
+
+    document.querySelector('.product-list').addEventListener('click', function(e) {
+      if (e.target.classList.contains('remove-product-btn')) {
+        e.target.closest('.product-item').remove();
+      }
+    });
+
+    toggleSwitcher = function(el) {
+      const content = document.getElementById(el.getAttribute('data-content-id'));
+      const fieldset = el.closest('fieldset');
+      const legend = fieldset ? fieldset.querySelector('legend') : null;
+      if (!content) return;
+      if (el.checked) {
+        content.style.height = 'auto';
+        //content.style.display = 'block';
+        if (fieldset && legend) {
+          fieldset.style.border = 'var(--border)';
+          //legend.style.marginLeft = '1rem';
+        }
+      } else {
+        content.style.height = '0';
+        //content.style.display = 'none';
+        if (fieldset && legend) {
+          fieldset.style.border = 'none';
+          //legend.style.marginLeft = '0';
+        }
+      }
+    };
+
+    document.querySelectorAll('input.switch-input').forEach(function(switchInput) {
+      toggleSwitcher(switchInput);
+      switchInput.addEventListener('change', function() {
+        toggleSwitcher(switchInput);
+      });
+    });
+
+  });
+</script>

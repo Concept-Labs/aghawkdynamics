@@ -12,8 +12,23 @@ abstract class Controller
     {
         $this->request = Request::getInstance();
         $this->checkAuth();
+
+        //@todo move this to a more appropriate place
+        $pageSize = $this->getRequest('page_size');
+
+        if ($pageSize) {
+            $this->getRequest()->setSession('page_size', $pageSize);
+        }
     }
 
+    /**
+     * Get the request instance
+     *
+     * This method returns the Request instance associated with this controller.
+     * It can be used to access request data such as GET, POST, SESSION, etc.
+     *
+     * @return Request
+     */
     public function getRequest(?string $key = null, mixed $default = null): mixed
     {
         if ($key === null) {
@@ -23,6 +38,16 @@ abstract class Controller
         return $this->request->getRequest($key, $default);
     }
 
+    /**
+     * Get a value from the session
+     *
+     * This method retrieves a value from the session using the provided key.
+     * If the key is not found, it returns the specified default value.
+     *
+     * @param string|null $key The key to retrieve from the session
+     * @param mixed $default The default value to return if the key is not found
+     * @return mixed The value from the session or the default value
+     */
     public function getSession(?string $key = null, mixed $default = null): mixed
     {
         return $this->getRequest()->session($key, $default);
@@ -46,6 +71,16 @@ abstract class Controller
         }
     }
 
+    /**
+     * Get a View instance for the given template
+     *
+     * This method creates a new View instance with the specified template and parameters.
+     * It can be used to render views in the application.
+     *
+     * @param string $template The name of the view template
+     * @param array $params Parameters to pass to the view
+     * @return View The View instance
+     */
     protected function getView(string $template, array $params = []): View
     {
         return new View($this, $template, $params);

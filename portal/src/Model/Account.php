@@ -15,6 +15,22 @@ class Account extends Model
     
     protected string $table = self::TABLE;
 
+    
+    public function getName(): ?string
+    {
+        return $this->get('name');
+    }
+
+    public function getEmail(): ?string
+    {
+        return $this->get('email');
+    }
+
+    public function getPassword(): ?string
+    {
+        return $this->get('password');
+    }
+
     /**
      * Hash the password
      *
@@ -53,16 +69,27 @@ class Account extends Model
      * Find an account by email
      *
      * @param string $email The email to search for
-     * @return array|null Returns account data if found, null otherwise
      */
-    public function findByEmail(string $email): ?array
+    public function findByEmail(string $email): static
     {
         $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE email = :email");
         $stmt->execute(['email' => $email]);
         
-        return $stmt->fetch() ?: null;
+        return (new static())->setData($stmt->fetch() ?: []);
     }
 
+    /**
+     * @deprecated
+     * Load account data by email
+     *
+     * @param string $email The email to search for
+     * @return self|null Returns the Account object if found, null otherwise
+     */
+    public function loadByEmail(string $email): ?self
+    {
+        return $this->findByEmail($email);
+    }   
+    
     /**
      * Find an account by reset token
      *
@@ -78,21 +105,7 @@ class Account extends Model
         return (new static())->setData($stmt->fetch() ?: []);
     }
 
-    /**
-     * Load account data by email
-     *
-     * @param string $email The email to search for
-     * @return self|null Returns the Account object if found, null otherwise
-     */
-    public function loadByEmail(string $email): ?self
-    {
-        $data = $this->findByEmail($email);
-        if ($data) {
-            $this->setData($data);
-            return $this;
-        }
-        return null;
-    }   
+    
 
 
     public function getParcels(): CollectionInterface

@@ -77,10 +77,12 @@ $parcelBlocks = $parcelModel?->getBlocks();
 <div class=" entity-form">
 
   <form method="post" id="parcel-form" class="card">
-     
-
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-        <h2>Parcel Info</h2>
+        <?php if (!$parcelModel?->getId()): ?>
+          <h2>Create New Parcel</h2>
+        <?php else: ?>
+          <h2>Parcel Info</h2>
+        <?php endif; ?>
         <?php if (!User::isAdmin()): ?>
           <div class="button-top-set">
             <?php if ($parcel['id'] && $parcelModel->canRequestService()): ?>
@@ -324,13 +326,14 @@ $parcelBlocks = $parcelModel?->getBlocks();
 
   <?php if ($parcel['id']): ?>
   <fieldset class="card">
-    <legend>Blocks</legend>
-    <div class="flex" style="flex-direction:row;justify-content:flex-end;align-items:center;margin-bottom:1rem">
+    <legend>Blocks (first 10)</legend>
+    <div class="flex" style="flex-direction:row;justify-content:flex-end;margin-bottom:1rem; gap:1rem">
       <?php if ($parcelModel->isBlockLimitReached()): ?>
         <span class="warning">Blocks limit for the parcel is reached</span>
       <?php else: ?>
-        <button class="btn" type="button" onclick="addBlockDialog()">Quick Add Block</button>
+        <button class="btn brand-green" type="button" onclick="addBlockDialog()">Quick Add Block</button>
       <?php endif ?>
+      <a class="btn" href="/block?parcel=<?= $parcel['id'] ?>">View All Blocks</a>
     </div>
     <?php if ($parcelBlocks->count() > 0): ?>
       <table class="grid" width="100%">
@@ -348,11 +351,12 @@ $parcelBlocks = $parcelModel?->getBlocks();
         <tbody>
 
           <?php foreach ($parcelBlocks ?? [] as $blockModel):
+            if ($nr++ > 10) {
+              break; // limit to 10 blocks for quick view
+            }
             $block = $blockModel->getData();
           ?>
             <tr class="">
-
-              <!--td><?= htmlspecialchars($block['status']) ?></td-->
               <td >
                 <a href="/block/edit&id=<?= $block['id'] ?>"><?= htmlspecialchars($block['name']) ?></a>
               </td>
@@ -369,7 +373,6 @@ $parcelBlocks = $parcelModel?->getBlocks();
                       <a class="hover-brand-green" href="/service/selftrack&parcel=<?= $block['parcel_id'] ?>?block=<?= $block['id'] ?>">Self Tracking</a>
                     <?php endif; ?>
                   </div>
-
                 </div>
               </td>
             </tr>
