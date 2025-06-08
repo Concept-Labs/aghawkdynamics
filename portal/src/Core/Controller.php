@@ -13,12 +13,7 @@ abstract class Controller
         $this->request = Request::getInstance();
         $this->checkAuth();
 
-        //@todo move this to a more appropriate place
-        $pageSize = $this->getRequest('page_size');
-
-        if ($pageSize) {
-            $this->getRequest()->setSession('page_size', $pageSize);
-        }
+        
     }
 
     /**

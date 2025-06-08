@@ -1,5 +1,6 @@
 <?php
 use App\Core\Config;
+use App\Model\Account\User;
 
 $paypalConfig = Config::get('paypal');
 $paypalClientId = $paypalConfig['client_id'] ?? '';
@@ -22,7 +23,8 @@ $paypalPlanId = $paypalConfig['plan_id'] ?? '';
         });
       },
       onApprove: function(data, actions) {
-        alert(data.subscriptionID); 
+        //todo: handle successful subscription more carefully
+        window.location.href = '/account/subscription_success?id=<?php echo User::uid() ?>&subscription_id=' + data.subscriptionID;
       }
   }).render('#paypal-button-container-<?php echo $paypalPlanId ?>');
 </script>

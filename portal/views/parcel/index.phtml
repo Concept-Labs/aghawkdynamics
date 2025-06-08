@@ -49,7 +49,8 @@ $parcelCollection = $this->var('parcels', []);
                         <input name="filters[main.name]" type="text" placeholder="Parcel" value="<?= htmlspecialchars($filters['main.name'] ?? '') ?>" />
                     </th>
                     <th>
-                        <input name="filters[main.address]" type="text" placeholder="Address" value="<?= htmlspecialchars($filters['main.address'] ?? '') ?>" />
+                        <!--input name="filters[main.address]" type="text" placeholder="Address" value="<?= htmlspecialchars($filters['main.address'] ?? '') ?>" /-->
+                        <span>Address</span>
                     </th>
                     <th>
                         <input name="filters[main.estimated_acres]" type="text" placeholder="Estimated Acres" value="<?= htmlspecialchars($filters['main.estimated_acres'] ?? '') ?>" />

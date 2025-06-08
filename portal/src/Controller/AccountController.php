@@ -90,5 +90,40 @@ class AccountController extends Controller
 
     }
 
+
     
+    public function subscription_success(): void
+    {
+        try {
+            $id = $this->getRequest()->getRequest('id') ?? User::getInstance()->getId();
+            $subscriptionId = $this->getRequest()->getRequest('subscription_id');
+
+            if (!$id) {
+                $this->redirect('/?q=auth/login');
+                return;
+            }
+
+            $account = (new Account())->load($id);
+
+            if (!$account->getId()) {
+                $this->redirect('/?q=auth/login');
+                return;
+            }
+
+            $account
+                ->setSubscribed(true, $subscriptionId)
+                ->save();
+
+            $this->getRequest()->addInfo('Subscription activated successfully.');
+            
+        } catch (\Exception $e) {
+            $this->getRequest()->addError('An error occurred while processing your request.');
+            
+        }
+
+        $this->redirectReferer();
+
+    }
+
+
 }

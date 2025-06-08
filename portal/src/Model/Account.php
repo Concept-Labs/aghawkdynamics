@@ -65,6 +65,14 @@ class Account extends Model
         return (bool)$this->get('subscribed', false);
     }
 
+    public function setSubscribed(bool $subscribed, string $subscriptionId): static
+    {
+        $this->set('subscribed', $subscribed ? 1 : 0);
+        $this->set('subscription_id', $subscriptionId);
+        
+        return $this;
+    }
+
     /**
      * Find an account by email
      *
