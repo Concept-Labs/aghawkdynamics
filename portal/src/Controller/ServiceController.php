@@ -577,15 +577,22 @@ class ServiceController extends Controller
      *
      * @return void
      */
-     public function exportAll(): void
+     public function export(): void
     {
-        $parcelCollection = (new ServiceRequest())->getCollection();
+        $activityCollection = (new ServiceRequest())->getCollection();
 
         $rawSql = sprintf(
-            'SELECT p.*, a.name AS account_name FROM %s p 
-            LEFT JOIN %s a ON p.account_id = a.id
-            LEFT JOIN %s b ON p.block_id = b.id
-            LEFT JOIN %s p ON p.parcel_id = p.id
+            'SELECT activity.*, 
+                a.name AS account_name,
+                p.id AS parcel_id,
+                p.name AS parcel_name,
+                b.name AS block_name
+                
+
+            FROM %s activity
+            LEFT JOIN %s a ON activity.account_id = a.id
+            LEFT JOIN %s b ON activity.block_id = b.id
+            LEFT JOIN %s p ON activity.parcel_id = p.id
             ',
             (new ServiceRequest())->getTable(),
             (new Account())->getTable(),
@@ -598,9 +605,9 @@ class ServiceController extends Controller
             $rawSql .= ' WHERE p.account_id = ' . User::uid();
         }
 
-        $parcelCollection->setRawSql($rawSql);
-        $parcelCollection->setItemMode(Collection::ITEM_MODE_ARRAY);
-        $parcelCollection->sort('created_at', 'DESC');
+        $activityCollection->setRawSql($rawSql);
+        $activityCollection->setItemMode(Collection::ITEM_MODE_ARRAY);
+        $activityCollection->sort('created_at', 'DESC');
 
 
         header('Content-Type: application/csv');
@@ -610,22 +617,63 @@ class ServiceController extends Controller
         $output = fopen('php://output', 'w');
         $separator = ';';
         fputcsv($output, [
-//'Parcel UID', 'Parcel Nickname', 'Business Name', 'Parcel Address', 'City', 'State', 'ZIP', 'Acres', 'Notes'
-            ],
-            $separator
-        );
+            'Activity ID', 
+            'Status', 
+            'Kind', 
+            'Crop Type',
+            'Account', 
+            'Parcel UID', 
+            'Parcel Nickname', 
+            'Block Nickname', 
+            'Reason', 
+            'Is Urgent', 
+            'Need by Date',
+            'Products',
+            "Supplier",
+            "Application rate"
+        ], $separator);
 
-        foreach ($parcelCollection as $parcel) {
+        foreach ($activityCollection as $activity) {
+            $adds = json_decode($activity['adds'], true);
+
+            $applicationRate = $adds['application']['volume'] ? "{$adds['application']['volume']} ({$adds['application']['unit']})" : '';
+
+            $products = [];
+            foreach ($adds['products'] ?? [] as $product) {
+                if (empty($product['type']) || empty($product['name'])) {
+                    continue; // Skip products with missing type or name
+                }
+                $productType = $product['type'] ?? '';
+                $productName = $product['name'] ?? '';
+                $productVolume = $product['volume'] ?? '';
+                $productUnit = $product['unit'] ?? '';
+                $products[] = "[$productType] $productName ($productVolume $productUnit)";
+            }
+
+            $productsStr = implode(', ', $products ?? []);
+
+            $supplierName = $adds['supplier'] ?? '';
+            $supplierPhone = $adds['supplier_phone'] ?? '';
+            $supplierContact = $adds['supplier_name'] ?? '';
+
+            $supplierStr = $supplierName ? "$supplierName ($supplierContact, $supplierPhone)" : '';
+
             fputcsv($output, [
-                $parcel['id'],
-                $parcel['name'],
-                $parcel['account_name'],
-                $parcel['street'],
-                $parcel['city'],
-                $parcel['state'],
-                $parcel['zip'],
-                number_format($parcel['estimated_acres'], 3),
-                $parcel['notes'] ?? ''
+                $activity['id'],
+                $activity['status'],
+                $activity['kind'],
+                $activity['type'],
+                $activity['account_name'],
+                $activity['parcel_id'],
+                $activity['parcel_name'],
+                $activity['block_name'],
+                $activity['reason'] ?? '',
+                $activity['urgent'] ? 'Yes' : 'No',
+                $activity['date'] ? (new \DateTimeImmutable($activity['date']))->format('m/d/Y') : '',
+                $productsStr,
+                $supplierStr,
+                $applicationRate
+
             ], $separator);
         }
         fclose($output);
