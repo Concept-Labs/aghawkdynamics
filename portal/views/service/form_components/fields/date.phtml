@@ -36,9 +36,11 @@ if (!$isSelfTracking):  //No need Date for self track or admin
             <label>Service need by date</label>
         </div>
     </div>
-<?php else: ?>
+<?php else: 
+    $completeAt = new DateTimeImmutable($requestModel?->get('completed_at'));
+?>
     <div id="fld_date" class="fld">
-        <input type="date" name="service[completed_at]" value="<?= $requestModel?->get('completed_at') ?: '' ?>" required
+        <input type="date" name="service[completed_at]" value="<?= $completeAt->format('Y-m-d') ?>" required
             title="This date is required for self-tracking services.">
         <label>When completed?</label>
     </div>

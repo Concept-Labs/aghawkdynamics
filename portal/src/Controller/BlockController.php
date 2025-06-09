@@ -296,7 +296,7 @@ class BlockController extends Controller
         header('Expires: 0');
         $output = fopen('php://output', 'w');
         $separator = ';';
-        $headers = ['Block UID', 'Block Nickname', 'Parcel UID', 'Parcel Nickname', 'Business Name', 'Acres'];
+        $headers = ['Block UID', 'Block Nickname', 'Parcel UID', 'Parcel Nickname', 'Business Name', 'Acres', 'Notes'];
         fputcsv($output, $headers, $separator);
 
         foreach ($blockCollection as $block) {
@@ -307,7 +307,7 @@ class BlockController extends Controller
                 $block['parcel_name'],
                 $block['account_name'],
                 $block['acres'],
-                $block['crop_type'],
+                $block['notes']
             ], $separator);
         }
         fclose($output);

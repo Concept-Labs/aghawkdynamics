@@ -175,7 +175,7 @@ if (User::isAdmin() || $isSelfTracking) { //attachments are only for admin or se
     <?php include __DIR__ . '/form_components/attachments.phtml'; ?>
 
     <div class="button-set ">
-      <button class="btn cancel" type="button" onclick="window.history.back()">Back</button>
+      <!--button class="btn cancel" type="button" onclick="window.history.back()">Back</button-->
       <?php if (!$readonly): ?>
         <?php if ((User::isAdmin() || $isSelfTracking) && $requestModel?->getId()): ?>
           <button class="btn" type="button" onclick="document.getElementById('attachment-modal').classList.add('show')">Add attachment</button>

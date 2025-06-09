@@ -104,7 +104,9 @@ class ParcelController extends Controller
                 ['account_id' => User::uid()] + $this->getRequest()->post('parcel', [])
             );
         } catch (\Throwable $e) {
-            $this->getRequest()->addError($e->getMessage());
+            $this->getRequest()->addError(
+                'Unable to create Parcel '// . $e->getMessage()
+            );
         } finally {
             $this->redirect('/parcel');
         }
@@ -188,7 +190,7 @@ class ParcelController extends Controller
         header('Expires: 0');
         $output = fopen('php://output', 'w');
         $separator = ';';
-        fputcsv($output, ['Parcel UID', 'Parcel Nickname', 'Business Name', 'Parcel Address', 'City', 'State', 'ZIP', 'Acres'], $separator);
+        fputcsv($output, ['Parcel UID', 'Parcel Nickname', 'Business Name', 'Parcel Address', 'City', 'State', 'ZIP', 'Acres', 'Notes'], $separator);
 
         foreach ($parcelCollection as $parcel) {
             fputcsv($output, [
@@ -199,7 +201,8 @@ class ParcelController extends Controller
                 $parcel['city'],
                 $parcel['state'],
                 $parcel['zip'],
-                number_format($parcel['estimated_acres'], 3)
+                number_format($parcel['estimated_acres'], 3),
+                $parcel['notes'] ?? ''
             ], $separator);
         }
         fclose($output);

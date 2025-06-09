@@ -572,6 +572,67 @@ class ServiceController extends Controller
         }
     }
 
+    /**
+     * Export the list of parcels as a CSV file.
+     *
+     * @return void
+     */
+     public function exportAll(): void
+    {
+        $parcelCollection = (new ServiceRequest())->getCollection();
+
+        $rawSql = sprintf(
+            'SELECT p.*, a.name AS account_name FROM %s p 
+            LEFT JOIN %s a ON p.account_id = a.id
+            LEFT JOIN %s b ON p.block_id = b.id
+            LEFT JOIN %s p ON p.parcel_id = p.id
+            ',
+            (new ServiceRequest())->getTable(),
+            (new Account())->getTable(),
+            (new Block())->getTable(),
+            (new Parcel())->getTable()
+        );
+
+        if (!User::isAdmin()) {
+            // If the user is not an admin, filter blocks by account ID
+            $rawSql .= ' WHERE p.account_id = ' . User::uid();
+        }
+
+        $parcelCollection->setRawSql($rawSql);
+        $parcelCollection->setItemMode(Collection::ITEM_MODE_ARRAY);
+        $parcelCollection->sort('created_at', 'DESC');
+
+
+        header('Content-Type: application/csv');
+        header('Content-Disposition: attachment; filename="parcels.csv"');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+        $output = fopen('php://output', 'w');
+        $separator = ';';
+        fputcsv($output, [
+//'Parcel UID', 'Parcel Nickname', 'Business Name', 'Parcel Address', 'City', 'State', 'ZIP', 'Acres', 'Notes'
+            ],
+            $separator
+        );
+
+        foreach ($parcelCollection as $parcel) {
+            fputcsv($output, [
+                $parcel['id'],
+                $parcel['name'],
+                $parcel['account_name'],
+                $parcel['street'],
+                $parcel['city'],
+                $parcel['state'],
+                $parcel['zip'],
+                number_format($parcel['estimated_acres'], 3),
+                $parcel['notes'] ?? ''
+            ], $separator);
+        }
+        fclose($output);
+        exit;
+
+    }
+
 
     /**
      * Validate service request data.

@@ -18,7 +18,9 @@ $parcelCollection = $this->var('parcels', []);
     <div class="table-toolbar flex" style="justify-content: space-between; align-items:center; gap:.5rem; margin-bottom:.5rem">
         <h2>Parcels</h2>
         <div class="button-top-set">
-            <a class="btn" href="/?q=parcel/add">Add Parcel</a>
+            <?php if (!User::isAdmin()): ?>
+                <a class="btn" href="/?q=parcel/add">Add Parcel</a>
+            <?php endif; ?>
             <a class="btn brand-green" href="/?q=parcel/exportAll">Export</a>
         </div>
     </div>
