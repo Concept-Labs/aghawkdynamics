@@ -8,7 +8,8 @@ use App\Model\ServiceRequest;
 //for edit mode
 $serviceModel = $this->var('serviceModel', null);
 
-$readonly = !User::isAdmin() && (!$serviceModel?->canEdit());
+$readonly = ($serviceModel?->getId() && !$serviceModel?->canEdit()) || User::isAdmin();
+
 
 $additionalData = $serviceModel?->getAdditionalData() ?? [];
 $attachments = $serviceModel?->getAttachments();
