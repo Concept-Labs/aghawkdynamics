@@ -25,7 +25,7 @@ $parcelCollection = $this->var('parcels', []);
         </div>
     </div>
     
-    <div class="card">
+    <div class="card grid">
         <form id="block-filter-form" method="POST" class="filter-form paginator-form">
             <input type="hidden" name="page" value="<?= (int)$parcelCollection->getPage() ?>">
         <table class="grid">

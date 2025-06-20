@@ -207,6 +207,10 @@ button:disabled,
   margin-bottom: var(--spacing)
 }
 
+.grid {
+  padding: 0 !important;
+}
+
 .note {
   font-size: 0.8rem;
   color: #666;

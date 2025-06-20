@@ -6,7 +6,7 @@ $filters = $this->var('filters', []);
     
 </style>
 <div id="account-list" class="entity-form">
-    <div class="card">
+    <div class="card grid">
        <form method="POST" class="filter-form paginator-form">
             <input type="hidden" name="page" value="<?= (int)$accountCollection->getPage() ?>">
             <table class="grid">
