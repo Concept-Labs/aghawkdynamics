@@ -1,5 +1,6 @@
 <?php
 return [
+    'debug' => true,
     'domain' => 'https://portal.aghawkdynamics.com/',
     'date_format' => 'm/d/Y',
     'db' => [
@@ -10,18 +11,18 @@ return [
         'database_name' => 'a_gpt'
     ],
     'email' => [
-        'smtp_host' => 'smtp.office365.com',
-         'smtp_port' => 587,
-         'smtp_username' => 'noreply@aghawkdynamics.com',
-         'smtp_password' => 'qtvdklmyphspblll',
-         'from_email' => 'noreply@aghawkdynamics.com',
-         'from_name' => 'AG Hawk Dynamics',
-        // 'smtp_host' => 'smtp.ethereal.email',
-        // 'smtp_port' => 587,
-        // 'smtp_username' => 'columbus.wolf@ethereal.email',
-        // 'smtp_password' => 'MXRmzYTkMHZrd262r9',
-        // 'from_email' => 'columbus.wolf@ethereal.email',
-        // 'from_name' => 'AG Hawk Dynamics',
+        //  'smtp_host' => 'smtp.office365.com',
+        //  'smtp_port' => 587,
+        //  'smtp_username' => 'portal@aghawkdynamics.com',
+        //  'smtp_password' => 'qtvdklmyphspblll',
+        //  'from_email' => 'portal@aghawkdynamics.com',
+        //  'from_name' => 'AG Hawk Dynamics',
+        'smtp_host' => 'smtp.ethereal.email',
+        'smtp_port' => 587,
+        'smtp_username' => 'columbus.wolf@ethereal.email',
+        'smtp_password' => 'MXRmzYTkMHZrd262r9',
+        'from_email' => 'columbus.wolf@ethereal.email',
+        'from_name' => 'AG Hawk Dynamics',
     ],
     'recaptcha' => [
         'enabled' => false,

@@ -10,6 +10,12 @@ abstract class ApiController extends Controller
         exit;
     }
 
+    public function jsonError(string $message, int $code = 500): void
+    {
+        http_response_code($code);
+        $this->json(['error' => $message]);
+    }
+
     public function template(string $template, array $params = []): void
     {
         //

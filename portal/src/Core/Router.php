@@ -10,6 +10,14 @@ class Router
     {
         try {
             $route = $_GET['q'] ?? 'home/index';
+
+            // Handle route as separate Controller for Action
+            // This allows for cleaner routing and better separation of concerns
+            if ($this->dispatchV2($route)) {
+                return;
+            }
+
+            // Fallback to controllers with multiple segments
             $parts = explode('/', $route);
             if (count($parts) === 1) {
                 $parts[] = 'index';
@@ -33,6 +41,11 @@ class Router
                 
             $controller->$action();
 
+        } catch (\App\Core\Exception\ApiException $e) {
+            // Handle API exceptions with specific status codes
+            http_response_code($e->getStatusCode());
+            echo $e->getMessage();
+
         } catch (\Throwable $e) {
             try {
                 http_response_code(500);
@@ -50,4 +63,29 @@ class Router
             }
         }
     }
+
+    /**
+     * Dispatch a route to the appropriate controller/action.
+     * e.g. 'account/profile' -> \App\Controller\Account\ProfileController
+     */
+    private function dispatchV2(string $route): bool
+    {
+        $parts = explode('/', $route);
+        if (count($parts) < 2) {
+            $parts[] = 'index'; // Default action if not specified
+        }
+        $route = implode('\\', array_map('ucfirst', $parts));
+        $route = str_replace('-', '', $route); // Remove dashes for class names
+        $route = str_replace('_', '', $route); // Remove underscores for class names
+        $controllerClass = '\\App\\Controller\\' . $route;
+        if (!class_exists($controllerClass) || !is_subclass_of($controllerClass, Controller::class)) {
+            return false;
+        }
+
+        $controller = new $controllerClass();
+        $controller->handle();
+
+        return true;
+    }
+
 }

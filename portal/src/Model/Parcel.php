@@ -66,13 +66,49 @@ class Parcel extends Model
         if ($this->blocks === null) {
             $this->blocks = (new Block())
                 ->getCollection()
-                ->setItemMode(Collection::ITEM_MODE_OBJECT)
                 ->addFilter(['parcel_id' => $this->getId()])
-                ->setItemMode(Collection::ITEM_MODE_OBJECT)
-                ->sort('created_at', 'DESC');
+                ->sort('created_at', 'DESC')
+                ->setItemMode(Collection::ITEM_MODE_OBJECT);
         }
 
         return $this->blocks;
+    }
+
+    /**
+     * Get a specific block by its ID.
+     *
+     * @param int $blockId
+     * @return Block
+     */
+    public function getBlock(int $blockId): Block
+    {
+        return (new Block())->load($blockId);
+    }
+
+
+    /**
+     * Check if the parcel has any blocks associated with it.
+     *
+     * @return bool
+     */
+    public function hasBlocks(): bool
+    {
+        return !$this->getBlocks()->isEmpty();
+    }
+
+    /**
+     * Get the IDs of the blocks associated with this parcel.
+     *
+     * @return array
+     */
+    public function getBlockIds(): array
+    {
+        $blockIds = [];
+        foreach ($this->getBlocks() as $block) {
+            $blockIds[] = $block->getId();
+        }
+
+        return $blockIds;
     }
 
     /**

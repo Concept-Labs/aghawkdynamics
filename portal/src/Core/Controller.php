@@ -22,14 +22,16 @@ abstract class Controller
      * This method returns the Request instance associated with this controller.
      * It can be used to access request data such as GET, POST, SESSION, etc.
      *
-     * @return Request
+     * @return mixed
      */
     public function getRequest(?string $key = null, mixed $default = null): mixed
     {
         if ($key === null) {
+            //main request object
             return $this->request;
         }
 
+        //specific request key: @deprecated
         return $this->request->getRequest($key, $default);
     }
 
@@ -110,6 +112,10 @@ abstract class Controller
      */
     public function forward(string $controller, string $action = 'index', array $params = []): void
     {
+        if ($this->forvardV2($controller, $action, $params)) {
+            return;
+        }
+
         $controllerClass = 'App\\Controller\\' . ucfirst($controller) . 'Controller';
         if (!class_exists($controllerClass)) {
             throw new \RuntimeException("Controller not found: $controllerClass");
@@ -121,6 +127,35 @@ abstract class Controller
         }
 
         call_user_func_array([$controllerInstance, $action], $params);
+    }
+
+    /**
+     * Forward to another controller and action (version 2)
+     *
+     * This method is an alternative implementation of the forward method.
+     * It allows for more flexibility in forwarding requests to different controllers and actions.
+     *
+     * @param string $controller The name of the controller to forward to
+     * @param string $action The action method to call in the controller
+     * @param array $params Additional parameters to pass to the action method
+     * @return bool Returns true if the forwarding was successful, false otherwise
+     */
+    protected function forvardV2(string $controller, string $action = 'index', array $params = []): bool
+    {
+
+        $controllerClass = 'App\\Controller\\' . ucfirst($controller) . '\\'. ucfirst($action) . 'Controller';
+        if (!class_exists($controllerClass)) {
+            return false;
+        }
+
+        $controllerInstance = new $controllerClass();
+        if (!method_exists($controllerInstance, 'handle')) {
+            return false;
+        }
+
+        call_user_func_array([$controllerInstance, 'handle'], $params);
+
+        return true;
     }
 
     /**

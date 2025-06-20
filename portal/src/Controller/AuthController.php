@@ -267,32 +267,31 @@ class AuthController extends Controller
 
             // Use PHPMailer to send the reset email
 
-            $mail = new PHPMailer(true);
-
+            
             try {
+                $mail = new PHPMailer(true);
                 $config = Config::get('email');
                 $mail->isSMTP();
-                $mail->Host       = $config['smtp_host'];
-                $mail->Port       = $config['smtp_port'];
-                $mail->SMTPAuth   = true;
-                $mail->Username   = $config['smtp_username'];
-                $mail->Password   = $config['smtp_password'];
-                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-
                 $mail->setFrom($config['from_email'], $config['from_name']);
                 $mail->addAddress($userEmail);
-
                 $mail->isHTML(true);
-                $mail->Subject = 'Password Reset Request';
-                $mail->Body    = $emailContent;
+                $mail->SMTPAuth     = true;
+                $mail->SMTPSecure   = PHPMailer::ENCRYPTION_STARTTLS;
+                $mail->Host         = $config['smtp_host'];
+                $mail->Port         = $config['smtp_port'];
+                $mail->Username     = $config['smtp_username'];
+                $mail->Password     = $config['smtp_password'];
+                $mail->Subject      = 'Password Reset Request';
+                $mail->Body         = $emailContent;
 
                 $mail->send();
             } catch (Exception $e) {
                 throw new \RuntimeException('Could not send reset email. Mailer Error: ' . $mail->ErrorInfo);
             }
 
-            $this->getRequest()->addInfo('A password reset link has been sent to your email address.');
-            $this->redirect('/?q=auth/login');
+            $this->getRequest()->addMessage('A password reset link has been sent to your email address.');
+            $this->redirect('/auth/login');
+            return;
 
         } catch (\Throwable $e) {
             $this->getRequest()->addError('An error occurred: ' . $e->getMessage());

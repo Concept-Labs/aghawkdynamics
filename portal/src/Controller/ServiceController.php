@@ -24,157 +24,16 @@ class ServiceController extends Controller
     }
 
     /**
-     * Display the list of service requests for the logged-in user.
+     * View a specific service request in read-only mode.
      *
      * @return void
      */
-    public function index(): void
-    {
-    
-        $filters = $this->getRequest()->request('filters', []);
-
-        $requestCollection = (new ServiceRequest())->getCollection()
-            ->setItemMode(Collection::ITEM_MODE_OBJECT)
-            ->join(
-                Parcel::TABLE,
-                sprintf(
-                    'main.parcel_id = %s.id',
-                    Parcel::TABLE
-                )
-            )
-            ->join(
-                Block::TABLE,
-                sprintf(
-                    'main.block_id = %s.id',
-                    Block::TABLE
-                )
-            )
-            ->join(
-                Account::TABLE,
-                sprintf(
-                    'main.account_id = %s.id',
-                    Account::TABLE
-                )
-            )
-            ->sort('created_at', 'DESC');
-        
-        if (!User::isAdmin()) {
-            $requestCollection->addFilter(['main.account_id' => User::uid()]);
-        }
-
-        $requestCollection->applyPostFilters(
-            $filters
-        );
-
-        $requestCollection->setPage((int)$this->getRequest('page', 1));
-
-        $this->render('service/list', 
-            [
-                'requestCollection' => $requestCollection,
-                'filters' => $filters,
-            ]
-        );
-    }
-
     public function view()
     {
         Registry::set('service_request_readonly', true);
 
         $this->forward('service','request');
             
-    }
-
-    public function selftrack(): void
-    {
-        if (!User::Account()->isSubscribed()) {
-            $this->getRequest()->addError('You must be subscribed to use self-tracking services.');
-            $this->redirectReferer();
-            return;
-        }
-
-        Registry::set('service_kind', ServiceRequest::KIND_SELF_TRACKING);
-
-        $this->forward('service', 'request');
-    }
-
-    /**
-     * Handle the service request form submission.
-     *
-     * @return void
-     */
-    public function request(): void
-    {
-        if ($this->getRequest()->isPost()) {
-            $this->handleRequestPost();
-            return;
-        }
-
-        try {
-
-            if ($this->getRequest()->request('id')) {
-                $this->editForm();
-                return;
-            }
-
-            $forParcelId = $this->getRequest('parcel', null);
-            $forBlockId = $this->getRequest('block', null);
-
-            if ($forBlockId) {
-                //exactly for block (so for parcel as well)
-                $blockModel = (new Block())->load((int)$forBlockId);
-                if (!$blockModel->getId() || 
-                    (!User::isAdmin() && $blockModel->getAccountId() !== User::uid())) {
-                    throw new \InvalidArgumentException('Block not found or you do not have permission to access it.');
-                }
-
-                $parcelModel = $blockModel->getParcel();
-            } elseif ($forParcelId) {
-                //exactly for parcel
-                $parcelModel = (new Parcel())->load((int)$forParcelId);
-                if (!$parcelModel->getId() || 
-                    (!User::isAdmin() && $parcelModel->getAccountId() !== User::uid())) {
-                    throw new \InvalidArgumentException('Parcel not found or you do not have permission to access it.');
-                }
-                $blockCollection = $parcelModel->getBlocks();
-                
-            } else {
-                // No specific parcel or block provided, show all parcels for the user
-                $parcelCollection = (new Parcel())
-                    ->getCollection()
-                    ->setItemMode(Collection::ITEM_MODE_OBJECT)
-                    ->sort('created_at', 'DESC');
-
-                if (!User::isAdmin()) {
-                    // If the user is not an admin, filter parcels by account ID
-                    $parcelCollection->addFilter(['main.account_id' => User::uid()]);
-                } elseif ($this->getRequest()->request('account_id')) {
-                    // If an account ID is provided, filter by that
-                    $parcelCollection->addFilter(['main.account_id' => (int)$this->getRequest()->request('account_id')]);
-                }
-
-                $parcelCollection->sort('name', 'ASC');
-            }
-
-            $this->render(
-                'service/request', 
-                [
-                    'readonly' => Registry::get('service_request_readonly', false),
-                    'kind' => Registry::get('service_kind') ?? $this->getRequest('kind', ServiceRequest::KIND_REQUEST),
-                    'parcelModel' => $parcelModel ?? null,
-                    'blockModel' => $blockModel ?? null,
-                    'parcelCollection' => $parcelCollection,
-                    'blockCollection' => $blockCollection ?? null,
-                ]
-            );
-
-        } catch (\Throwable $e) {
-            $this->getRequest()->addError(
-                'An error occurred while processing your request: ' . $e->getMessage()
-            );
-            $this->redirectReferer();
-        }
-
-        
     }
 
     /**
@@ -186,21 +45,21 @@ class ServiceController extends Controller
     {
         try {
             $requestId = $this->getRequest()->request('id') ?? 0;
-            $requestModel = (new ServiceRequest())
+            $serviceModel = (new ServiceRequest())
                 ->load((int)$requestId);
 
-            if (!$requestModel->getId()) {
+            if (!$serviceModel->getId()) {
                 throw new \InvalidArgumentException('Service request not found.');
             }
 
-            if (!User::isAdmin() && $requestModel->getAccountId() !== User::uid()) {
+            if (!User::isAdmin() && $serviceModel->getAccountId() !== User::uid()) {
                 throw new \InvalidArgumentException('You do not have permission to access this service request.');
             }
 
             $this->render(
                 'service/request', 
                 [
-                    'requestModel' => $requestModel
+                    'serviceModel' => $serviceModel
                 ]
             );
         } catch (\Throwable $e) {
@@ -213,48 +72,7 @@ class ServiceController extends Controller
         }
     }
 
-    /**
-     * Create a new service request.
-     *
-     * @return void
-     */
-    public function handleRequestPost(): void
-    {
-        if (!$this->getRequest()->isPost()) {
-            $this->getRequest()->addError('Invalid request method. Please submit the form.');
-            $this->redirectReferer();
-            return;
-        }
-
-        try {
-            $data = $this->getRequest()->getPost('service');
-
-            $data['account_id'] ??= User::getInstance()->getId();
-            $data['status'] ??= $data['kind'] == ServiceRequest::KIND_REQUEST 
-                ? ServiceRequest::STATUS_PENDING 
-                : ServiceRequest::STATUS_COMPLETED;
-
-            $data['adds'] = json_encode($data['adds'] ?? []);
-
-            $this->validateServiceData($data);
-
-            $serviceRequest = (new ServiceRequest());
-            $serviceRequest
-                ->setData($data)
-                ->save();
-
-            $this->getRequest()->addMessage('Service Request has been submitted successfully.');
-            $this->redirect('/?q=service/index');
-            return;
-
-        } catch (\Throwable $e) {
-            $this->getRequest()->addError(
-                'An error occurred while processing your request: ' . $e->getMessage()
-            );
-            $this->redirectReferer();
-        }
-        
-    }
+    
 
     /**
      * View details of a specific service request.
@@ -283,8 +101,8 @@ class ServiceController extends Controller
             return;
         }
 
-        $this->render('service/details', ['requestModel' => $serviceRequest]);
-        //$this->render('service/request', ['requestModel' => $serviceRequest]);
+        $this->render('service/details', ['serviceModel' => $serviceRequest]);
+        //$this->render('service/request', ['serviceModel' => $serviceRequest]);
     }
 
     /*
@@ -305,7 +123,7 @@ class ServiceController extends Controller
                 throw new \InvalidArgumentException('You do not have permission to view this service request.');
             }
 
-            $this->render('service/complete_details', ['requestModel' => $serviceRequest]);
+            $this->render('service/complete_details', ['serviceModel' => $serviceRequest]);
 
         } catch (\Throwable $e) {
             $this->getRequest()->addError(
@@ -678,38 +496,6 @@ class ServiceController extends Controller
         }
         fclose($output);
         exit;
-
-    }
-
-
-    /**
-     * Validate service request data.
-     *
-     * @param array $data
-     * @throws \InvalidArgumentException
-     */
-    protected function validateServiceData(array $data): void
-    {
-        if (empty($data['account_id'])) {
-            throw new \InvalidArgumentException('Account ID is required.');
-        }
-
-        if ((int)$data['account_id'] !== (int)User::uid() && !User::isAdmin()) {
-            throw new \InvalidArgumentException('Permissions issue');
-        }
-
-        if (empty($data['parcel_id'])) {
-            throw new \InvalidArgumentException('Parcel ID is required.');
-        }
-        if (empty($data['block_id'])) {
-            throw new \InvalidArgumentException('Block ID is required.');
-        }
-        if (empty($data['account_id'])) {
-            throw new \InvalidArgumentException('Account ID is required.');
-        }
-        if (empty($data['type'])) {
-            throw new \InvalidArgumentException('Service type is required.');
-        }
 
     }
 

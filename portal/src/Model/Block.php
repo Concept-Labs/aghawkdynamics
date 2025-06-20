@@ -7,16 +7,33 @@ use App\Core\Model\Collection;
 class Block extends Model
 {
     const TABLE = 'block';
+
+    const COLUMN_ID = 'id';
+    const COLUMN_NAME = 'name';
+    const COLUMN_PARCEL_ID = 'parcel_id';
+    const COLUMN_ACCOUNT_ID = 'account_id';
+    const COLUMN_ACRES = 'acres';
+    const COLUMN_CREATED_AT = 'created_at';
     
     protected string $table = self::TABLE;
 
     private ?Account $account = null;
 
+    /**
+     * Get the account ID associated with this block.
+     *
+     * @return int
+     */
     public function getAccountId(): int
     {
-        return (int)($this->data['account_id'] ?? 0);
+        return (int)($this->data[static::COLUMN_ACCOUNT_ID] ?? 0);
     }
 
+    /**
+     * Get the account associated with this block.
+     *
+     * @return Account
+     */
     public function getAccount(): Account
     {
         if (!$this->account instanceof Account) {
@@ -30,6 +47,22 @@ class Block extends Model
      *
      * @return int
      */
+    public function getId(): int
+    {
+        return (int)($this->data[static::COLUMN_ID] ?? 0);
+    }
+
+    /**
+     * Set the ID of the block.
+     *
+     * @param int $id
+     * @return $this
+     */
+    public function getAcres(): float
+    {
+        return (float)($this->data[static::COLUMN_ACRES] ?? 0.00);
+    }
+
 
     /**
      * Get the ID of the block.
@@ -38,7 +71,7 @@ class Block extends Model
      */
     public function getName(): string
     {
-        return $this->data['name'] ?? '';
+        return $this->data[static::COLUMN_NAME] ?? '';
     }
 
     /**
@@ -48,7 +81,7 @@ class Block extends Model
      */
     public function getParcelId(): int
     {
-        return (int)($this->get('parcel_id') ?? 0);
+        return (int)($this->data[static::COLUMN_PARCEL_ID] ?? 0);
     }
 
     /**
@@ -59,7 +92,7 @@ class Block extends Model
     public function getParcel(): Parcel
     {
         return (new Parcel())
-            ->load($this->data['parcel_id']);
+            ->load($this->data[static::COLUMN_PARCEL_ID] ?? 0);
     }
 
     /**

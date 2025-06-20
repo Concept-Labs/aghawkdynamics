@@ -1,13 +1,18 @@
 <?php
 namespace App\Model;
 
+use App\Core\Database;
 use App\Core\Model;
 use App\Core\Model\Collection;
 use App\Model\Account\User;
+use App\Model\ServiceRequest\ServiceParcel;
 
 class ServiceRequest extends Model
 {
     const TABLE = 'service_request';
+
+    const COLUMN_KIND = 'kind';
+    const COLUMN_STATUS = 'status';
 
     const STATUS_PENDING = 'pending';
     const STATUS_COMPLETED = 'completed';
@@ -28,10 +33,122 @@ class ServiceRequest extends Model
     ];
 
     private ?Account $account = null;
-    private ?Parcel $parcel = null;
-    private ?Block $block = null;
+    // private ?Parcel $parcel = null;
+    // private ?Block $block = null;
 
     protected string $table = self::TABLE;
+
+    /**
+     * Create a new service request.
+     *
+     * @param array $data
+     * 
+     * @return static
+     * @throws \RuntimeException
+     */
+    public static function createRequest(array $data, ?int $account_id = null ): static
+    {
+        //account_id is optional, if not provided, use the current user's ID
+        //Or if the data already contains an account_id, use that
+        $data['account_id'] ??= $account_id ?? User::uid();
+
+        $data['adds'] = json_encode($data['adds'] ?? []);
+        $data['kind'] ??= ServiceRequest::KIND_REQUEST;
+        $data['status'] ??= $data['kind'] == ServiceRequest::KIND_REQUEST 
+            ? ServiceRequest::STATUS_PENDING 
+            : ServiceRequest::STATUS_COMPLETED;
+
+        // Remove empty parcels and ensure each has a valid parcel_id and block_ids
+        $data['parcels']  = array_filter(
+                $data['parcels'] ?? [],
+                function ($parcel, $index) {
+                    return (int)$index >= 0 && !empty($parcel['parcel_id']) && !empty($parcel['block_ids']);
+                },
+                ARRAY_FILTER_USE_BOTH
+        );
+
+        self::validateServiceData($data);
+
+        try {
+            Database::beginTransaction();
+            $serviceRequest = (new static());
+
+            $serviceRequest
+                ->setData($data)
+                ->save();
+
+            foreach ($data['parcels'] as $parcel) {
+                $serviceRequest->addParcel($parcel);
+            }
+
+            Database::commit();
+        } catch (\Throwable $e) {
+            Database::rollback();
+            throw new \RuntimeException('Failed to create service request: ' . $e->getMessage());
+        }
+
+        if (!$serviceRequest->getId()) {
+            throw new \RuntimeException('Service request creation failed');
+        }
+
+        return $serviceRequest;
+    }
+
+    /**
+     * Edit an existing service request.
+     *
+     * @param array $data
+     * 
+     * @return static
+     * @throws \InvalidArgumentException
+     * @throws \RuntimeException
+     */
+    public static function editService(array $data): static
+    {
+        if (empty($data['id'])) {
+            throw new \InvalidArgumentException('Service request ID is required for editing.');
+        }
+
+        $serviceRequest = (new static())->load($data['id']);
+        if (!$serviceRequest->getId()) {
+            throw new \RuntimeException('Service request not found.');
+        }
+
+        // Validate and update data
+        $data = array_replace_recursive($serviceRequest->getData(), $data);
+
+        $serviceRequest->setData($data);
+        self::validateServiceData($serviceRequest->getData());
+
+        $serviceRequest->save();
+
+
+        // Update parcels
+        $serviceRequest->clearParcels();
+        foreach ($data['parcels'] as $parcel) {
+            $serviceRequest->addParcel($parcel);
+        }
+
+        return $serviceRequest;
+    }
+
+
+    /**
+     * Get the collection of service parcels associated with this service request.
+     *
+     * @return \Traversable
+     */
+    public function getServiceParcels(): \Traversable
+    {
+        $collection = (new ServiceParcel())->getCollection();
+        $collection->setItemMode(Collection::ITEM_MODE_OBJECT);
+        $collection->addFilter([ServiceParcel::COLUMN_SERVICE_ID => $this->getId()]);
+        $collection->setPageSize(10000); // Adjust as needed
+
+        foreach( $collection as $serviceParcel) {
+            yield $serviceParcel;
+        }
+    }
 
     /**
      * Get the ID of the service request.
@@ -125,6 +242,16 @@ class ServiceRequest extends Model
     }
 
     /**
+     * Check if the service request can be edited.
+     *
+     * @return bool
+     */
+    public function canEdit(): bool
+    {
+        return in_array($this->getStatus(), [self::STATUS_PENDING]);
+    }
+
+    /**
      * Complete the service request.
      * 
      * @param array $data Additional data to store with the completion.
@@ -171,6 +298,67 @@ class ServiceRequest extends Model
     }
 
     /**
+     * Add a parcel to the service request.
+     *
+     * @param array $data
+     * 
+     * @return ServiceParcel
+     * @throws \InvalidArgumentException
+     */
+    public function addParcel(array $data): ServiceParcel
+    {
+        if (!$this->getId()) {
+            throw new \RuntimeException('Cannot add parcel to non-existent service request');
+        }
+
+        $parcelId = (int)$data[ServiceParcel::COLUMN_PARCEL_ID];
+
+        if (empty($parcelId) || !is_numeric($parcelId) || $parcelId <= 0) {
+            throw new \InvalidArgumentException('Cannot add parcel: Invalid parcel ID');
+        }
+
+        //  prepare block IDs: explode by comma, trim each ID, and join back with commas
+        $blockIds = join(
+            ',', 
+            array_map('trim', explode(
+                ',', 
+                $data[ServiceParcel::COLUMN_BLOCK_IDS]
+            ))
+        );
+
+        if (empty($blockIds)) {
+            throw new \InvalidArgumentException('Cannot add parcel: Block IDs cannot be empty');
+        }
+
+        $serviceParcel = (new ServiceParcel())
+            ->setData([
+                ServiceParcel::COLUMN_SERVICE_ID => $this->getId(),
+                ServiceParcel::COLUMN_PARCEL_ID => $parcelId,
+                ServiceParcel::COLUMN_BLOCK_IDS => $blockIds,
+            ])
+            ->save();
+
+        return $serviceParcel;
+    }
+
+    /**
+     * Clear all parcels associated with this service request.
+     *
+     * @throws \RuntimeException
+     */
+    public function clearParcels(): void
+    {
+        $collection = (new ServiceParcel())->getCollection();
+        $collection->setItemMode(Collection::ITEM_MODE_OBJECT);
+        $collection->addFilter([ServiceParcel::COLUMN_SERVICE_ID => $this->getId()]);
+
+        foreach ($collection as $serviceParcel) {
+            $serviceParcel->delete($serviceParcel->getId());
+        }
+    }
+
+
+    /**
      * Get the additional data associated with the service request.
      *
      * @return array
@@ -195,36 +383,6 @@ class ServiceRequest extends Model
     }
 
     /**
-     * Get the parcel associated with the service request.
-     *
-     * @return Parcel
-     */
-    public function getParcel(): Parcel
-    {
-        if (!$this->parcel instanceof Parcel) {
-            $this->parcel =  (new Parcel())
-                ->load($this->get('parcel_id') ?? 0);
-        }
-
-        return $this->parcel;
-    }
-
-    /**
-     * Get the block associated with the service request.
-     *
-     * @return Block
-     */
-    public function getBlock(): Block
-    {
-        if (!$this->block instanceof Block) {
-            $this->block =  (new Block())
-                ->load($this->get('block_id'));
-        }
-
-        return $this->block;
-    }
-
-    /**
      * Get the user who created the service request.
      *
      * @return User
@@ -237,6 +395,20 @@ class ServiceRequest extends Model
         }
 
         return $this->account;
+    }
+
+    /**
+     * Get the total acres of all service parcels associated with this service request.
+     *
+     * @return float
+     */
+    public function getTotalServiceAcres(): float
+    {
+        $totalAcres = 0.00;
+        foreach ($this->getServiceParcels() as $serviceParcel) {
+            $totalAcres += $serviceParcel->getTotalAcres();
+        }
+        return $totalAcres;
     }
 
     /**
@@ -270,5 +442,41 @@ class ServiceRequest extends Model
 
         return $collection;
     }
-    
+
+
+    /**
+     * Validate service request data.
+     *
+     * @param array &$data
+     * @throws \InvalidArgumentException
+     */
+    public static function validateServiceData(array &$data): void
+    {
+        if (empty($data['account_id'])) {
+            throw new \InvalidArgumentException('Account ID is required.');
+        }
+
+        // if ((int)$data['account_id'] !== (int)User::uid() && !User::isAdmin()) {
+        //     throw new \InvalidArgumentException('Permissions issue');
+        // }
+
+        if (empty($data['type'])) {
+            throw new \InvalidArgumentException('Service type is required.');
+        }
+
+        
+        if (empty($data['kind']) || !in_array($data['kind'], self::KINDS)) {
+            throw new \InvalidArgumentException('Invalid service kind.');
+        }
+
+        if (empty($data['status']) || !in_array($data['status'], self::STATUSES)) {
+            throw new \InvalidArgumentException('Invalid service status.');
+        }
+        
+        if (!is_array($data['parcels']) || empty($data['parcels'])) {
+            throw new \InvalidArgumentException('Parcels are required.');
+        }
+
+    }
+
 }

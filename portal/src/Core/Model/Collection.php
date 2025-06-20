@@ -46,6 +46,11 @@ class Collection implements CollectionInterface
     /**
      * @var array
      */
+    private array $columns = [];
+
+    /**
+     * @var array
+     */
     private array $filters = [];
 
     /**
@@ -202,6 +207,17 @@ class Collection implements CollectionInterface
     public function getItemMode(): int
     {
         return $this->itemMode;
+    }
+
+    public function column(string $column): static
+    {
+        if (empty($column)) {
+            throw new \InvalidArgumentException("Column name cannot be empty");
+        }
+
+        $this->columns[] = $column;
+
+        return $this;
     }
 
     /**
@@ -427,6 +443,46 @@ class Collection implements CollectionInterface
     }
 
     /**
+     * Add filters to the SQL query.
+     *
+     * @param string $sql The SQL query to modify
+     * @return string
+     */
+    protected function renderWhere($sql): string
+    {
+        if ($this->filters) {
+            $hasWhere = strpos($sql, 'WHERE') !== false;
+            if (!$hasWhere) {
+                $sql .= ' WHERE 1=1 ';
+            }
+            $sql .= implode(' ', array_map(function ($filter) {
+                return $filter['operator'] . ' ' . $filter['filter'];
+            }, $this->filters));
+        }
+
+        return $sql;
+    }
+
+    /**
+     * Render the columns for the SQL SELECT statement.
+     *
+     * @return string
+     */
+    protected function renderColumns(): string
+    {
+        if (empty($this->columns)) {
+            return 'main.*';
+        }
+
+        return implode(', ', array_map(function ($column) {
+            if (is_array($column)) {
+                return sprintf("`%s` AS `%s`", $column[0], $column[1]);
+            }
+            return "`$column`";
+        }, $this->columns));
+    }
+
+    /**
      * Get the SQL SELECT statement for the collection.
      *
      * @return string
@@ -451,11 +507,7 @@ class Collection implements CollectionInterface
             }
         }
 
-        if ($this->filters) {
-            $sql .= ' WHERE 1=1 ' . implode(' ', array_map(function ($filter) {
-                return $filter['operator'] . ' ' . $filter['filter'];
-            }, $this->filters));
-        }
+        $sql = $this->renderWhere($sql);
 
         if ($this->groupBy) {
             $sql .= " GROUP BY {$this->groupBy}";
@@ -489,6 +541,21 @@ class Collection implements CollectionInterface
     protected function getParams(): array
     {
         return $this->params;
+    }
+
+    /**
+     * Add a parameter to the collection.
+     *
+     * @param string $key The parameter key
+     * @param mixed $value The parameter value
+     * 
+     * @return static
+     */
+    public function addParam(string $key, mixed $value): static
+    {
+        $this->params[$key] = $value;
+
+        return $this;
     }
 
     /**

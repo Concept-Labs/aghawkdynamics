@@ -1,6 +1,8 @@
 <?php
 
+use App\Core\Config;
 use App\Core\Debug;
+use App\Model\Account\User;
 
   $exception = $this->var('exception');
 ?>
@@ -30,7 +32,13 @@ use App\Core\Debug;
 <div class="not-found-container">
     <h1>500</h1>
     <p>Sorry, an internal server error occurred.</p>
-    <p><?= htmlspecialchars($exception->getMessage()) ?></p>
+    <?php if (User::isAdmin() || Config::get('debug')): ?>
+        <p><strong>Error Details:</strong></p>
+        <p><?= $exception->getMessage() ?></p>
+        <pre style="text-align: left; background: #f8f8f8; padding: 10px; border-radius: 5px; font-size: 0.9em; color: #333;">
+<?= $exception->getTraceAsString() ?>
+        </pre>
+    <?php endif; ?>
     <p>We are working to fix this issue. Please try again later.</p>
     <p>If the problem persists, please contact support.</p>
     

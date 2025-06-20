@@ -11,7 +11,7 @@ abstract class Model
     protected array $data = [];
     protected ?array $fields = null;
     protected string $primaryKey = 'id';
-    protected array $foreignKeys = [];
+    //protected array $foreignKeys = [];
     private ?CollectionInterface $collection = null;
     protected PDO $db;
 
@@ -80,26 +80,23 @@ abstract class Model
     /**
      * Get the collection associated with this model.
      *
-     * @return CollectionInterface
+     * @return Collection
      */
-    public function getCollection(): Collection
+    public function getCollection(?int $itemMode = null): Collection
     {
-        if (!$this->collection instanceof CollectionInterface) {
+        if (!$this->collection instanceof Collection) {
             
+            $collectionClass = class_exists(
+                static::class . '\Collection',
+                true
+            )
+                ? static::class . '\Collection'
+                : Collection::class;
 
-        $collectionClass = class_exists(
-            static::class . '\Collection',
-            true
-        )
-            ? static::class . '\Collection'
-            : Collection::class;
-
-        $this->collection = new $collectionClass(static::class);
-
-            if (!$this->collection instanceof CollectionInterface) {
-                throw new \RuntimeException(
-                    "Collection class $collectionClass must implement CollectionInterface"
-                );
+            $this->collection = new $collectionClass(static::class);
+            
+            if ($itemMode !== null) {
+                $this->collection->setItemMode($itemMode);
             }
         }
 
@@ -111,13 +108,13 @@ abstract class Model
      *
      * @return array
      */
-    public function all(): array
+    public function allAsArray(): array
     {
         $sql = "SELECT * FROM {$this->table}";
         return $this->db->query($sql)->fetchAll();
     }
 
-    
+
 
     /**
      * Load a record by its ID.
@@ -127,12 +124,36 @@ abstract class Model
      */
     public function load(int $id): static
     {
+        $this->_beforeLoad($id);
+
         $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE id = :id");
         $stmt->execute(['id' => $id]);
 
         $this->data = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
+        $this->_afterLoad($id);
+
         return $this;
+    }
+
+    /**
+     * Hook for custom logic before loading the model.
+     *
+     * @param int $id The ID of the record to load
+     */
+    public function _beforeLoad(int $id): void
+    {
+        // Hook for custom logic before loading the model
+    }
+
+    /**
+     * Hook for custom logic after loading the model.
+     *
+     * @param int $id The ID of the record that was loaded
+     */
+    public function _afterLoad(int $id): void
+    {
+        // Hook for custom logic after loading the model
     }
 
     /**
@@ -145,26 +166,50 @@ abstract class Model
         return !empty($this->data) && isset($this->data[$this->getPrimaryKey()]);
     }
 
+    /**
+     * Get the data of the model.
+     *
+     * @return array
+     */
     public function getData(): array
     {
         return $this->data;
     }
 
+    /**
+     * Set data for the model.
+     *
+     * @param array $data The data to set
+     * @return static
+     */
     public function setData(array $data): static
     {
-        foreach ($data as $key => $value) {
-            if (in_array($key, $this->describe())) {
-                $this->data[$key] = $value;
-            }
-        }
+        //unset($data[$this->primaryKey]); // Remove primary key if present
+
+        $this->data = array_replace($this->data, $data);
+
         return $this;
     }
 
+    /**
+     * Get a specific field value.
+     *
+     * @param string $field The field name
+     * @return mixed|null The value of the field or null if it doesn't exist
+     */
     public function get(string $field): mixed
     {
         return $this->data[$field] ?? null;
     }
 
+    /**
+     * Set a specific field value.
+     *
+     * @param string $field The field name
+     * @param mixed $value The value to set
+     * @return static
+     * @throws \Exception If the field does not exist in the table
+     */
     public function set(string $field, mixed $value): static
     {
         if (!in_array($field, $this->describe())) {
@@ -174,23 +219,65 @@ abstract class Model
         return $this;
     }
     
+    /**
+     * Save the model data to the database.
+     *
+     * If the model is loaded, it will update the existing record.
+     * If not, it will create a new record.
+     *
+     * @return static
+     */
     public function save(): static
     {
+        $this->_beforeSave();
+
         unset($this->data['created_at']);
         unset($this->data['created_by']);
         unset($this->data['updated_by']);
         unset($this->data['updated_at']);
 
         if ($this->isLoaded()) {
-            return $this->update($this->data);
+            $this->update($this->data);
         } else {
-            return $this->create($this->data);
+            $this->create($this->data);
         }
+
+        $this->_afterSave();
+
+        return $this;
     }
 
+    /**
+     * Hook for custom logic after saving the model.
+     */
+    public function _beforeSave(): void
+    {
+        // Hook for custom logic before saving the model
+    }
+
+    /**
+     * Hook for custom logic after saving the model.
+     *
+     * This can be used to perform actions that should occur after the model is saved,
+     * such as clearing caches or triggering events.
+     */
+    public function _afterSave(): void
+    {
+        // Hook for custom logic after saving the model
+    }
+
+    /**
+     * Create a new record in the database.
+     *
+     * @param array $data The data to insert
+     * @return static
+     * @throws \Exception If there is an error during insertion
+     */
     public function create(array $data): static
     {
         unset($data[$this->primaryKey]);
+
+        $this->_beforeCreate($data);
 
         foreach ($data as $key => $value) {
             if (empty($value)) {
@@ -199,6 +286,11 @@ abstract class Model
             }
             if (!in_array($key, $this->describe())) {
                 unset($data[$key]);
+                continue;
+            }
+            if (!in_array($key, $this->describe())) {
+                unset($data[$key]);
+                continue;
             }
             if (is_array($value)) {
                 $data[$key] = json_encode($value);
@@ -217,11 +309,48 @@ abstract class Model
             throw new \Exception("Error inserting data: " . $e->getMessage());
         }
 
+        $this->_afterCreate($data);
+
         return $this;
     }
 
+    /**
+     * Hook for custom logic after creating the model.
+     *
+     * This can be used to perform actions that should occur after the model is created,
+     * such as clearing caches or triggering events.
+     *
+     * @param array $data The data that was used to create the model
+     */
+    public function _afterCreate(array $data): void
+    {
+        // Hook for custom logic after creating the model
+    }
+
+    /**
+     * Hook for custom logic before creating the model.
+     *
+     * This can be used to perform actions that should occur before the model is created,
+     * such as validating data or setting default values.
+     *
+     * @param array $data The data that will be used to create the model
+     */
+    public function _beforeCreate(array $data): void
+    {
+        // Hook for custom logic before creating the model
+    }
+
+    /**
+     * Update an existing record in the database.
+     *
+     * @param array $data The data to update
+     * @return static
+     * @throws \Exception If there is no primary key value set or if there is no data to update
+     */
     public function update(array $data): static
     {
+        $this->_beforeUpdate($data);
+
         $primaryKeyValue = $this->getId();
 
         if (empty($primaryKeyValue)) {
@@ -264,15 +393,80 @@ abstract class Model
         // Reload data
         $this->load($primaryKeyValue);
 
+        $this->_afterUpdate($data);
+
         return $this;
     }
 
-    public function delete(int $id): bool
+    /**
+     * Hook for custom logic after updating the model.
+     *
+     * This can be used to perform actions that should occur after the model is updated,
+     * such as clearing caches or triggering events.
+     *
+     * @param array $data The data that was used to update the model
+     */
+    public function _afterUpdate(array $data): void
     {
+        // Hook for custom logic after updating the model
+    }
+
+    /**
+     * Hook for custom logic before updating the model.
+     *
+     * This can be used to perform actions that should occur before the model is updated,
+     * such as validating data or setting default values.
+     *
+     * @param array $data The data that will be used to update the model
+     */
+    public function _beforeUpdate(array $data): void
+    {
+        // Hook for custom logic before updating the model
+    }
+
+    /**
+     * Delete a record by its ID.
+     *
+     * @param int $id The ID of the record to delete
+     * @return bool Returns true if the deletion was successful
+     */
+    public function delete(int $id): static
+    {
+        $this->_beforeDelete($id);
+
         $this->db->prepare("DELETE FROM {$this->table} WHERE id = :id")
             ->execute(['id' => $id]);
         $this->data = [];
         
-        return true;
+        $this->_afterDelete($id);
+
+        return $this;
     }
+
+    /**
+     * Hook for custom logic before deleting the model.
+     *
+     * This can be used to perform actions that should occur before the model is deleted,
+     * such as validating data or setting default values.
+     *
+     * @param int $id The ID of the record to delete
+     */
+    public function _beforeDelete(int $id): void
+    {
+        // Hook for custom logic before deleting the model
+    }
+
+    /**
+     * Hook for custom logic after deleting the model.
+     *
+     * This can be used to perform actions that should occur after the model is deleted,
+     * such as clearing caches or triggering events.
+     *
+     * @param int $id The ID of the record that was deleted
+     */
+    public function _afterDelete(int $id): void
+    {
+        // Hook for custom logic after deleting the model
+    }
+    
 }

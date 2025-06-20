@@ -104,6 +104,8 @@ a:hover {
   color: var(--accent-text);
   padding: .6rem 1rem;
   border-radius: var(--radius);
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
   margin-bottom: .5rem;
   box-shadow: var(--shadow);
 
@@ -376,6 +378,7 @@ textarea[disabled] {
 
 .fld input:not([type="checkbox"]):focus+label,
 .fld input:not([type="checkbox"]):not(:placeholder-shown)+label,
+.fld select:not(:placeholder-shown)+label,
 .fld textarea:focus+label,
 .fld textarea:not(:placeholder-shown)+label {
   top: -.6rem;

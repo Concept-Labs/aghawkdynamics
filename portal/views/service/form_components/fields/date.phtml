@@ -31,12 +31,12 @@ if (!$isSelfTracking):  //No need Date for self track or admin
         </div>
         <div id="fld_date" class="fld" style="flex: 2;">
             <input type="date" name="service[date]" placeholder=" " required min="<?= User::isAdmin() ? '' : $minDateStr ?>"
-                value="<?= $requestModel?->get('date') ?: '' ?>"
+                value="<?= (new DateTimeImmutable($requestModel?->get('date') ?: ''))->format('Y-m-d') ?>"
                 title="Urgent services must be requested at least 1 day in advance. Non-urgent services must be requested at least 7 days in advance.">
             <label>Service need by date</label>
         </div>
     </div>
-<?php else: 
+<?php else:
     $completeAt = new DateTimeImmutable($requestModel?->get('completed_at'));
 ?>
     <div id="fld_date" class="fld">
@@ -45,3 +45,22 @@ if (!$isSelfTracking):  //No need Date for self track or admin
         <label>When completed?</label>
     </div>
 <?php endif; ?>
+
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle urgent service selection to set date field
+        document.querySelector('select[name="service[urgent]"]')?.addEventListener('change', function() {
+            const isUrgent = this.value === '1';
+            const dateField = document.getElementById('fld_date');
+            if (isUrgent) {
+                dateField.querySelector('input').setAttribute('min', '<?= $minUrgentDateStr ?>');
+                dateField.querySelector('input').value = '<?= $minUrgentDateStr ?>';
+                dateField.querySelector('input').classList.add('urgent');
+            } else {
+                dateField.querySelector('input').setAttribute('min', '<?= $minDateStr ?>');
+                dateField.querySelector('input').value = '';
+                dateField.querySelector('input').classList.remove('urgent');
+            }
+        });
+    });
+</script>

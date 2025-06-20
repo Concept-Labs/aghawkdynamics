@@ -69,7 +69,7 @@ use App\Model\Account\User;
                     </div>
                     <?php if (!$requestModel?->getId() || User::isAdmin()): ?>
                         <div class="fld">
-                            <button type="button" class="remove-product-btn">X</button>
+                            <button type="button" class="btn delete">X</button>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -207,70 +207,7 @@ use App\Model\Account\User;
 
 <script type="text/javascript">
   document.addEventListener('DOMContentLoaded', function() {
-    // Handle parcel selection to populate blocks
-    document.querySelector('select[name="service[parcel_id]"]')?.addEventListener('change', function() {
-      const selectedParcelId = this.value;
-      const blockSelect = document.querySelector('select[name="service[block_id]"]');
-      blockSelect.disabled = !selectedParcelId; // Disable if no parcel selected
-      const options = fetch('/?q=block/api/list&parcel_id=' + selectedParcelId)
-        .then(response => response.json())
-        .then(data => {
-          blockSelect.innerHTML = '<option value="" hidden></option>'; // Reset options
-          data.forEach(block => {
-            const option = document.createElement('option');
-            option.value = block.id;
-            option.textContent = block.name;
-            if (block.id == <?= json_encode($currentBlockId) ?>) {
-              option.selected = true; // Pre-select current block if exists
-            }
-            blockSelect.appendChild(option);
-          });
-        })
-        .catch(
-          error =>
-          alertDialog('Error fetching blocks:' + error) &&
-          console.error('Error fetching blocks:', error)
-        );
-    });
-
-    // Handle urgent service selection to set date field
-    document.querySelector('select[name="service[urgent]"]')?.addEventListener('change', function() {
-      const isUrgent = this.value === '1';
-      const dateField = document.getElementById('fld_date');
-      if (isUrgent) {
-        dateField.querySelector('input').setAttribute('min', '<?= $minUrgentDateStr ?>');
-        dateField.querySelector('input').value = '<?= $minUrgentDateStr ?>';
-        dateField.querySelector('input').classList.add('urgent');
-      } else {
-        dateField.querySelector('input').setAttribute('min', '<?= $minDateStr ?>');
-        dateField.querySelector('input').value = '';
-        dateField.querySelector('input').classList.remove('urgent');
-      }
-    });
-
-    // Handle the switch for showing/hiding content
-    function toggleContentVisibility(switchInput, isShow) {
-      const contentId = switchInput.getAttribute('data-content-id');
-      const content = document.getElementById(contentId);
-      if (isShow) {
-        content.style.display = 'block';
-        content.closest('fieldset').style.border = 'var(--border)';
-      } else {
-        content.style.display = 'none';
-        content.closest('fieldset').style.border = '1px solid transparent';
-      }
-    }
-    // Initialize switch inputs for showing/hiding content
-    document.querySelectorAll('input.show-content').forEach(switchGroup => {
-      switchGroup.addEventListener('change', function() {
-        toggleContentVisibility(this, true);
-      });
-    });
-    document.querySelectorAll('input.hide-content').forEach(switchGroup => {
-      switchGroup.addEventListener('change', function() {
-        toggleContentVisibility(this, false);
-      });
-    });
+    
 
     const MAX_PRODUCTS = 10;
     
@@ -291,34 +228,7 @@ use App\Model\Account\User;
       }
     });
 
-    toggleSwitcher = function(el) {
-      const content = document.getElementById(el.getAttribute('data-content-id'));
-      const fieldset = el.closest('fieldset');
-      const legend = fieldset ? fieldset.querySelector('legend') : null;
-      if (!content) return;
-      if (el.checked) {
-        content.style.height = 'auto';
-        //content.style.display = 'block';
-        if (fieldset && legend) {
-          fieldset.style.border = 'var(--border)';
-          //legend.style.marginLeft = '1rem';
-        }
-      } else {
-        content.style.height = '0';
-        //content.style.display = 'none';
-        if (fieldset && legend) {
-          fieldset.style.border = 'none';
-          //legend.style.marginLeft = '0';
-        }
-      }
-    };
-
-    document.querySelectorAll('input.switch-input').forEach(function(switchInput) {
-      toggleSwitcher(switchInput);
-      switchInput.addEventListener('change', function() {
-        toggleSwitcher(switchInput);
-      });
-    });
+    
 
   });
 </script>
