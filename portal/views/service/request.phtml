@@ -8,7 +8,7 @@ use App\Model\ServiceRequest;
 //for edit mode
 $serviceModel = $this->var('serviceModel', null);
 
-$readonly = ($serviceModel?->getId() && !$serviceModel?->canEdit()) || User::isAdmin();
+$___readonly = ($serviceModel?->getId() && !$serviceModel?->canEdit()) && !User::isAdmin();
 
 
 $additionalData = $serviceModel?->getAdditionalData() ?? [];
@@ -46,7 +46,8 @@ if (User::isAdmin() || $isSelfTracking) { //attachments are only for admin or se
 
     <div style="display:flex; justify-content: space-between; margin-bottom: 1rem; align-items: center;">
       <?php if ($serviceModel?->getId()): ?>
-        <h2>Update</h2>
+
+        <h2>Activity #<?php echo $serviceModel?->getId()?></h2>
           <span class="kind kind-<?php echo $serviceModel?->get('kind') ?>"><?php echo ucfirst(str_replace('_', ' ', $serviceModel?->get('kind'))) ?></span>
           <?php if (User::isAdmin() && $serviceModel?->isCompleted()): ?>
             <a class="status status-<?= htmlspecialchars($serviceModel?->getStatus()) ?>" href="/service/complete_details?id=<?= $serviceModel->get('id') ?>">Complete Details</a>
@@ -129,27 +130,46 @@ if (User::isAdmin() || $isSelfTracking) { //attachments are only for admin or se
         <?php if ((User::isAdmin() || $isSelfTracking) && $serviceModel?->getId()): ?>
           <button class="btn" type="button" onclick="document.getElementById('attachment-modal').classList.add('show')">Add attachment</button>
         <?php endif; ?>
+
         <?php if ($serviceModel?->canCancel()): ?>
-          <a href="javascript:void(0)" class="btn brand-red" type="button" onclick="cancelRequest(<?= $serviceModel?->getId() ?>)">Cancel Service</a>
+          <a href="javascript:void(0)" class="btn brand-red" type="button" onclick="Portal.Service.doCancel(<?= $serviceModel?->getId() ?>)">Cancel Service</a>
         <?php endif; ?>
-          <?php if (User::isAdmin() && $serviceModel?->canComplete()): ?>
+
+        <?php if (User::isAdmin() && $serviceModel?->canComplete()): ?>
           <a href="javascript:void(0)" class="btn brand-yellow" type="button" onclick="completeDialog(<?= $serviceModel?->getId() ?>)">Complete</a>
         <?php endif; ?>
+
         <?php if (User::isAdmin() && $serviceModel?->isCompleted()): ?>
           <a href="javascript:void(0)" class="btn brand-yellow" type="button" onclick="confirmAction('Are you sure you want to UNCOMPLETE this service request?', function() {
             window.location.href = '/service/uncomplete?id=<?= $serviceModel?->getId() ?>';
           })">Uncomplete</a>
         <?php endif; ?>
+
         <?php if (/*User::isAdmin() && */$serviceModel?->isCancelled()): ?>
-          <a href="javascript:void(0)" class="btn" type="button" onclick="uncancelRequest(<?= $serviceModel?->getId() ?>)">Restore</a>
+          <a href="javascript:void(0)" class="btn" type="button" onclick="Portal.Service.doUncancel(<?= $serviceModel?->getId() ?>)">Restore</a>
         <?php endif; ?>
-        <button class="btn brand-green" type="submit">
-          <?php if ($serviceModel?->getId()): ?>
-            Update
+
+        <?php if ($serviceModel?->getId()): ?>
+          <a href="javascript:void(0)" class="btn" type="button" onclick="Portal.Service.doCopy(<?= $serviceModel->get('id') ?>)">Create Copy</a>
+        <?php endif; ?>
+
+        <?php if ($serviceModel?->getId()): ?>
+            <?php if ($serviceModel?->canEdit()):?>
+              <button class="btn brand-green" type="submit">
+                  Update
+              </button>
+            <?php endif; ?>
           <?php else: ?>
-            Create
-          <?php endif; ?>
-        </button>
+            <button class="btn brand-green" type="submit">
+              Create
+            </button>
+        <?php endif; ?>
     </div>
   </form>
 </div>
+
+<script>
+  <?php if ($___readonly): ?>
+    Portal.readonlyForm(document.getElementById('service-form'));
+  <?php endif; ?>
+</script>

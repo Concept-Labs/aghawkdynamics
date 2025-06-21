@@ -40,10 +40,10 @@
         <label>Parcel</label>
     </div>
     <div class="fld" style="flex: 1;">
-        <div class="multi-select" data-index="{index}">
+        <div class="multi-select control" data-index="{index}">
             <input type="hidden" name="service[parcels][{index}][block_ids]" value="">
             <div class="ms-display control" tabindex="0">Select blocks…</div>
-            <div class="ms-dropdown"></div>
+            <div class="ms-dropdown control"></div>
         </div>
     </div>
     <div class="fld">
@@ -161,7 +161,7 @@ class MultiSelect {
         chip.textContent = b.name;
         chip.id = 'chip' + b.id;
 
-        chip.innerHTML += '<span class="x">×</span>';
+        chip.innerHTML += '<span class="x control">×</span>';
         chip.querySelector('.x').onclick = () => {
             this.removeChip(b.id);
             const input = this.drop.querySelector(`input[value="${b.id}"]`);

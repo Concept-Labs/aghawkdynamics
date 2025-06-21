@@ -5,6 +5,7 @@ use App\Core\Database;
 use App\Core\Model;
 use App\Core\Model\Collection;
 use App\Model\Account\User;
+use App\Model\ServiceRequest\Adds;
 use App\Model\ServiceRequest\ServiceParcel;
 
 class ServiceRequest extends Model
@@ -52,7 +53,9 @@ class ServiceRequest extends Model
         //Or if the data already contains an account_id, use that
         $data['account_id'] ??= $account_id ?? User::uid();
 
-        $data['adds'] = json_encode($data['adds'] ?? []);
+        $data['adds'] = is_array($data['adds']) ? json_encode($data['adds'] ?? []) : $data['adds'];
+
+
         $data['kind'] ??= ServiceRequest::KIND_REQUEST;
         $data['status'] ??= $data['kind'] == ServiceRequest::KIND_REQUEST 
             ? ServiceRequest::STATUS_PENDING 
@@ -110,18 +113,18 @@ class ServiceRequest extends Model
         }
 
         $serviceRequest = (new static())->load($data['id']);
+
         if (!$serviceRequest->getId()) {
             throw new \RuntimeException('Service request not found.');
         }
 
         // Validate and update data
-        $data = array_replace_recursive($serviceRequest->getData(), $data);
+        $data = array_replace($serviceRequest->getData(), $data);
 
+        self::validateServiceData($data);
         $serviceRequest->setData($data);
-        self::validateServiceData($serviceRequest->getData());
 
         $serviceRequest->save();
-
 
         // Update parcels
         $serviceRequest->clearParcels();
@@ -130,6 +133,77 @@ class ServiceRequest extends Model
         }
 
         return $serviceRequest;
+    }
+
+    /**
+     * Create a copy of an existing service request.
+     *
+     * @param int $id
+     * 
+     * @return static
+     * @throws \RuntimeException
+     */
+    public static function createCopy(int $id): static
+    {
+        $original = (new static())->load($id);
+
+        if (!$original->getId()) {
+            throw new \RuntimeException('Service request not found.');
+        }
+
+        // Create a new service request with the same data, but reset certain fields
+        $data = $original->getData();
+        $data['parcels'] = []; // Reset parcels for the new request
+        foreach ($original->getServiceParcels() as $parcel) {
+            $data['parcels'][] = [
+                ServiceParcel::COLUMN_PARCEL_ID => $parcel->get('parcel_id'),
+                ServiceParcel::COLUMN_BLOCK_IDS => $parcel->get('block_ids'),
+            ];
+        }
+
+        unset(
+            $data['id'], 
+            $data['date'], 
+            $data['created_at'], 
+            $data['updated_at'], 
+            $data['completed_at'], 
+            $data['completed_by'], 
+            $data['complete_data'], 
+            $data['urgent']
+        );
+
+        $data['status'] = ServiceRequest::STATUS_PENDING; // Reset status for new request
+        
+        // Create a new service request
+        $service = self::createRequest($data);
+
+        // Copy parcels
+        // foreach ($original->getServiceParcels() as $parcel) {
+        //     $service->addParcel([
+        //         ServiceParcel::COLUMN_PARCEL_ID => $parcel->get('parcel_id'),
+        //         ServiceParcel::COLUMN_BLOCK_IDS => $parcel->get('block_ids'),
+        //     ]);
+        // }
+       
+
+        return $service;
+    }
+
+    /**
+     * {@inheritdoc}
+     * 
+     * Prepares the 'adds' field before saving the service request.
+     */
+    protected function _beforeSave(): void
+    {
+        // Prepare 'adds' field for storage
+        $this->setData(
+            Adds::prepare(
+                $this->getData()
+            )
+        );
+
+        parent::_beforeSave();
     }
 
 
@@ -158,6 +232,69 @@ class ServiceRequest extends Model
     public function getAccountId(): ?int
     {
         return $this->get('account_id');
+    }
+
+    /**
+     * Get the custom products associated with the service request.
+     *
+     * @return array
+     */
+    public function getCustomProducts(): array
+    {
+        $adds = $this->getAdditionalData();
+        return $adds[Adds::FIELD_PRODUCTS] ?? [];
+    }
+
+    /**
+     * Get a specific custom product by index.
+     *
+     * @param int $index
+     * @return mixed|null
+     */
+    public function getCustomProduct(int $index)
+    {
+        $products = $this->getCustomProducts();
+        return $products[$index] ?? null;
+    }
+
+    /**
+     * Check if the service request has custom products.
+     *
+     * @return bool
+     */
+    public function hasCustomProducts(): bool
+    {
+        $products = $this->getCustomProducts();
+
+        return !empty($products) && is_array($products);
+
+    }
+
+    /**
+     * Get the custom supplier associated with the service request.
+     *
+     * @return mixed
+     */
+    public function getCustomSupplier(?string $key = null): mixed
+    {
+        $adds = Adds::extractAdds($this->getData());
+        $supplier = $adds[Adds::FIELD_SUPPLIER] ?? [];
+        
+        if ($key !== null) {
+            return $supplier[$key] ?? null;
+        }
+
+        return $supplier;
+    }
+
+    /**
+     * Check if the service request has a custom supplier.
+     *
+     * @return bool
+     */
+    public function hasCustomSupplier(): bool
+    {
+        return !empty($this->getCustomSupplier('supplier'));
     }
 
     /**
@@ -365,11 +502,13 @@ class ServiceRequest extends Model
      */
     public function getAdditionalData(): array
     {
-        $adds = $this->get('adds');
-        if (is_string($adds)) {
-            $adds = json_decode($adds, true);
-        }
-        return is_array($adds) ? $adds : [];
+        return Adds::extractAdds($this->getData());
+
+        // $adds = $this->get('adds');
+        // if (is_string($adds)) {
+        //     $adds = json_decode($adds, true);
+        // }
+        // return is_array($adds) ? $adds : [];
     }
 
     /**
@@ -381,6 +520,8 @@ class ServiceRequest extends Model
     {
         $this->set('adds', json_encode($adds));
     }
+
+   
 
     /**
      * Get the user who created the service request.
@@ -410,6 +551,24 @@ class ServiceRequest extends Model
         }
         return $totalAcres;
     }
+
+    /**
+     * Get the supplier data associated with the service request.
+     *
+     * @return mixed
+     */
+    public function getSupplierData(?string $key = null): mixed
+    {
+        $adds = Adds::extractAdds($this->getData());
+        $data = $adds[Adds::FIELD_SUPPLIER] ?? [];
+
+        if ($key !== null) {
+            return $data[$key] ?? [];
+        }
+
+        return $data;
+    }
+
 
     /**
      * Add an attachment to this service request.
@@ -447,10 +606,10 @@ class ServiceRequest extends Model
     /**
      * Validate service request data.
      *
-     * @param array &$data
+     * @param array $data
      * @throws \InvalidArgumentException
      */
-    public static function validateServiceData(array &$data): void
+    public static function validateServiceData(array $data): void
     {
         if (empty($data['account_id'])) {
             throw new \InvalidArgumentException('Account ID is required.');

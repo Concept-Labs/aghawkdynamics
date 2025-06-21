@@ -21,6 +21,18 @@ abstract class Model
     }
 
     /**
+     * Find a record by its ID.
+     *
+     * @param int $id The ID of the record to find
+     * @return static
+     */
+    public static function find(int $id): static
+    {
+        $instance = new static();
+        return $instance->load($id);
+    }
+
+    /**
      * Get the name of the table associated with this model.
      *
      * @return string
@@ -141,7 +153,7 @@ abstract class Model
      *
      * @param int $id The ID of the record to load
      */
-    public function _beforeLoad(int $id): void
+    protected function _beforeLoad(int $id): void
     {
         // Hook for custom logic before loading the model
     }
@@ -151,7 +163,7 @@ abstract class Model
      *
      * @param int $id The ID of the record that was loaded
      */
-    public function _afterLoad(int $id): void
+    protected function _afterLoad(int $id): void
     {
         // Hook for custom logic after loading the model
     }
@@ -250,7 +262,7 @@ abstract class Model
     /**
      * Hook for custom logic after saving the model.
      */
-    public function _beforeSave(): void
+    protected function _beforeSave(): void
     {
         // Hook for custom logic before saving the model
     }
@@ -261,7 +273,7 @@ abstract class Model
      * This can be used to perform actions that should occur after the model is saved,
      * such as clearing caches or triggering events.
      */
-    public function _afterSave(): void
+    protected function _afterSave(): void
     {
         // Hook for custom logic after saving the model
     }
@@ -322,7 +334,7 @@ abstract class Model
      *
      * @param array $data The data that was used to create the model
      */
-    public function _afterCreate(array $data): void
+    protected function _afterCreate(array $data): void
     {
         // Hook for custom logic after creating the model
     }
@@ -335,7 +347,7 @@ abstract class Model
      *
      * @param array $data The data that will be used to create the model
      */
-    public function _beforeCreate(array $data): void
+    protected function _beforeCreate(array $data): void
     {
         // Hook for custom logic before creating the model
     }
@@ -406,7 +418,7 @@ abstract class Model
      *
      * @param array $data The data that was used to update the model
      */
-    public function _afterUpdate(array $data): void
+    protected function _afterUpdate(array $data): void
     {
         // Hook for custom logic after updating the model
     }
@@ -419,7 +431,7 @@ abstract class Model
      *
      * @param array $data The data that will be used to update the model
      */
-    public function _beforeUpdate(array $data): void
+    protected function _beforeUpdate(array $data): void
     {
         // Hook for custom logic before updating the model
     }
@@ -451,7 +463,7 @@ abstract class Model
      *
      * @param int $id The ID of the record to delete
      */
-    public function _beforeDelete(int $id): void
+    protected function _beforeDelete(int $id): void
     {
         // Hook for custom logic before deleting the model
     }
@@ -464,7 +476,7 @@ abstract class Model
      *
      * @param int $id The ID of the record that was deleted
      */
-    public function _afterDelete(int $id): void
+    protected function _afterDelete(int $id): void
     {
         // Hook for custom logic after deleting the model
     }

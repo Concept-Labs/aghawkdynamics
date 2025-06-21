@@ -88,7 +88,7 @@ $statusCssClass = [
             <?php if (!User::isAdmin()): ?>
                 <a class="btn brand-yellow" href="/service/request">Request Service</a>
             <?php endif; ?>
-            <a class="btn brand-green disabled" href="/?q=service/export">Export</a>
+            <a class="btn brand-green disabled" href="/service/export">Export</a>
         </div>
     </div>
     <div class="card grid">
@@ -251,11 +251,12 @@ $statusCssClass = [
                                         <?php if (User::isAdmin() && $serviceModel->canComplete()): ?>
                                             <a href="javascript:void(0)" class="hover-brand-green" onclick="completeDialog(<?= $serviceModel->get('id') ?>)">Complete</a>
                                         <?php endif; ?>
+                                        <a href="javascript:void(0)" class="hover-brand-yellow" onclick="Portal.Service.doCopy(<?= $serviceModel->get('id') ?>)">Create Copy</a>
                                         <?php if ($serviceModel->canCancel()): ?>
-                                            <a href="javascript:void(0)" class="danger" onclick="cancelRequest(<?= $serviceModel->get('id') ?>)">Cancel Request</a>
+                                            <a href="javascript:void(0)" class="danger" onclick="Portal.Service.doCancel(<?= $serviceModel->get('id') ?>)">Cancel Request</a>
                                         <?php endif; ?>
                                         <?php if ($serviceModel->isCancelled()): ?>
-                                            <a href="javascript:void(0)" class="hover-brand-green" onclick="uncancelRequest(<?= $serviceModel->get('id') ?>)">Restore Request</a>
+                                            <a href="javascript:void(0)" class="hover-brand-green" onclick="Portal.Service.doUncancel(<?= $serviceModel->get('id') ?>)">Restore Request</a>
                                         <?php endif; ?>
 
                                     </div>

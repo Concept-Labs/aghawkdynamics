@@ -1,17 +1,8 @@
 <script type="text/javascript">
-    
+
         
     document.addEventListener('DOMContentLoaded', function() {
-        <?php if ($readonly): ?>
-            // Disable all inputs if in readonly mode
-            Portal.notify('This service is in read-only mode. You cannot edit it.', 'warning');
-            form = document.getElementById('service-form');
-            for (const control of form.querySelectorAll('input, select, textarea, .control')) {
-                control.disabled = true;
-                control.classList.add('disabled');
-            }
-            
-        <?php endif; ?>
+
 
         // Handle service type change to show/hide fieldsets
         document.querySelector('select[name="service[type]"]').addEventListener('change', function() {

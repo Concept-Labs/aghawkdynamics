@@ -14,6 +14,48 @@ Portal = {
                 setTimeout(() => msg.remove(), 250);
             }, 3000);
         });
+    },
+
+    readonlyForm: function(form)
+    {
+        Portal.notify('This service is in read-only mode. You cannot edit it.', 'warning');
+        for (const control of form.querySelectorAll('input, select, textarea, .control')) {
+            control.disabled = true;
+            control.classList.add('disabled');
+            control.addEventListener('click', function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                Portal.notify('This service is in read-only mode. You cannot edit it.', 'warning');
+            });
+
+        }
+    },
+
+    Service: {
+        doCancel: function(id) {
+            confirmAction('Are you sure you want to cancel this service?')
+            .then(confirmed => {
+                if (confirmed) {
+                    window.location.href = '/service/cancel?id=' + id;
+                }
+            });
+        },
+        doUncancel: function(id) {
+            confirmAction('Are you sure you want to restore this service?')
+            .then(confirmed => {
+                if (confirmed) {
+                    window.location.href = '/service/uncancel?id=' + id;
+                }
+            });
+        },
+        doCopy: function(id) {
+            confirmAction('Are you sure you want to copy this service?')
+            .then(confirmed => {
+                if (confirmed) {
+                    window.location.href = '/service/copy?id=' + id;
+                }
+            });
+        },
     }
 
 }
@@ -43,23 +85,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    cancelRequest = function(id) {
-        confirmAction('Are you sure you want to cancel this service request?')
-            .then(confirmed => {
-                if (confirmed) {
-                    window.location.href = '/?q=service/cancel&id=' + id;
-                }
-            });
-    }
+    
 
-    uncancelRequest = function(id) {
-        confirmAction('Are you sure you want to restore this service request?')
-            .then(confirmed => {
-                if (confirmed) {
-                    window.location.href = '/?q=service/uncancel&id=' + id;
-                }
-            });
-    };
+    
 
 });
 

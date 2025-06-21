@@ -79,7 +79,7 @@
                 formData.append('attachment', fileInput.files[0]);
                 formData.append('comment', commentInput.value);
 
-                fetch('/?q=service/uploadAttachment', {
+                fetch('/service/uploadAttachment', {
                         method: 'POST',
                         body: formData
                     })
