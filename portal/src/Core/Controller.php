@@ -143,7 +143,7 @@ abstract class Controller
     protected function forvardV2(string $controller, string $action = 'index', array $params = []): bool
     {
 
-        $controllerClass = 'App\\Controller\\' . ucfirst($controller) . '\\'. ucfirst($action) . 'Controller';
+        $controllerClass = 'App\\Controller\\' . ucfirst($controller) . '\\'. ucfirst($action) ;
         if (!class_exists($controllerClass)) {
             return false;
         }
