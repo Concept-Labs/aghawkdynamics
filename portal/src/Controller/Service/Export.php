@@ -103,7 +103,7 @@ class Export extends Controller
             }
 
             header('Content-Type: application/csv');
-            header('Content-Disposition: attachment; filename="parcels.csv"');
+            header('Content-Disposition: attachment; filename="activity.csv"');
             header('Pragma: no-cache');
             header('Expires: 0');
             $output = fopen('php://output', 'w');

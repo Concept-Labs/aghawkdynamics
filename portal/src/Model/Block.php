@@ -127,4 +127,20 @@ class Block extends Model
         return $collection;
     }
 
+    /**
+     * Delete an attachment by its ID.
+     *
+     * @param int $attachmentId
+     * @throws \InvalidArgumentException
+     */
+    public function deleteAttachment(int $attachmentId): void
+    {
+        $attachment = (new BlockAttachment())->load($attachmentId);
+        if (!$attachment->getId()) {
+            throw new \InvalidArgumentException('Attachment not found.');
+        }
+
+        $attachment->delete($attachment->getId());
+    }
+
 }

@@ -490,6 +490,7 @@ tr:hover .action-btn {
   min-width: 220px;
   background: var(--card);
   box-shadow: var(--shadow);
+  border: var(--border);
   border-radius: var(--radius);
   overflow: hidden;
 

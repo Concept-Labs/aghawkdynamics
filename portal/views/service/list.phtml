@@ -141,10 +141,12 @@ $statusCssClass = [
                             <input name="filters[reason]" type="text" placeholder="Reason" value="<?= htmlspecialchars($filters['reason'] ?? '') ?>" />
                         </th>
                         <th>
-                            <input name="filters[total_acres]" type="text" placeholder="Total Acres" value="<?= htmlspecialchars($filters['total_acres'] ?? '') ?>" />
+                            <!--input name="filters[total_acres]" type="text" placeholder="Total Acres" value="<?= htmlspecialchars($filters['total_acres'] ?? '') ?>" /-->
+                            <span>Total Acres</span>
                         </th>
                         <th>
-                            <input name="filters[parcel.name]" type="text" placeholder="Parcel" value="<?= htmlspecialchars($filters['parcel.name'] ?? '') ?>" />
+                            <!--input name="filters[parcel.name]" type="text" placeholder="Parcel" value="<?= htmlspecialchars($filters['parcel.name'] ?? '') ?>" /-->
+                            <span>Parcel</span>
                         </th>
                         
                         <th>
@@ -179,7 +181,11 @@ $statusCssClass = [
                             </td>
                             <td><?= (new DateTimeImmutable($serviceModel->get('date')))->format(Config::get('date_format')) ?></td>
                             <td><?= htmlspecialchars($serviceModel->get('type')) ?></td>
-                            <td><?= htmlspecialchars($serviceModel->get('reason')) ?></td>
+                            <td
+                                style="max-width: 300px; overflow: hidden; text-overflow: ellipsis;"
+                            >
+                                <?= htmlspecialchars($serviceModel->get('reason')) ?>
+                            </td>
                             <td>
                                 <?php
                                 $totalAcres = $serviceModel->getTotalServiceAcres();

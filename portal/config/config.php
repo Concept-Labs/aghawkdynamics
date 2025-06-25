@@ -37,17 +37,7 @@ return [
         'plan_id' => 'P-4K230313VV8377501NBBK6EA', 
     ],
     'upload_dir' => 'uploads',
-    'upload_types' => [
-        'image/jpeg',
-        'image/png',
-        'image/gif',
-        'application/pdf',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/vnd.ms-excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'text/plain'
-    ],
+
     'max_upload_size' => 10485760, // 10 MB
 
     'parcel' => [

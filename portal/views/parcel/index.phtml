@@ -167,7 +167,7 @@ $parcelCollection = $this->var('parcels', []);
                                     <?php if (User::getInstance()->getAccount()->isSubscribed()): ?>
 
                                         <a class="hover-brand-green <?php if (!$parcelModel->canSelfTrack()): ?>disabled<?php endif; ?>" 
-                                            href="/service/selftrack&parcel=<?= $parcelModel->getId() ?>"
+                                            href="/service/track&parcel=<?= $parcelModel->getId() ?>"
                                         >
                                         Self Tracking</a>
                                     <?php endif;?>

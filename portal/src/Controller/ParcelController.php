@@ -100,12 +100,21 @@ class ParcelController extends Controller
 
         // If the request is a POST, attempt to create a new parcel
         try {
+            $data = $this->getRequest()->post('parcel', []);
+
+            $collection  = (new Parcel())->getCollection();
+            $collection->addFilter(['name' => $data['name'] ?? '']);
+            if ($collection->count() > 0) {
+                throw new \Exception('Parcel with this ID already exists.');
+            }
+
+
             (new Parcel())->create(
-                ['account_id' => User::uid()] + $this->getRequest()->post('parcel', [])
+                ['account_id' => User::uid()] + $data
             );
         } catch (\Throwable $e) {
             $this->getRequest()->addError(
-                'Unable to create Parcel '// . $e->getMessage()
+                'Unable to create Parcel: ' . $e->getMessage()
             );
         } finally {
             $this->redirect('/parcel');

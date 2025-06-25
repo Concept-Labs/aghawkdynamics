@@ -88,6 +88,9 @@ $parcels = $this->var('parcels', []);
         <?php foreach ($blockModel?->getAttachments() as $attachment): ?>
           <div class="tooltipable">
           <a href="/<?= htmlspecialchars($attachment->getUrl()) ?>" target="_blank"><?= htmlspecialchars($attachment->getName()) ?></a>
+          <?php if (User::isAdmin()): ?>
+            <button class="btn delete" type="button" onclick="Portal.Block.deleteAttachment(<?= $blockModel?->getId() ?>, <?= $attachment->getId() ?>)">x</button>
+          <?php endif ?>
         <tooltip class="tooltip">
           <?= htmlspecialchars($attachment->getComment()) ?>
           <?php

@@ -56,6 +56,24 @@ Portal = {
                 }
             });
         },
+        deleteAttachment    : function(service_id, attachmentId) {
+            confirmAction('Are you sure you want to delete this attachment?')
+            .then(confirmed => {
+                if (confirmed) {
+                    window.location.href = '/service/deleteAttachment?service_id=' + service_id + '&attachment_id=' + attachmentId;
+                }
+            });
+        }
+    },
+    Block: {
+        deleteAttachment    : function(block_id, attachmentId) {
+            confirmAction('Are you sure you want to delete this attachment?')
+            .then(confirmed => {
+                if (confirmed) {
+                    window.location.href = '/block/deleteAttachment?block_id=' + block_id + '&attachment_id=' + attachmentId;
+                }
+            });
+        }
     }
 
 }

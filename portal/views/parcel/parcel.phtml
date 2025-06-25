@@ -89,7 +89,7 @@ $parcelBlocks = $parcelModel?->getBlocks();
               <a class="btn brand-yellow" href="/service/request?parcel=<?= $parcel['id'] ?>">Request Service</a>
             <?php endif ?>
             <?php if ($parcel['id'] && User::getInstance()->getAccount()->isSubscribed()): ?>
-                <a class="btn brand-green" href="/service/selftrack?parcel=<?= $parcel['id'] ?>">Self Tracking</a>
+                <a class="btn brand-green" href="/service/track?parcel=<?= $parcel['id'] ?>">Self Tracking</a>
             <?php endif ?>
             </div>
         <?php endif;?>

@@ -1,9 +1,16 @@
-<?php if ($attachments?->count() > 0): ?>
+<?php
+
+use App\Model\Account\User;
+
+ if ($attachments?->count() > 0): ?>
     <fieldset>
         <legend>Attachments</legend>
         <?php foreach ($attachments as $attachment): ?>
             <div class="tooltipable">
                 <a href="<?= htmlspecialchars($attachment->getUrl()) ?>" target="_blank"><?= htmlspecialchars($attachment->getName()) ?></a>
+                <?php if (User::isAdmin()): ?>
+                    <button class="btn delete" type="button" onclick="Portal.Service.deleteAttachment(<?= $serviceModel?->getId() ?>, <?= $attachment->getId() ?>)">x</button>
+                <?php endif ?>
                 <tooltip class="tooltip tooltip-bottom">
                     <?= htmlspecialchars($attachment->getComment()) ?>
                     <?php

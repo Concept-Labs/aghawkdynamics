@@ -333,10 +333,10 @@ class ServiceController extends Controller
             if (empty($file['name'])) {
                 throw new \RuntimeException('No file uploaded');
             }
-            $allowedTypes = Config::get('upload_types');
-            if (!in_array($file['type'], $allowedTypes)) {
-                throw new \RuntimeException('Invalid file type. Allowed types: ' . implode(', ', $allowedTypes));
-            }
+            // $allowedTypes = Config::get('upload_types');
+            // if (!in_array($file['type'], $allowedTypes)) {
+            //     throw new \RuntimeException('Invalid file type. Allowed types: ' . implode(', ', $allowedTypes));
+            // }
             if ($file['size'] > Config::get('max_upload_size')) {
                 throw new \RuntimeException('File size exceeds the maximum limit');
             }
@@ -388,6 +388,43 @@ class ServiceController extends Controller
             ]);
             return;
         }
+    }
+
+    /**
+     * Delete an attachment from a service request.
+     *
+     * @return void
+     */
+    public function deleteAttachment(): void
+    {
+        if (!User::isAdmin()) {
+            $this->getRequest()->addError('Access denied. Only admins can delete attachments.');
+            $this->redirectReferer();
+            return;
+        }
+
+        try {
+            $serviceId = (int)$this->getRequest()->request('service_id', 0);
+            $attachmentId = (int)$this->getRequest()->request('attachment_id', 0);
+            if (!$attachmentId) {
+                throw new \InvalidArgumentException('Invalid attachment ID.');
+            }
+
+            $service = (new ServiceRequest())->load($serviceId);
+            if (!$service->getId()) {
+                throw new \InvalidArgumentException('Service not found.');
+            }
+
+            $service->deleteAttachment($attachmentId);
+
+            $this->getRequest()->addMessage('Attachment deleted successfully.');
+        } catch (\Throwable $e) {
+            $this->getRequest()->addError(
+                'An error occurred while processing your request: ' . $e->getMessage()
+            );
+        }
+
+        $this->redirectReferer();
     }
 
     

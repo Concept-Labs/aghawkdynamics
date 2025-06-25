@@ -1,6 +1,7 @@
 <?php
 
 use App\Core\Config;
+use App\Core\Registry;
 use App\Model\Account\User;
 use App\Model\ServiceRequest;
 
@@ -38,7 +39,7 @@ if (User::isAdmin() || $isSelfTracking) { //attachments are only for admin or se
 
 <div class="entity-form card">
 
-  <form action="/service/<?php echo $serviceModel?->getId() ? 'edit' : 'request'?>" method="post" id="service-form">
+  <form action="/service/<?php echo $serviceModel?->getId() ? 'edit' : (Registry::get('kind') == ServiceRequest::KIND_SELF_TRACKING  ? 'track' : 'request') ?>" method="post" id="service-form">
     <?php if ($serviceModel?->getId()): ?>
       <input type="hidden" name="service[account_id]" value="<?= (int)$serviceModel?->getAccountId() ?>">
       <input type="hidden" name="service[id]" value="<?= (int)$serviceModel?->getId() ?>">
@@ -156,12 +157,12 @@ if (User::isAdmin() || $isSelfTracking) { //attachments are only for admin or se
         <?php if ($serviceModel?->getId()): ?>
             <?php if ($serviceModel?->canEdit()):?>
               <button class="btn brand-green" type="submit">
-                  Update
+                  Save
               </button>
             <?php endif; ?>
           <?php else: ?>
             <button class="btn brand-green" type="submit">
-              Create
+              Save
             </button>
         <?php endif; ?>
     </div>

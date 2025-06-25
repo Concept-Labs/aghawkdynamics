@@ -602,6 +602,21 @@ class ServiceRequest extends Model
         return $collection;
     }
 
+    /**
+     * Delete an attachment by its ID.
+     *
+     * @param int $id
+     * @throws \InvalidArgumentException
+     */
+    public function deleteAttachment(int $id): void
+    {
+        $attachment = (new ServiceRequestAttachment())->load($id);
+        if (!$attachment->getId()) {
+            throw new \InvalidArgumentException('Attachment not found.');
+        }
+        $attachment->delete($attachment->getId());
+    }
+
 
     /**
      * Validate service request data.

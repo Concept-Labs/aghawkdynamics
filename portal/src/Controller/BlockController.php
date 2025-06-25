@@ -187,10 +187,10 @@ class BlockController extends Controller
             if (empty($file['name'])) {
                 throw new \RuntimeException('No file uploaded');
             }
-            $allowedTypes = Config::get('upload_types');
-            if (!in_array($file['type'], $allowedTypes)) {
-                throw new \RuntimeException('Invalid file type. Allowed types: ' . implode(', ', $allowedTypes));
-            }
+            // $allowedTypes = Config::get('upload_types');
+            // if (!in_array($file['type'], $allowedTypes)) {
+            //     throw new \RuntimeException('Invalid file type. Allowed types: ' . implode(', ', $allowedTypes));
+            // }
             if ($file['size'] > Config::get('max_upload_size')) {
                 throw new \RuntimeException('File size exceeds the maximum limit');
             }
@@ -242,6 +242,42 @@ class BlockController extends Controller
             ]);
             return;
         }
+    }
+
+    /**
+     * Delete an attachment from a block.
+     *
+     * @return void
+     */
+    function deleteAttachment(): void
+    {
+
+        
+        try {
+            if (!User::isAdmin()) {
+                throw new \RuntimeException('Access denied. Only admins can delete attachments.');
+            }
+
+            $attachmentId = (int)$this->getRequest()->request('attachment_id', 0);
+            $blockId = (int)$this->getRequest()->request('block_id', 0);
+
+            if (!$attachmentId || !$blockId) {
+                throw new \RuntimeException('Attachment ID and Block ID are required');
+            }
+
+            $block = (new Block())->load($blockId);
+            if (!$block->getId()) {
+                throw new \RuntimeException('Block not found');
+            }
+
+            $block->deleteAttachment($attachmentId);
+
+            $this->getRequest()->addMessage('Attachment deleted successfully');
+        } catch (\Throwable $e) {
+            $this->getRequest()->addError('An error occurred: ' . $e->getMessage());
+        }
+
+        $this->redirectReferer();
     }
 
     /**

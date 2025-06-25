@@ -146,10 +146,10 @@ class Index extends Controller
             $this->getCollection()->addParam('type', $filters['type']);
         }
 
-        if (!empty($filters['reason'])) {
-            $where .= sprintf(" AND main.reason = :reason");
-            $this->getCollection()->addParam('reason', $filters['reason']);
-        }
+        // if (!empty($filters['reason'])) {
+        //     $where .= sprintf(" AND main.reason = :reason");
+        //     $this->getCollection()->addParam('reason', $filters['reason']);
+        // }
 
         if (!empty($filters['date_from'])) {
             $where .= sprintf(" AND main.date >= :date_from");
@@ -159,6 +159,11 @@ class Index extends Controller
         if (!empty($filters['date_to'])) {
             $where .= sprintf(" AND main.date <= :date_to");
             $this->getCollection()->addParam('date_to', $filters['date_to']);
+        }
+
+        if (!empty($filters['reason'])) {
+            $where .= sprintf(' AND main.reason LIKE "%%%s%%"', $filters['reason']);
+            //$this->getCollection()->addParam('reason', $filters['reason']);
         }
 
          if (!User::isAdmin()) {

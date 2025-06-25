@@ -2,7 +2,7 @@
 
 use App\Model\Account\User;
 
-$requestModel = $this->var('requestModel');
+$requestModel = $this->var('serviceModel');
 $completeData = $requestModel->getCompleteData();
 $completeAt = new DateTimeImmutable($requestModel->get('completed_at'));
 $attachments = $requestModel->getAttachments();
@@ -18,14 +18,7 @@ $attachments = $requestModel->getAttachments();
         <input type="date" disabled value="<?= htmlspecialchars($completeAt->format('Y-m-d')) ?>">
         <label>Completed At:</label>
     </div>
-    <div class="fld">
-        <input type="text" disabled value="<?= htmlspecialchars($requestModel->getParcel()->get('name')) ?>">
-        <label>Parcel</label>
-    </div>
-    <div class="fld">
-        <input type="text" disabled value="<?= htmlspecialchars($requestModel->getBlock()->get('name')) ?>">
-        <label>Block</label>
-    </div>
+    
     <div class="fld">
         <input type="number" disabled value="<?= htmlspecialchars($completeData['temperature']) ?>" step="0.1" min="0" max="100">
         <label>Temperature (°F):</label>
