@@ -73,12 +73,16 @@ class AuthController extends Controller
 
                 $this->validateSignUpData($data);
 
-                $this->createAccount($data);
+                $account = $this->createAccount($data);
+
+                $this->sendWelcomeEmail($account);
 
                 $this->redirect('/auth/login');
 
             } catch (\Throwable $e) {
                 $this->getRequest()->addError($e->getMessage());
+                $this->redirectReferer();
+                return;
             }
 
         }
@@ -153,7 +157,14 @@ class AuthController extends Controller
         $data['password'] = Account::hashPassword($data['password']);
         $data['status'] = Account::STATUS_ACTIVE;
 
-        return (new Account())->create($data);
+        $account = (new Account())->create($data);
+        $account->load($account->getId());
+
+        if (!$account->getId()) {
+            throw new SignUpException('Could not create account');
+        }
+
+        return $account;
     }
 
     /**
@@ -300,6 +311,41 @@ class AuthController extends Controller
         }
 
         $this->redirectReferer();
+    }
+
+    /**
+     * Send a welcome email to the user after successful signup
+     *
+     * @param Account $account The account object of the newly created user
+     * @return void
+     */
+    private function sendWelcomeEmail(Account $account): void
+    {
+        try {
+            ob_start();
+            require __DIR__ . '/../../views/email/welcome.phtml';
+            $emailContent = ob_get_clean();
+
+            $mail = new PHPMailer(true);
+            $config = Config::get('email');
+            $mail->isSMTP();
+            $mail->setFrom($config['from_email'], $config['from_name']);
+            $mail->addAddress($account->get('email'));
+            $mail->isHTML(true);
+            $mail->SMTPAuth     = true;
+            $mail->SMTPSecure   = PHPMailer::ENCRYPTION_STARTTLS;
+            //$mail->SMTPSecure   = PHPMailer::ENCRYPTION_SMTPS;
+            $mail->Host         = $config['smtp_host'];
+            $mail->Port         = $config['smtp_port'];
+            $mail->Username     = $config['smtp_username'];
+            $mail->Password     = $config['smtp_password'];
+            $mail->Subject      = 'Welcome to AG Hawk Dynamics';
+            $mail->Body         = $emailContent;
+
+            $mail->send();
+        } catch (Exception $e) {
+            // Log the error or handle it as needed
+        }
     }
 
     /**
