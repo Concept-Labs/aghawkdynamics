@@ -277,6 +277,7 @@ class AuthController extends Controller
                 $mail->isHTML(true);
                 $mail->SMTPAuth     = true;
                 $mail->SMTPSecure   = PHPMailer::ENCRYPTION_STARTTLS;
+                //$mail->SMTPSecure   = PHPMailer::ENCRYPTION_SMTPS;
                 $mail->Host         = $config['smtp_host'];
                 $mail->Port         = $config['smtp_port'];
                 $mail->Username     = $config['smtp_username'];
@@ -289,7 +290,7 @@ class AuthController extends Controller
                 throw new \RuntimeException('Could not send reset email. Mailer Error: ' . $mail->ErrorInfo);
             }
 
-            $this->getRequest()->addMessage('A password reset link has been sent to your email address.');
+            $this->getRequest()->addInfo('A password reset link has been sent to your email address.');
             $this->redirect('/auth/login');
             return;
 

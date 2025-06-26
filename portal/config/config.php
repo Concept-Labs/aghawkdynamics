@@ -17,11 +17,19 @@ return [
         //  'smtp_password' => 'qtvdklmyphspblll',
         //  'from_email' => 'portal@aghawkdynamics.com',
         //  'from_name' => 'AG Hawk Dynamics',
-        'smtp_host' => 'smtp.ethereal.email',
+
+        // 'smtp_host' => 'smtp.ethereal.email',
+        // 'smtp_port' => 587,
+        // 'smtp_username' => 'columbus.wolf@ethereal.email',
+        // 'smtp_password' => 'MXRmzYTkMHZrd262r9',
+        // 'from_email' => 'columbus.wolf@ethereal.email',
+        // 'from_name' => 'AG Hawk Dynamics',
+
+        'smtp_host' => 'smtp.hostinger.com',
         'smtp_port' => 587,
-        'smtp_username' => 'columbus.wolf@ethereal.email',
-        'smtp_password' => 'MXRmzYTkMHZrd262r9',
-        'from_email' => 'columbus.wolf@ethereal.email',
+        'smtp_username' => 'notifications@aghawkdynamics.com',
+        'smtp_password' => 'swjS3aLRZh2#',
+        'from_email' => 'notifications@aghawkdynamics.com',
         'from_name' => 'AG Hawk Dynamics',
     ],
     'recaptcha' => [

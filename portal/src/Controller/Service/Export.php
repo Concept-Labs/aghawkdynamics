@@ -97,10 +97,10 @@ class Export extends Controller
 
             ];
 
-            if (!User::isAdmin()) {
-                // If the user is not an admin, remove the 'Block Nickname' column
-                unset($csvHeaders[11]);
-            }
+            // if (!User::isAdmin()) {
+            //     // If the user is not an admin, remove the account name from the headers
+            //     unset($csvHeaders[2]);
+            // }
 
             header('Content-Type: application/csv');
             header('Content-Disposition: attachment; filename="activity.csv"');
