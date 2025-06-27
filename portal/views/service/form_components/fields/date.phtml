@@ -1,6 +1,19 @@
 <?php
 
+use App\Core\Registry;
 use App\Model\Account\User;
+use App\Model\ServiceRequest;
+
+$dateRestriction = false; // Set to true if you want to restrict the date input
+
+$isSelfTracking = (
+    Registry::get(ServiceRequest::COLUMN_KIND) == ServiceRequest::KIND_SELF_TRACKING 
+    ||
+    (
+        $serviceModel?->getId() 
+        && $serviceModel?->get(ServiceRequest::COLUMN_KIND) == ServiceRequest::KIND_SELF_TRACKING
+    )
+);
 
 if (!$isSelfTracking):  //No need Date for self track or admin
     // Calculate minimum date for non-urgent (7 business days ahead)
@@ -12,7 +25,7 @@ if (!$isSelfTracking):  //No need Date for self track or admin
             $businessDays++;
         }
     }
-    $minDateStr = $minDate->format('Y-m-d');
+    $minDateStr = $dateRestriction ? $minDate->format('Y-m-d') : '';
 
     // Calculate minimum date for urgent (next business day)
     $minUrgentDate = new DateTime();
@@ -31,7 +44,7 @@ if (!$isSelfTracking):  //No need Date for self track or admin
         </div>
         <div id="fld_date" class="fld" style="flex: 2;">
             <input type="date" name="service[date]" placeholder=" " required min="<?= User::isAdmin() ? '' : $minDateStr ?>"
-                value="<?= (new DateTimeImmutable($serviceModel?->get('date') ?: ''))->format('Y-m-d') ?>"
+                value="<?= $serviceModel?->getId() ? (new DateTimeImmutable($serviceModel?->get('date') ?: ''))->format('Y-m-d') : '' ?>"
                 title="Urgent services must be requested at least 1 day in advance. Non-urgent services must be requested at least 7 days in advance.">
             <label>Service need by date</label>
         </div>

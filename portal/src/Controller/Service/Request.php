@@ -64,16 +64,17 @@ class Request extends Controller
                     throw new \InvalidArgumentException('Requested parcel not found.');
                 }
             }
-            //$requestedBlockId = (int)$this->getRequest()->request('block_id', 0);
+            $requestedBlockId = (int)$this->getRequest()->request('block', 0);
 
             $this->render(
                 'service/request',
                 [
+                    'serviceModel' => $serviceModel,
                     'readonly' => Registry::get('service_request_readonly', false),
                     'kind' => Registry::get('service_kind') ?? $this->getRequest('kind', ServiceRequest::KIND_REQUEST),
                     'parcelCollection' => $parcelCollection,
                     'requestedParcel' => $requestedParcel,
-                    'serviceModel' => $serviceModel,
+                    'requestedBlockId' => $requestedBlockId,
                 ]
             );
         } catch (\Throwable $e) {

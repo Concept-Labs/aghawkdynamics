@@ -1,6 +1,7 @@
 <?php
 
     $requestedParcel = $this->var('requestedParcel', null);
+    $requestedBlockId = $this->var('requestedBlockId', null);
 
     $selectedParcels = [];
     if ($serviceModel?->getServiceParcels()) {
@@ -255,6 +256,21 @@ document.addEventListener('DOMContentLoaded', () => {
     <?php foreach ($selectedParcels as $idx => $parcel): ?>
         addParcelBlockSelection(<?= $idx ?>, <?= (int)$parcel['parcel_id'] ?>, [<?= implode(',', $parcel['blocks']) ?>], false);
     <?php endforeach; ?>
+
+    <?php if (!$serviceModel?->getId()): ?>
+        <?php if ($requestedParcel): ?>
+            <?php if ($requestedBlockId): ?>
+                // If a specific block is requested, preselect it
+                addParcelBlockSelection(counter++, <?= (int)$requestedParcel->getId() ?>, [<?= (int)$requestedBlockId ?>], false);
+            <?php else: ?>
+            // If a specific parcel is requested, preselect it
+            addParcelBlockSelection(counter++, <?= (int)$requestedParcel->getId()?>, <?= json_encode($requestedParcel->getBlockIds()) ?>, false);
+            <?php endif; ?>
+        <?php else: ?>
+            // Add one empty row if no service ID
+            addParcelBlockSelection(counter++);
+        <?php endif; ?>
+    <?php endif; ?>
 
 });
 </script>

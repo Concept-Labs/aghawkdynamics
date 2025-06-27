@@ -368,9 +368,9 @@ $parcelBlocks = $parcelModel?->getBlocks();
                   <div class="actions-menu" style="text-align:left">
                     <a href="/block/edit?id=<?= $block['id'] ?>">Edit</a>
                     <div class="sep"></div>
-                    <a class="hover-brand-yellow" href="/service/request&parcel=<?= $block['parcel_id'] ?>?block=<?= $block['id'] ?>">Request Service</a>
+                    <a class="hover-brand-yellow" href="/service/request?parcel=<?= $block['parcel_id'] ?>&block=<?= $block['id'] ?>">Request Service</a>
                     <?php if (User::getInstance()->getAccount()->isSubscribed()): ?>
-                      <a class="hover-brand-green" href="/service/selftrack&parcel=<?= $block['parcel_id'] ?>?block=<?= $block['id'] ?>">Self Tracking</a>
+                      <a class="hover-brand-green" href="/service/selftrack?parcel=<?= $block['parcel_id'] ?>&block=<?= $block['id'] ?>">Self Tracking</a>
                     <?php endif; ?>
                   </div>
                 </div>
