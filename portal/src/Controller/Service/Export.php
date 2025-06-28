@@ -80,7 +80,7 @@ class Export extends Controller
                         "Product Volume $i",
                         "Product UOM $i"
                     ],
-                    range(1, 6)
+                    range(1, 10)
                 )),
 
                 "Supplier Name",
@@ -126,19 +126,24 @@ class Export extends Controller
                         $service->get('reason'),
                         $service->get('urgent') ? 'Yes' : 'No',
                         $service->get('date') ? (new \DateTimeImmutable($service->get('date')))->format(Config::get('date_format')) : '',
-                        $service->getTotalServiceAcres(),
+                        number_format($service->getTotalServiceAcres(), 3),
                         $service->get('parcel_id'),
                         $service->get('parcel_name'),
                         Block::find($blockId)->get('name'),
                         ...(function ($service) {
                             $products = $service->getCustomProducts();
                             $productRows = [];
-                            for ($i = 1; $i <= 6; $i++) {
+                            for ($i = 1; $i <= 10; $i++) {
                                 $productType = $products[$i - 1]['type'] ?? '';
                                 $productName = $products[$i - 1]['name'] ?? '';
                                 $productVolume = $products[$i - 1]['volume'] ?? '';
                                 $productUOM = $products[$i - 1]['unit'] ?? '';
-                                $productRows[] = [$productType, $productName, $productVolume, $productUOM];
+                                $productRows[] = [
+                                    $productType, 
+                                    $productName, 
+                                    number_format($productVolume, 3),
+                                    $productUOM
+                                ];
                             }
                             return array_merge(...$productRows);
                         })($service),

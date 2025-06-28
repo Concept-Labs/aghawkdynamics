@@ -342,7 +342,7 @@ class BlockController extends Controller
                 $block['parcel_id'],
                 $block['parcel_name'],
                 $block['account_name'],
-                $block['acres'],
+                number_format($block['acres'], 3),
                 $block['notes']
             ], $separator);
         }

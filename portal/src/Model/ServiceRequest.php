@@ -614,9 +614,20 @@ class ServiceRequest extends Model
         if (!$attachment->getId()) {
             throw new \InvalidArgumentException('Attachment not found.');
         }
-        $attachment->delete($attachment->getId());
-    }
 
+        $path = $attachment->get('path');
+
+        $attachment->delete($attachment->getId());
+
+        if ($path && file_exists($path)) {
+            if (!unlink($path)) {
+                //throw new \RuntimeException('Failed to delete attachment file: ' . $path);
+            }
+        }
+
+
+
+    }
 
     /**
      * Validate service request data.

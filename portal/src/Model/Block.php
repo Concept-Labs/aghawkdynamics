@@ -140,6 +140,12 @@ class Block extends Model
             throw new \InvalidArgumentException('Attachment not found.');
         }
 
+        $path = $attachment->get('path');
+        
+        if ($path && file_exists($path)) {
+            unlink($path);
+        }
+
         $attachment->delete($attachment->getId());
     }
 
