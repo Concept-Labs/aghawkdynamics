@@ -37,7 +37,7 @@ return [
         'smtp_username' => 'notifications@portal.aghawkdynamics.com',
         'smtp_password' => '[wirW2A>i[S7',
         'from_email' => 'notifications@portal.aghawkdynamics.com',
-        'from_name' => 'AG Hawk Dynamics',
+        'from_name' => 'Aghawk Dynamics',
 
         // 'smtp_host' => 'smtp.hostinger.com',
         // 'smtp_port' => 587,
@@ -52,16 +52,18 @@ return [
         'secret_key' => '6Ld8DVIrAAAAAO_Dnsd5JOEzA9nNUvjWGRg0D3qO',
     ],
     'paypal' => [
+        
         //sandbox
-        'url' => 'https://api-m.sandbox.paypal.com', //sandbox
-        'client_id' => 'AeESlAl2DwCHcUTBTXvQsazPg3JNyI2zOo_6Za7cxQgMeYhbqtt9WxWKkf6eOqDAb2Lz1wSVmk8oqay8',
-        'secret' => 'EFnRZJOWGLisBQMPc0fG9UKM6dfD2s9xiBTpPgnGk532xnSe2OTJkvb3pAV8WXTtzEz8tnnWzohYhqKw',
-        'plan_id' => 'P-4K230313VV8377501NBBK6EA', 
-        //live
-        // 'url' => 'https://api-m.paypal.com', //live
-        // 'client_id' => 'AbvbXYvgv0FjNzI1XYGtHJRzheSGcQlkLLIAY4nt87e8NlabQ3ZQAVAH-HXzgSZ-ihXV50eQWlZO9Pdl',
-        // 'secret' => 'EEl9CLdMai50DYqeKbnKhd8ksIiy49ZZeQBYLwlFJ1cUXoFQhAoW1BZmqqfXpW662qQgWmxxjEk4iXzJ',
+        // 'url' => 'https://api-m.sandbox.paypal.com', //sandbox
+        // 'client_id' => 'AeESlAl2DwCHcUTBTXvQsazPg3JNyI2zOo_6Za7cxQgMeYhbqtt9WxWKkf6eOqDAb2Lz1wSVmk8oqay8',
+        // 'secret' => 'EFnRZJOWGLisBQMPc0fG9UKM6dfD2s9xiBTpPgnGk532xnSe2OTJkvb3pAV8WXTtzEz8tnnWzohYhqKw',
         // 'plan_id' => 'P-4K230313VV8377501NBBK6EA', 
+
+        //live
+        'url' => 'https://api-m.paypal.com', //live
+        'client_id' => 'AbvbXYvgv0FjNzI1XYGtHJRzheSGcQlkLLIAY4nt87e8NlabQ3ZQAVAH-HXzgSZ-ihXV50eQWlZO9Pdl',
+        'secret' => 'EEl9CLdMai50DYqeKbnKhd8ksIiy49ZZeQBYLwlFJ1cUXoFQhAoW1BZmqqfXpW662qQgWmxxjEk4iXzJ',
+        'plan_id' => 'P-73B28699WX4416934M7LQSDA', 
     ],
     'upload_dir' => 'uploads',
 
