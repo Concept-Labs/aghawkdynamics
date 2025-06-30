@@ -39,12 +39,12 @@ return [
         'from_email' => 'notifications@portal.aghawkdynamics.com',
         'from_name' => 'AG Hawk Dynamics',
 
-        'smtp_host' => 'smtp.hostinger.com',
-        'smtp_port' => 587,
-        'smtp_username' => 'ceo@concept-labs.net',
-        'smtp_password' => 'smxksmxkcC1@#',
-        'from_email' => 'ceo@concept-labs.net',
-        'from_name' => 'AG Hawk Dynamics (third-party)',
+        // 'smtp_host' => 'smtp.hostinger.com',
+        // 'smtp_port' => 587,
+        // 'smtp_username' => 'ceo@concept-labs.net',
+        // 'smtp_password' => 'smxksmxkcC1@#',
+        // 'from_email' => 'ceo@concept-labs.net',
+        // 'from_name' => 'AG Hawk Dynamics (third-party)',
     ],
     'recaptcha' => [
         'enabled' => false,
