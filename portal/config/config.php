@@ -38,6 +38,7 @@ return [
         'smtp_password' => '[wirW2A>i[S7',
         'from_email' => 'notifications@portal.aghawkdynamics.com',
         'from_name' => 'Aghawk Dynamics',
+        'reply_to' => 'portal@aghawkdynamics.com'
 
         // 'smtp_host' => 'smtp.hostinger.com',
         // 'smtp_port' => 587,
@@ -52,7 +53,7 @@ return [
         'secret_key' => '6Ld8DVIrAAAAAO_Dnsd5JOEzA9nNUvjWGRg0D3qO',
     ],
     'paypal' => [
-        
+
         //sandbox
         // 'url' => 'https://api-m.sandbox.paypal.com', //sandbox
         // 'client_id' => 'AeESlAl2DwCHcUTBTXvQsazPg3JNyI2zOo_6Za7cxQgMeYhbqtt9WxWKkf6eOqDAb2Lz1wSVmk8oqay8',

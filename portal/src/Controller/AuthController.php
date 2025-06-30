@@ -284,6 +284,7 @@ class AuthController extends Controller
                 $config = Config::get('email');
                 $mail->isSMTP();
                 $mail->setFrom($config['from_email'], $config['from_name']);
+                $mail->addReplyTo($config['reply_to'], $config['from_name']);
                 $mail->addAddress($userEmail);
                 $mail->isHTML(true);
                 $mail->SMTPAuth     = true;
@@ -331,6 +332,7 @@ class AuthController extends Controller
             $mail->isSMTP();
             $mail->setFrom($config['from_email'], $config['from_name']);
             $mail->addAddress($account->get('email'));
+            $mail->addReplyTo($config['reply_to'], $config['from_name']);
             $mail->isHTML(true);
             $mail->SMTPAuth     = true;
             $mail->SMTPSecure   = PHPMailer::ENCRYPTION_STARTTLS;
