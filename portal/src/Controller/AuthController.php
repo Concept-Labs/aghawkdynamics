@@ -339,7 +339,7 @@ class AuthController extends Controller
             $mail->Port         = $config['smtp_port'];
             $mail->Username     = $config['smtp_username'];
             $mail->Password     = $config['smtp_password'];
-            $mail->Subject      = 'Welcome to AG Hawk Dynamics';
+            $mail->Subject      = 'Welcome to Aghawk Portal - Your account is Ready!';
             $mail->Body         = $emailContent;
 
             $mail->send();
