@@ -1,7 +1,0 @@
-
-.vscode
-config/config.php.local.php
-vendor
-public/attachments
-public/uploads
-vendor
