@@ -3,13 +3,7 @@ return [
     'debug' => true,
     'domain' => 'https://portal.aghawkdynamics.com/',
     'date_format' => 'm/d/Y',
-    'db' => [
-        'host' => 'localhost',
-        'port' => 3306,
-        'user' => 'root',
-        'password' => 'smxksmxkmM1@',
-        'database_name' => 'a_gpt'
-    ],
+    
     'db' => [
         'host' => 'localhost',
         'port' => 3306,

@@ -22,3 +22,6 @@ admin/_dbconn.php
 *.bak
 *.swp
 .DS_Store
+
+#portal
+config.php.local.php
