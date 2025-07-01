@@ -10,28 +10,14 @@ return [
         'password' => 'smxksmxkmM1@',
         'database_name' => 'a_gpt'
     ],
-    // 'db' => [
-    //     'host' => 'localhost',
-    //     'port' => 3306,
-    //     'user' => 'u631408843_portal_user',
-    //     'password' => '$w0;!A1b',
-    //     'database_name' => 'u631408843_portal'
-    // ],
+    'db' => [
+        'host' => 'localhost',
+        'port' => 3306,
+        'user' => 'u631408843_portal_user',
+        'password' => '$w0;!A1b',
+        'database_name' => 'u631408843_portal'
+    ],
     'email' => [
-        //  'smtp_host' => 'smtp.office365.com',
-        //  'smtp_port' => 587,
-        //  'smtp_username' => 'portal@aghawkdynamics.com',
-        //  'smtp_password' => 'qtvdklmyphspblll',
-        //  'from_email' => 'portal@aghawkdynamics.com',
-        //  'from_name' => 'AG Hawk Dynamics',
-
-        // 'smtp_host' => 'smtp.ethereal.email',
-        // 'smtp_port' => 587,
-        // 'smtp_username' => 'columbus.wolf@ethereal.email',
-        // 'smtp_password' => 'MXRmzYTkMHZrd262r9',
-        // 'from_email' => 'columbus.wolf@ethereal.email',
-        // 'from_name' => 'AG Hawk Dynamics',
-
         'smtp_host' => 'smtp.hostinger.com',
         'smtp_port' => 587,
         'smtp_username' => 'notifications@portal.aghawkdynamics.com',
@@ -39,16 +25,9 @@ return [
         'from_email' => 'notifications@portal.aghawkdynamics.com',
         'from_name' => 'Aghawk Dynamics',
         'reply_to' => 'portal@aghawkdynamics.com'
-
-        // 'smtp_host' => 'smtp.hostinger.com',
-        // 'smtp_port' => 587,
-        // 'smtp_username' => 'ceo@concept-labs.net',
-        // 'smtp_password' => 'smxksmxkcC1@#',
-        // 'from_email' => 'ceo@concept-labs.net',
-        // 'from_name' => 'AG Hawk Dynamics (third-party)',
     ],
     'recaptcha' => [
-        'enabled' => false,
+        'enabled' => true,
         'site_key' => '6Ld8DVIrAAAAADFAOfrJDDrLlxSmVPqhar4TLJlQ',
         'secret_key' => '6Ld8DVIrAAAAAO_Dnsd5JOEzA9nNUvjWGRg0D3qO',
     ],

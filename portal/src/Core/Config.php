@@ -4,10 +4,19 @@ namespace App\Core;
 class Config
 {
     const FILE = __DIR__ . '/../../config/config.php';
+    const LOCAL_FILE = __DIR__ . '/../../config/config.php.local.php';
     const TABLE = 'config';
 
     private static array $data = [];
     private static $isLoaded = false;
+
+    public function __construct()
+    {
+        // Load the default configuration file
+        $this->load();
+        // Merge with local configuration if available
+        //$this->loadLocal();
+    }
 
     /**
      * Load configuration data from a file.
@@ -24,8 +33,12 @@ class Config
             throw new \RuntimeException("Config file not found: " . $file);
         }
         $data = require $file;
+        $localData = @include ($file . '.local.php') ?: []; // Load local config if exists
+        if (is_array($localData)) {
+            $data = array_merge($data, $localData);
+        }
 
-        $data = array_merge($data, self::loadDb());
+        $data = array_merge($data, self::loadDb()); // Load database config if needed
 
         if (!is_array($data)) {
             throw new \RuntimeException("Config file must return an array: " . $file);
@@ -35,6 +48,19 @@ class Config
 
         self::$isLoaded = true;
 
+        return self::$data;
+    }
+
+    /**
+     * Load the default configuration file.
+     *
+     * This method loads the default configuration file and merges it with local configuration if available.
+     *
+     * @return array The merged configuration data.
+     */
+    private function loadLocal(): array
+    {
+        $this->load(self::LOCAL_FILE);
         return self::$data;
     }
 
